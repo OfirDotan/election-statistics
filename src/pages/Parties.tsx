@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { useI18n } from '../i18n/useI18n.ts'
 import { Loading, LoadError, PartyChip } from '../components/ui.tsx'
 import { SeatsPie } from '../components/SeatsPie.tsx'
@@ -12,6 +12,8 @@ import { useTitle } from '../lib/useTitle.ts'
 type Metric = 'seats' | 'votes' | 'pct'
 // The two ballot lists that stood and won no seats, which still get a row (with 0 seats)
 const ZERO_SEAT = new Set(['ך', 'די'])
+// Where the threshold falls in each track: a CSS variable so the stylesheet keeps the placement
+const THRESHOLD_AT = { '--threshold': DEFAULT_THRESHOLD } as CSSProperties
 
 export function Parties() {
   const { t, ln } = useI18n()
@@ -36,10 +38,6 @@ export function Parties() {
   const shown = metric === 'seats' ? sorted.filter((p) => p.seats > 0 || ZERO_SEAT.has(p.key)) : ranked
   // Each bar is drawn against the leader, so the biggest party fills the track in every mode
   const max = Math.max(1, ...shown.map((p) => p[metric]))
-  // The threshold marker sits where the 3.25% line falls, just past the top list below it (the bars
-  // share one scale, so one line serves every row)
-  const lineAt = metric === 'pct' ? shown.filter((p) => p.seats === 0).reduce((m, p) => Math.max(m, p.pct), 0) : null
-  const linePct = lineAt === null ? 0 : (lineAt / max) * 100
   const value = (p: (typeof ranked)[number]) => (metric === 'seats' ? `${p.seats}` : metric === 'votes' ? fmtInt(p.votes) : fmtPct(p.pct))
 
   // Lists with no votes and no seats, still on the ballot: named in the note rather than given empty bars
@@ -85,15 +83,12 @@ export function Parties() {
                     </span>
                     <span className="pb-track">
                       <span className="pb-fill" style={{ inlineSize: `${(p[metric] / max) * 100}%`, background: p.color }} />
+                      {/* The threshold sits on the same scale as the bars, so it rides inside each track */}
+                      {metric === 'pct' && <span className="pb-threshold" data-label={`אחוז חסימה ${fmtPct(DEFAULT_THRESHOLD * 100, 2)}`} style={THRESHOLD_AT} />}
                     </span>
                     <span className="pb-value num">{value(p)}</span>
                   </li>
                 ))}
-                {lineAt !== null && (
-                  <li className="pb-line" style={{ insetInlineStart: `calc((100% - 5rem - 1.5rem) * ${linePct / 100})` }} aria-hidden="true">
-                    <span className="pb-line-label">אחוז חסימה · {fmtPct(DEFAULT_THRESHOLD * 100, 2)}</span>
-                  </li>
-                )}
               </ol>
               <p className="note">
                 {metric === 'seats' ? t('noteSeats') : metric === 'votes' ? t('votesWord') : t('ofValid')}

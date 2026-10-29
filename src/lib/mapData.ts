@@ -65,7 +65,7 @@ export interface MunicipalTopology {
 /** Places the projected collection on the globe (grid metres to lon/lat, see the fit above) */
 export function toWgs84(geo: MunicipalCollection): MunicipalCollection {
   const lon = (x: number, y: number) => 34.902_710_8 + (x - 3_958_559.2) / 95_112.3 + 0.00616 * ((3_625_574.8 - y) / 95_112.3)
-  const lat = (y: number) => ((2 * Math.atan(Math.exp((y - 3_456_690.5) / 6_378_137)) - Math.PI / 2) * 180) / Math.PI
+  const lat = (y: number) => ((2 * Math.atan(Math.exp((y - 3_456_960.5) / 6_378_137)) - Math.PI / 2) * 180) / Math.PI
   const move = (c: unknown): unknown => (Array.isArray(c) && typeof c[0] === 'number' ? [lon(c[0], c[1]), lat(c[1])] : (c as unknown[]).map(move))
   return {
     ...geo,

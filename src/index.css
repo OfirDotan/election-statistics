@@ -486,32 +486,29 @@ a:hover {
   block-size: 14px;
   background: var(--track);
   border-radius: 5px;
-  overflow: hidden;
 }
-/* The 3.25% electoral threshold, drawn over the percent bars just past the biggest list under it.
-   The list stacks a name row over a track row, so the overlay is anchored to the last list */
-.party-bars {
-  position: relative;
-}
-/* Zero-height and spanning the list, so the dashed line and its label cross every bar */
-.pb-line {
+/* The 3.25% electoral threshold, drawn inside every bar's track on the same scale as the fills */
+.pb-threshold {
   position: absolute;
-  inset-block: 0 0;
-  block-size: 0;
-  inline-size: 0;
-  border-inline-start: 2px dashed var(--text-3);
+  inset-block: -3px;
+  inset-inline-start: calc(var(--threshold) * 100%);
+  border-inline-start: 2px dashed var(--text);
   pointer-events: none;
 }
-.pb-line-label {
+.pb-track {
+  position: relative;
+}
+.pb-threshold::after {
+  content: attr(data-label);
   position: absolute;
-  inset-block-end: calc(100% + 0.35rem);
+  inset-block-end: calc(100% + 0.25rem);
   inset-inline-start: 0;
   transform: translateX(-50%);
-  padding: 0.1rem 0.45rem;
+  padding: 0.1rem 0.35rem;
   border-radius: 999px;
   background: var(--surface);
-  color: var(--text-2);
-  font-size: 0.75rem;
+  color: var(--text-3);
+  font-size: 0.625rem;
   white-space: nowrap;
 }
 .pb-fill {

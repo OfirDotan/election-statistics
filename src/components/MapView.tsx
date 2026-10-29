@@ -137,6 +137,7 @@ export function MapView({
       map.addLayer({ id: 'towns', type: 'fill', source: 'towns', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
       map.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': 'rgba(0,0,0,0.18)', 'line-width': 0.4 } })
     }
+    console.log('TOWNS?', geo.features.length, data.features.length, map.isStyleLoaded(), !!map.getSource('towns'))
     const source = map.getSource('towns') as maplibregl.GeoJSONSource | undefined
     // Before the style is loaded MapLibre drops addSource without an error, and the towns never come back
     if (source) source.setData(data)
