@@ -12,7 +12,7 @@ export interface TownRow {
 
 /** Town voting figures; a town with no vote data gets empty ones. */
 export function townVotes(town: Town): TownVoteInput {
-  return town.votes ?? { eligible: 0, voters: 0, valid: 0, byParty: {} }
+  return town.votes ?? { eligible: 0, voters: 0, valid: 0, invalid: 0, byParty: {} }
 }
 
 /** National shares per party, percent of all valid votes in towns with a ballot breakdown. */

@@ -1,19 +1,14 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { allocate } from '../lib/mandates.ts'
 import { useI18n } from '../i18n/useI18n.ts'
-import { LoadError, Loading, PartyChip, Title } from '../components/ui.tsx'
+import { LoadError, Loading, PartyChip } from '../components/ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
 import { loadMeta } from '../lib/data.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
-type Metric = 'pct' | 'seats' | 'votes'
-
 export function Home() {
   const { t } = useI18n()
   const { towns, party, parties, official, error } = useDataset()
-  const [metric, setMetric] = useState<Metric>('seats')
   const meta = useLoad('meta', loadMeta)
   useTitle('')
 
@@ -21,24 +16,18 @@ export function Home() {
   // double-envelope ballots that no town has, so town sums never reach these numbers
   const ranked = towns
     ? parties
-        .map((p) => ({ ...party(p.key), pct: p.nationalShare ?? 0, votes: p.nationalVotes ?? 0 }))
+        .map((p) => ({ ...party(p.key), votes: p.nationalVotes ?? 0 }))
         .filter((p) => p.votes > 0)
         .sort((a, b) => b.votes - a.votes)
     : []
   const seatOf = Object.fromEntries((official ? allocate({ votes: official.votes }).seats : []).map((s) => [s.key, s.seats]))
-  const maxVotes = ranked[0]?.votes || 1
-  const value = (r: (typeof ranked)[number]) =>
-    metric === 'seats' ? `${seatOf[r.key] ?? 0}` : metric === 'votes' ? fmtInt(r.votes) : fmtPct(r.pct)
-  // Each bar is drawn against the leader, so the biggest party fills the track in every mode
-  const maxSeats = Math.max(1, ...ranked.map((r) => seatOf[r.key] ?? 0))
-  const maxPct = ranked[0]?.pct || 1
-  const width = (r: (typeof ranked)[number]) => (metric === 'seats' ? ((seatOf[r.key] ?? 0) / maxSeats) * 100 : metric === 'votes' ? (r.votes / maxVotes) * 100 : (r.pct / maxPct) * 100)
-  // Ranked by votes; seats reorder the list, so sort on the shown value
-  const sorted = metric === 'pct' ? ranked : [...ranked].sort((a, b) => width(b) - width(a))
-  const withVotes = towns?.filter((x) => x.votes?.source === 'kaplan').length ?? 0
+  // Home shows seats only; the parties page has the seats/votes/percent breakdown
+  const seated = ranked.filter((p) => (seatOf[p.key] ?? 0) > 0)
+  const maxSeats = Math.max(1, ...seated.map((p) => seatOf[p.key] ?? 0))
   const eligible = towns?.reduce((s, x) => s + (x.votes?.eligible ?? 0), 0) ?? 0
   const voters = towns?.reduce((s, x) => s + (x.votes?.voters ?? 0), 0) ?? 0
   const valid = towns?.reduce((s, x) => s + (x.votes?.valid ?? 0), 0) ?? 0
+  const invalid = towns?.reduce((s, x) => s + (x.votes?.invalid ?? 0), 0) ?? 0
 
   return (
     <section className="page">
@@ -66,40 +55,31 @@ export function Home() {
       {towns && (
         <>
           <section className="card" aria-labelledby="national">
-            <div className="row-head">
-              <h2 id="national">{t('national')}</h2>
-              <div className="seg" role="group" aria-label={t('national')}>
-                {(['pct', 'seats', 'votes'] as const).map((m) => (
-                  <button key={m} type="button" className={metric === m ? 'on' : undefined} aria-pressed={metric === m} onClick={() => setMetric(m)}>
-                    {{ pct: t('byPct'), seats: t('bySeats'), votes: t('byVotes') }[m]}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <h2 id="national">{t('national')}</h2>
             <ol className="party-bars">
-              {sorted.filter((p) => metric === 'seats' ? (seatOf[p.key] ?? 0) > 0 : p.votes > 0).map((p) => (
+              {seated.map((p) => (
                 <li key={p.key}>
                   <span className="pb-name">
                     <PartyChip name={p.name} color={p.color} logo={p.logo} />
                   </span>
                   <span className="pb-track">
-                    <span className="pb-fill" style={{ inlineSize: `${width(p)}%`, background: p.color }} />
+                    <span className="pb-fill" style={{ inlineSize: `${((seatOf[p.key] ?? 0) / maxSeats) * 100}%`, background: p.color }} />
                   </span>
-                  <span className="pb-value num">{value(p)}</span>
+                  <span className="pb-value num">{seatOf[p.key] ?? 0}</span>
                 </li>
               ))}
             </ol>
-            <p className="note">{metric === 'seats' ? t('noteSeats') : metric === 'votes' ? t('votesWord') : t('ofValid')}</p>
+            <p className="note">{t('noteSeats')}</p>
           </section>
 
           <dl className="stats">
             <div>
-              <dt>{t('townsWithVotes')}</dt>
-              <dd className="num">{fmtInt(withVotes)}</dd>
-            </div>
-            <div>
               <dt>{t('eligible')}</dt>
               <dd className="num">{fmtInt(eligible)}</dd>
+            </div>
+            <div>
+              <dt>{t('voters')}</dt>
+              <dd className="num">{fmtInt(voters)}</dd>
             </div>
             <div>
               <dt>{t('turnoutOverall')}</dt>
@@ -109,14 +89,11 @@ export function Home() {
               <dt>{t('validVotes')}</dt>
               <dd className="num">{fmtInt(valid)}</dd>
             </div>
+            <div>
+              <dt>{t('invalidVotes')}</dt>
+              <dd className="num">{fmtInt(invalid)}</dd>
+            </div>
           </dl>
-
-          <div className="row-head">
-            <Title sub={t('townsIntro')} h2>{t('townsTitle')}</Title>
-            <Link to="/towns" className="button">
-              {t('results')} →
-            </Link>
-          </div>
         </>
       )}
     </section>

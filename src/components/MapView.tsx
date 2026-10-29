@@ -1,25 +1,23 @@
-import { geoMercator, geoPath } from 'd3-geo'
-import { useMemo, useState, type FocusEvent, type MouseEvent } from 'react'
+import * as maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import { useEffect, useMemo, useRef, useState } from 'react'
+// maplibre-gl 6 ships its worker next to itself and only looks for it when import.meta.url is blank
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { feature } from 'topojson-client'
 import { useI18n } from '../i18n/useI18n.ts'
 import { fmtPct } from '../lib/fmt.ts'
-import type { MunicipalCollection, MunicipalTopology } from '../lib/mapData.ts'
+import { toWgs84, type MunicipalCollection, type MunicipalTopology } from '../lib/mapData.ts'
 import { readableOn, scaleColor, topParty } from '../lib/mapLogic.ts'
 import { share } from '../lib/stats.ts'
 import type { Town } from '../lib/types.ts'
 
+maplibregl.config.WORKER_URL = workerUrl
+
 export type MapMode = 'leader' | 'turnout' | 'share'
 
-const W = 600
-const H = 820
 const NO_DATA = '#d4d4d9'
-
-interface Row {
-  name: string
-  leader: string | null
-  leaderShare: number | null
-  turnout: number
-}
+const NATIONAL = { lng: 34.99, lat: 31.2 }
+type Row = { name: string; leader: string | null; leaderShare: number | null; turnout: number }
 
 export function MapView({
   topo,
@@ -32,14 +30,14 @@ export function MapView({
   party: (key: string) => { name: string; color: string | undefined }
   onSelectTown: (code: number) => void
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [mode, setMode] = useState<MapMode>('leader')
   const [tip, setTip] = useState<{ code: number; x: number; y: number } | null>(null)
+  const box = useRef<HTMLDivElement>(null)
+  const [map, setMap] = useState<maplibregl.Map | null>(null)
 
-  const { paths, rows } = useMemo(() => {
-    // The object is a GeometryCollection, not a FeatureCollection: feature() returns features with
-    // the geometry's own properties, which is where SETL_CODE lives.
-    const geo = feature(topo as never, topo.objects.municipal as never) as unknown as MunicipalCollection
+  const { geo, rows } = useMemo(() => {
+    const geo = toWgs84(topo, feature(topo as never, topo.objects.municipal as never) as unknown as MunicipalCollection)
     const rows = new Map<number, Row>()
     for (const tw of towns) {
       const v = tw.votes
@@ -47,46 +45,140 @@ export function MapView({
       const top = topParty(tw)
       rows.set(tw.code, { name: tw.name, leader: top?.party ?? null, leaderShare: top?.share ?? null, turnout: share(v.voters, v.eligible) })
     }
-    // One projection for the whole country; each feature keeps its own path so it can be a focusable button
-    const projection = geoMercator().fitExtent(
-      [
-        [6, 6],
-        [W - 6, H - 6],
-      ],
-      { type: 'FeatureCollection', features: geo.features } as never,
-    )
-    const path = geoPath(projection)
-    const paths = geo.features.flatMap((f) => {
-      const d = path(f as never)
-      return d ? [{ code: f.properties.SETL_CODE, d }] : []
-    })
-    return { paths, rows }
+    return { geo, rows }
   }, [topo, towns])
 
-  const fill = (r: Row | undefined): string => {
-    if (!r) return NO_DATA
-    if (mode === 'leader') return r.leader ? party(r.leader).color ?? NO_DATA : NO_DATA
-    if (mode === 'turnout') return scaleColor(r.turnout, 0, 100)
-    return r.leaderShare === null ? NO_DATA : scaleColor(r.leaderShare, 0, 100)
-  }
+  useEffect(() => {
+    if (!box.current) return
+    const m = new maplibregl.Map({
+      container: box.current,
+      style: {
+        version: 8,
+        sources: {},
+        // Outside the country's borders, themed by the page (light gray / black in dark mode)
+        layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#ebebee' } }],
+      },
+      center: NATIONAL,
+      // No bearing option means MapLibre starts at -0.01°, which skews the outline
+      bearing: 0,
+      // A quarter turn, so the Mediterranean sits on the right like on a printed map
+      // (south-up rather than north-up; set both back to 0 for north-up)
+      pitch: 0,
+      zoom: 6.4,
+      minZoom: 4.5,
+      maxZoom: 13,
+      maxPitch: 0,
+      attributionControl: false,
+    })
+    // A photo can be rotated, an outline cannot: north stays up
+    m.touchZoomRotate.disableRotation()
+    m.keyboard.disableRotation()
+    m.on('error', (e) => console.error('MAPERR', e))
+    let watch: MutationObserver | undefined
+    m.on('load', () => {
+      // One neutral land colour under every town; the pan limit is the land's own outline
+      m.addSource('land', { type: 'geojson', data: geo })
+      m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
+      const bg = () => {
+        // Same media query the theme uses (settings: light/dark/system)
+        const dark = matchMedia('(prefers-color-scheme: dark)').matches
+        const pinned = document.documentElement.dataset.theme
+        m.setPaintProperty('sea', 'background-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#000' : '#ebebee')
+        m.setPaintProperty('land', 'fill-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#1c1c1e' : '#fff')
+      }
+      bg()
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', bg)
+      watch = new MutationObserver(bg)
+      watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+      let w = 180
+      let e = -180
+      let s = 90
+      let n = -90
+      const walk = (c: unknown): void => {
+        if (Array.isArray(c) && typeof c[0] === 'number') {
+          const [lng, lat] = c as number[]
+          w = Math.min(w, lng)
+          e = Math.max(e, lng)
+          s = Math.min(s, lat)
+          n = Math.max(n, lat)
+        } else if (Array.isArray(c)) (c as unknown[]).forEach(walk)
+      }
+      for (const f of geo.features) walk((f.geometry as { coordinates: unknown } | null)?.coordinates)
+      m.setMaxBounds([
+        [w, s],
+        [e, n],
+      ])
+      setMap(m)
+    })
+    return () => {
+      watch?.disconnect()
+      m.remove()
+    }
+  }, [geo])
 
-  const show = (code: number, e: MouseEvent | FocusEvent) => {
-    const svg = (e.currentTarget as SVGElement).ownerSVGElement
-    const box = svg?.getBoundingClientRect()
-    const hit = (e.currentTarget as SVGElement).getBoundingClientRect()
-    if (!box) return
-    setTip({ code, x: hit.left + hit.width / 2 - box.left, y: hit.top - box.top })
-  }
-  const activate = (code: number, r: Row | undefined) => r && onSelectTown(code)
+  // The fill colour is a feature property, so a mode change only re-sends the data
+  useEffect(() => {
+    if (!map) return
+    const color = (code: number): string => {
+      const r = rows.get(code)
+      if (!r) return NO_DATA
+      if (mode === 'leader') return r.leader ? party(r.leader).color ?? NO_DATA : NO_DATA
+      if (mode === 'turnout') return scaleColor(r.turnout, 0, 100)
+      return r.leaderShare === null ? NO_DATA : scaleColor(r.leaderShare, 0, 100)
+    }
+    const data = {
+      ...geo,
+      features: geo.features.map((f) => ({ ...f, properties: { ...f.properties, fill: color(f.properties.SETL_CODE) } })),
+    }
+    const source = map.getSource('towns') as maplibregl.GeoJSONSource | undefined
+    if (source) source.setData(data)
+    else {
+      map.addSource('towns', { type: 'geojson', data })
+      map.addLayer({ id: 'towns', type: 'fill', source: 'towns', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
+      map.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': 'rgba(0,0,0,0.18)', 'line-width': 0.4 } })
+    }
+  }, [map, geo, mode, rows, party])
+
+  useEffect(() => {
+    if (!map) return
+    const codeOf = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) =>
+      e.features?.[0]?.properties?.SETL_CODE as number | undefined
+    const onMove = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
+      const code = codeOf(e)
+      const known = code != null && rows.has(code)
+      map.getCanvas().style.cursor = known ? 'pointer' : ''
+      setTip(known ? { code, x: e.point.x, y: e.point.y } : null)
+    }
+    const onLeave = () => {
+      map.getCanvas().style.cursor = ''
+      setTip(null)
+    }
+    const onClick = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
+      const code = codeOf(e)
+      if (code != null && rows.has(code)) onSelectTown(code)
+    }
+    map.on('mousemove', 'towns', onMove)
+    map.on('mouseleave', 'towns', onLeave)
+    map.on('click', 'towns', onClick)
+    return () => {
+      map.off('mousemove', 'towns', onMove)
+      map.off('mouseleave', 'towns', onLeave)
+      map.off('click', 'towns', onClick)
+    }
+  }, [map, rows, onSelectTown])
+
   const active = tip ? rows.get(tip.code) : undefined
+  const leaders = [...new Set([...rows.values()].map((r) => r.leader).filter((k): k is string => !!k))].sort((a, b) =>
+    party(a).name.localeCompare(party(b).name, lang),
+  )
 
   return (
     <section className="map card">
       <div className="map-bar">
         <div className="seg" role="group" aria-label={t('mapMode')}>
-          {(['leader', 'turnout', 'share'] as const).map((m) => (
-            <button key={m} type="button" className={mode === m ? 'on' : undefined} aria-pressed={mode === m} onClick={() => setMode(m)}>
-              {t(`map_${m}`)}
+          {(['leader', 'turnout', 'share'] as const).map((k) => (
+            <button key={k} type="button" className={mode === k ? 'on' : undefined} aria-pressed={mode === k} onClick={() => setMode(k)}>
+              {t(`map_${k}`)}
             </button>
           ))}
         </div>
@@ -103,33 +195,7 @@ export function MapView({
         )}
       </div>
       <div className="map-frame">
-        <svg viewBox={`0 0 ${W} ${H}`} className="map-svg" role="group" aria-label={`${t('mapMap')}: ${t(`map_${mode}`)}`}>
-          {paths.map(({ code, d }) => {
-            const r = rows.get(code)
-            return (
-              <path
-                key={code}
-                d={d}
-                fill={fill(r)}
-                className={r ? 'maptown' : 'maptown nodata'}
-                tabIndex={r ? 0 : -1}
-                role={r ? 'button' : undefined}
-                aria-label={r ? `${r.name}, ${r.leader ? party(r.leader).name : t('mapNoData')}, ${t('colTurnout')} ${fmtPct(r.turnout)}` : undefined}
-                onMouseEnter={(e) => show(code, e)}
-                onFocus={(e) => show(code, e)}
-                onMouseLeave={() => setTip(null)}
-                onBlur={() => setTip(null)}
-                onClick={() => activate(code, r)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    activate(code, r)
-                  }
-                }}
-              />
-            )
-          })}
-        </svg>
+        <div className="maplibregl-map" ref={box} role="group" aria-label={`${t('mapMap')}: ${t(`map_${mode}`)}`} />
         {tip && active && (
           <div className="map-tip" style={{ left: tip.x, top: tip.y }} role="status">
             <strong>{active.name}</strong>
@@ -148,18 +214,16 @@ export function MapView({
       <div className="map-legend" role="group" aria-label={t('mapMap')}>
         {mode === 'leader' ? (
           <>
-            {[...new Set([...rows.values()].map((r) => r.leader).filter((k): k is string => !!k))]
-              .sort((a, b) => party(a).name.localeCompare(party(b).name, 'he'))
-              .map((k) => (
-                <span key={k} className="legend-item">
-                  <span className="swatch" style={{ display: 'grid', placeItems: 'center', background: party(k).color }} aria-hidden="true">
-                    <span style={{ width: 4, height: '60%', background: readableOn(party(k).color ?? '#999'), borderRadius: 1 }} />
-                  </span>
-                  {party(k).name}
+            {leaders.map((k) => (
+              <span key={k} className="legend-item">
+                <span className="swatch" style={{ display: 'grid', placeItems: 'center', background: party(k).color }} aria-hidden="true">
+                  <span style={{ width: 4, height: '60%', background: readableOn(party(k).color ?? '#999'), borderRadius: 1 }} />
                 </span>
-              ))}
+                {party(k).name}
+              </span>
+            ))}
             <span className="legend-item">
-              <span className="swatch" style={{ background: NO_DATA, boxShadow: 'inset 0 0 0 1px var(--map-border)' }} aria-hidden="true" />
+              <span className="swatch" style={{ background: NO_DATA, boxShadow: 'inset 0 0 0 1px var(--hairline)' }} aria-hidden="true" />
               {t('mapNoData')}
             </span>
           </>

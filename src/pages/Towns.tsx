@@ -40,51 +40,55 @@ export function Towns() {
       {!towns && !error && <Loading />}
       {towns && (
         <>
-          <form className="filters card" onSubmit={(e) => e.preventDefault()} aria-label={t('townsTitle')}>
-            <label className="field search">
-              <span>{t('search')}</span>
-              <input type="search" value={f.query} onChange={(e) => set('query')(e.target.value)} placeholder={t('search')} />
-            </label>
-            <label className="field">
-              <span>{t('leaderParty')}</span>
-              <select value={f.leader} onChange={(e) => set('leader')(e.target.value)}>
-                <option value="">{t('allParties')}</option>
-                {leaders.map((k) => (
-                  <option key={k} value={k}>
-                    {party(k).name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              <span>
-                {t('minShare')} <output className="num">{f.minShare}%</output>
-              </span>
-              <input type="range" min={0} max={100} step={1} value={f.minShare} onChange={(e) => set('minShare')(Number(e.target.value))} />
-            </label>
-            <label className="field">
-              <span>
-                {t('minTurnout')} <output className="num">{f.minTurnout}%</output>
-              </span>
-              <input type="range" min={0} max={100} step={1} value={f.minTurnout} onChange={(e) => set('minTurnout')(Number(e.target.value))} />
-            </label>
-            <label className="toggle">
-              <input type="checkbox" checked={f.majorityOnly} onChange={(e) => set('majorityOnly')(e.target.checked)} />
-              {t('majorityOnly')}
-            </label>
-            <label className="toggle">
-              <input type="checkbox" checked={f.pluralityOnly} onChange={(e) => set('pluralityOnly')(e.target.checked)} />
-              {t('pluralityOnly')}
-            </label>
-            <button type="button" className="button subtle" onClick={() => setF(initial)}>
-              {t('reset')}
-            </button>
-          </form>
-
-          <div className="row-head">
+          {/* One search line, then the filters folded away until wanted */}
+          <div className="towns-bar">
+            <input
+              className="towns-search"
+              type="search"
+              value={f.query}
+              onChange={(e) => set('query')(e.target.value)}
+              placeholder={t('search')}
+              aria-label={t('search')}
+            />
+            <select value={f.leader} onChange={(e) => set('leader')(e.target.value)} aria-label={t('leaderParty')}>
+              <option value="">{t('allParties')}</option>
+              {leaders.map((k) => (
+                <option key={k} value={k}>
+                  {party(k).name}
+                </option>
+              ))}
+            </select>
             <p className="muted" aria-live="polite">
-              <span className="num">{rows.length}</span> / <span className="num">{rowsAll.length}</span> {t('results')}
+              <span className="num">{rows.length}</span> / <span className="num">{rowsAll.length}</span>
             </p>
+            <details className="towns-more">
+              <summary className="button subtle">{t('filters')}</summary>
+              <div className="card towns-more-body">
+                <label className="field">
+                  <span>
+                    {t('minShare')} <output className="num">{f.minShare}%</output>
+                  </span>
+                  <input type="range" min={0} max={100} step={1} value={f.minShare} onChange={(e) => set('minShare')(Number(e.target.value))} />
+                </label>
+                <label className="field">
+                  <span>
+                    {t('minTurnout')} <output className="num">{f.minTurnout}%</output>
+                  </span>
+                  <input type="range" min={0} max={100} step={1} value={f.minTurnout} onChange={(e) => set('minTurnout')(Number(e.target.value))} />
+                </label>
+                <label className="toggle">
+                  <input type="checkbox" checked={f.majorityOnly} onChange={(e) => set('majorityOnly')(e.target.checked)} />
+                  {t('majorityOnly')}
+                </label>
+                <label className="toggle">
+                  <input type="checkbox" checked={f.pluralityOnly} onChange={(e) => set('pluralityOnly')(e.target.checked)} />
+                  {t('pluralityOnly')}
+                </label>
+                <button type="button" className="button subtle" onClick={() => setF(initial)}>
+                  {t('reset')}
+                </button>
+              </div>
+            </details>
           </div>
           <TownTable rows={rows} party={party} sort={sort} dir={dir} onSort={onSort} />
         </>

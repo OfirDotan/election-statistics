@@ -2,6 +2,7 @@ export interface TownVoteInput {
   eligible: number
   voters: number
   valid: number
+  invalid?: number
   byParty: Record<string, number>
 }
 

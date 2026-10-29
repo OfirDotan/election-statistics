@@ -4,12 +4,14 @@ import { PartyLogo } from '../components/PartyLogo.tsx'
 import { LoadError, Loading } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
 import { MAJORITY } from '../lib/coalition.ts'
-import { allocate, SEATS } from '../lib/mandates.ts'
+import { chamber } from '../lib/donut.ts'
+import { readableOn } from '../lib/color.ts'
+import { allocate } from '../lib/mandates.ts'
 import { useDataset } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 export function Coalition() {
-  const { t, ln } = useI18n()
+  const { t } = useI18n()
   const { party, official, error } = useDataset()
   const [picked, setPicked] = useState<string[]>([])
   useTitle(t('coalitionTitle'))
@@ -19,11 +21,17 @@ export function Coalition() {
     () => (allocation?.seats ?? []).filter((s) => s.seats > 0).sort((a, b) => b.seats - a.seats || b.votes - a.votes),
     [allocation],
   )
-  // Each picked party fills a contiguous block, largest first; the 61st cell is the majority line
-  const seats = ranked.reduce((sum, s) => sum + (picked.includes(s.key) ? s.seats : 0), 0)
-  const cells: (string | null)[] = []
-  for (const s of ranked) for (let i = 0; i < (picked.includes(s.key) ? s.seats : 0); i++) cells.push(s.key)
-  while (cells.length < SEATS) cells.push(null)
+  const chosen = ranked.filter((s) => picked.includes(s.key))
+  const seats = chosen.reduce((sum, s) => sum + s.seats, 0)
+  // The chamber holds the coalition or 61 seats, whichever is bigger; any seats left over stay free
+  const room = Math.max(seats, MAJORITY)
+  // Only the picked parties sit in the chamber, in ranked order, from the inner rows outward
+  const blocks = chosen.map((s) => ({ key: s.key, n: s.seats }))
+  const block = (n: number) => {
+    let at = 0
+    for (const s of blocks) if (n < (at += s.n)) return s
+    return null
+  }
 
   const toggle = (key: string) => setPicked((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
 
@@ -34,8 +42,8 @@ export function Coalition() {
           <h1>{t('coalitionTitle')}</h1>
           <p className="lead">{t('coalitionIntro')}</p>
         </header>
-        <Link to="/seats" className="button">
-          {t('seatsTitle')} →
+        <Link to="/parties" className="button">
+          {t('navParties')} →
         </Link>
       </div>
       <p className="banner" role="status">
@@ -48,43 +56,26 @@ export function Coalition() {
           <div className="plenary-head">
             <div className="plenary-count">
               <strong className="num">{seats}</strong>
-              <span>{ln(`/ ${SEATS} ${t('seats')}`, `/ ${SEATS} ${t('seats')}`)}</span>
+              <span>/ {MAJORITY} {t('seats')}</span>
             </div>
             <p className={seats >= MAJORITY ? 'ok' : 'warn'} aria-live="polite">
               {seats >= MAJORITY ? t('hasMajority') : `${MAJORITY - seats} ${t('seatsNeededCount')}`}
             </p>
-            <ul className="plenary-key">
-              {ranked
-                .filter((s) => picked.includes(s.key))
-                .map((s) => {
-                  const p = party(s.key)
-                  return (
-                    <li key={s.key}>
-                      <button type="button" className="key-item" onClick={() => toggle(s.key)} title={t('coalitionRemove')}>
-                        <PartyLogo logo={p.logo} />
-                        <span>{p.name}</span>
-                        <span className="num">{s.seats}</span>
-                      </button>
-                    </li>
-                  )
-                })}
-            </ul>
           </div>
 
-          <ol
-            className="seat-grid"
-            role="img"
-            aria-label={`${t('coalitionTitle')}: ${seats}/${SEATS} — ${MAJORITY} ${t('seatsNeededCount')}`}
-          >
-            {cells.map((key, i) => (
-              <li
-                key={i}
-                className={`cell${key ? '' : ' is-empty'}${i === MAJORITY - 1 ? ' is-majority' : ''}`}
-                style={key ? { background: party(key).color } : undefined}
-              />
-            ))}
-          </ol>
-          <p className="note">{ln(`${MAJORITY} מנדטים — קו הרוב`, `${MAJORITY} seats — the majority line`)}</p>
+          <div className="chamber-wrap">
+            <svg className="chamber" viewBox="-104 -104 208 112" role="img" aria-label={`${t('coalitionTitle')}: ${seats} / ${room}`}>
+              {/* Coloured seats are the coalition; a faint seat is a place a party could still take */}
+              {chamber(room).map((s, n) => {
+                const b = block(n)
+                return b ? (
+                  <rect key={n} x={s.cx - s.size / 2} y={s.cy - s.size / 2} width={s.size} height={s.size} rx={s.size / 3} fill={party(b.key).color} />
+                ) : (
+                  <rect key={n} x={s.cx - s.size / 2} y={s.cy - s.size / 2} width={s.size} height={s.size} rx={s.size / 3} className="chamber-track" />
+                )
+              })}
+            </svg>
+          </div>
 
           <ul className="party-cards">
             {ranked.map((s) => {
@@ -97,13 +88,16 @@ export function Coalition() {
                     className={`party-card${on ? ' on' : ''}`}
                     aria-pressed={on}
                     onClick={() => toggle(s.key)}
-                    style={{ '--party': p.color ?? 'var(--dot-unknown)' } as CSSProperties}
+                    style={{ '--party': p.color ?? 'var(--dot-unknown)', '--on-party': readableOn(p.color ?? '#999') } as CSSProperties}
                   >
                     <span className="party-card-logo">
                       <PartyLogo logo={p.logo} />
                     </span>
                     <span className="party-card-name">{p.name}</span>
                     <span className="party-card-seats num">{s.seats}</span>
+                    <span className="party-card-state" aria-hidden="true">
+                      {on ? '✓' : '+'}
+                    </span>
                   </button>
                 </li>
               )

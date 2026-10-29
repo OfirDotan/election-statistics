@@ -27,8 +27,6 @@ export function LeaderboardsPage() {
   const diverge = useMemo(() => divergences(towns ?? [], Object.fromEntries(national), MIN_VALID), [towns, national])
   const big = rows.filter((r) => r.valid >= MIN_VALID)
   const sweep = [...rows].sort((a, b) => b.stats.leaderShare - a.stats.leaderShare || byName(a, b, locale)).filter((r) => r.stats.leaderShare >= threshold)
-  const [allSweeps, setAllSweeps] = useState(false)
-  const sweepShown = sweep.slice(0, allSweeps ? sweep.length : 20)
   useTitle(t('boardsTitle'))
 
   const lists: Record<Exclude<Key, 'sweep' | 'divergence'>, StatRow[]> = {
@@ -65,8 +63,9 @@ export function LeaderboardsPage() {
               <input type="range" min={50} max={100} step={5} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} aria-valuetext={`${threshold}%`} />
               <output>{threshold}%</output>
             </label>
-            <ol className="board-list">
-              {sweepShown.map((r, i) => (
+            {/* Each board is its own scroll area, so a long list never stretches the page */}
+            <ol className="board-list board-scroll" tabIndex={0}>
+              {sweep.map((r, i) => (
                 <li key={r.code}>
                   <span className="rank" aria-hidden="true">{i + 1}</span>
                   <Link to={`/town/${r.code}`} className="town-link">
@@ -80,11 +79,6 @@ export function LeaderboardsPage() {
                 </li>
               ))}
             </ol>
-            {sweep.length > 20 && (
-              <button type="button" className="more" onClick={() => setAllSweeps(!allSweeps)} aria-expanded={allSweeps}>
-                {allSweeps ? t('showLess') : `${t('showAll')} (${sweep.length})`}
-              </button>
-            )}
           </section>
 
           {(['majority', 'margins', 'high', 'low', 'closest'] as const).map((key) => (
@@ -94,7 +88,7 @@ export function LeaderboardsPage() {
                 <span className="board-count">{lists[key].length}</span>
               </div>
               <p className="board-note">{key === 'majority' ? t('bMajorityNote') : key === 'margins' ? t('bMarginsNote') : key === 'closest' ? t('bClosestNote') : t('bTurnoutNote')}</p>
-              <ol className="board-list">
+              <ol className="board-list board-scroll" tabIndex={0}>
                 {lists[key].map((r, i) => (
                   <li key={r.code}>
                     <span className="rank" aria-hidden="true">{i + 1}</span>
@@ -119,7 +113,7 @@ export function LeaderboardsPage() {
               <span className="board-count">{diverge.length}</span>
             </div>
             <p className="board-note">{t('bDivergenceNote')}</p>
-            <ol className="board-list">
+            <ol className="board-list board-scroll" tabIndex={0}>
               {[...diverge]
                 .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
                 .slice(0, LIST)

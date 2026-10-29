@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '../i18n/useI18n.ts'
+import { Settings } from './Settings.tsx'
 
 const routes = [
-  { to: '/towns', key: 'navTowns' },
   { to: '/parties', key: 'navParties' },
-  { to: '/leaderboards', key: 'navBoards' },
+  { to: '/towns', key: 'navTowns' },
   { to: '/map', key: 'navMap' },
-  { to: '/seats', key: 'navSeats' },
+  { to: '/leaderboards', key: 'navBoards' },
   { to: '/coalition', key: 'navCoalition' },
 ] as const
 
@@ -31,6 +31,7 @@ export function Nav() {
         <button type="button" className="lang" onClick={toggle} lang={lang === 'he' ? 'en' : 'he'}>
           {lang === 'he' ? 'EN' : 'עב'}
         </button>
+        <Settings />
       </div>
     </header>
   )
