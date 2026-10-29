@@ -3,6 +3,8 @@ import { Nav } from './components/Nav.tsx'
 import { useI18n } from './i18n/useI18n.ts'
 import { ComingSoon } from './pages/ComingSoon.tsx'
 import { Home } from './pages/Home.tsx'
+import { LeaderboardsPage } from './pages/LeaderboardsPage.tsx'
+import { MapPage } from './pages/MapPage.tsx'
 import { Parties } from './pages/Parties.tsx'
 import { TownPage } from './pages/TownPage.tsx'
 import { Towns } from './pages/Towns.tsx'
@@ -33,8 +35,8 @@ export function App() {
           <Route path="/" element={<Home />} />
           <Route path="/towns" element={<Towns />} />
           <Route path="/parties" element={<Parties />} />
-          <Route path="/leaderboards" element={<ComingSoon titleKey="navBoards" />} />
-          <Route path="/map" element={<ComingSoon titleKey="navMap" />} />
+          <Route path="/leaderboards" element={<LeaderboardsPage />} />
+          <Route path="/map" element={<MapPage />} />
           <Route path="/seats" element={<ComingSoon titleKey="navSeats" />} />
           <Route path="/coalition" element={<ComingSoon titleKey="navCoalition" />} />
           <Route path="/town/:code" element={<TownPage />} />
