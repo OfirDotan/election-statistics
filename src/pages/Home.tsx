@@ -8,7 +8,6 @@ import { loadMeta } from '../lib/data.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
-const TOP = 8
 type Metric = 'pct' | 'seats' | 'votes'
 
 export function Home() {
@@ -78,7 +77,7 @@ export function Home() {
               </div>
             </div>
             <ol className="party-bars">
-              {sorted.slice(0, TOP).map((p) => (
+              {sorted.filter((p) => metric === 'seats' ? (seatOf[p.key] ?? 0) > 0 : p.votes > 0).map((p) => (
                 <li key={p.key}>
                   <span className="pb-name">
                     <PartyChip name={p.name} color={p.color} logo={p.logo} />
