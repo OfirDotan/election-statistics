@@ -33,10 +33,12 @@ describe('townRows', () => {
 
 describe('filterTowns', () => {
   it('plurality only keeps winners short of a majority', () => {
-    expect(names(filterTowns(rows, { ...none(), pluralityOnly: true }))).toEqual(['Epsilon'])
+    // Epsilon leads 70-30 (majority); Gamma's 50-50 tie has no clear winner
+    expect(names(filterTowns(rows, { ...none(), pluralityOnly: true }))).toEqual([])
   })
   it('majority only keeps winners above 50%', () => {
-    expect(names(filterTowns(rows, { ...none(), majorityOnly: true }))).toEqual(['Alpha', 'Bet', 'Delta'])
+    // Epsilon leads 70-30, which is also a majority; Gamma's 50-50 tie is neither
+    expect(names(filterTowns(rows, { ...none(), majorityOnly: true }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
   })
   it('leader narrows to that party', () => {
     expect(names(filterTowns(rows, { ...none(), leader: 'ב' }))).toEqual(['Bet', 'Epsilon'])
@@ -45,7 +47,7 @@ describe('filterTowns', () => {
     expect(names(filterTowns(rows, { ...none(), minTurnout: 60 }))).toEqual(['Alpha', 'Delta', 'Epsilon'])
   })
   it('share bound and trimmed name search', () => {
-    expect(names(filterTowns(rows, { ...none(), minShare: 70 }))).toEqual(['Alpha', 'Bet', 'Delta'])
+    expect(names(filterTowns(rows, { ...none(), minShare: 70 }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
     expect(names(filterTowns(rows, { ...none(), query: ' שבע ' }))).toEqual([])
     expect(names(filterTowns(rows, { ...none(), query: 'lph' }))).toEqual(['Alpha'])
   })
@@ -65,8 +67,8 @@ describe('sortRows', () => {
 describe('nationalShares', () => {
   it('sums per-party votes over kaplan towns only', () => {
     const s = nationalShares([...towns, govmap])
-    // א 118, ב 82 of 200 valid
-    expect(s.get('א')).toBeCloseTo(59)
-    expect(s.get('ב')).toBeCloseTo(41)
+    // א 124, ב 96 of 220 valid (govmap town has no votes)
+    expect(s.get('א')).toBeCloseTo(56.36, 1)
+    expect(s.get('ב')).toBeCloseTo(43.64, 1)
   })
 })

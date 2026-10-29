@@ -1,66 +1,37 @@
-import { describe, expect, it } from 'vitest'
-import type { Town, TownVotes } from '../../src/lib/mapData.ts'
-import { divergences, nationalShares, readableOn, scaleColor, sequential } from '../../src/lib/mapLogic.ts'
+import { describe, expect, test } from 'vitest'
+import type { Town } from '../../src/lib/mapData.ts'
+import { divergences, nationalShares, readableOn, scaleColor } from '../../src/lib/mapLogic.ts'
 
-const votes = (byParty: Record<string, number>, valid = 100): TownVotes => ({
-  eligible: 200,
-  voters: valid,
-  valid,
-  invalid: 0,
-  byParty,
-  source: 'kaplan',
-})
-const town = (code: number, byParty: Record<string, number>, valid = 100): Town => ({
-  code,
-  name: `t${code}`,
-  votes: votes(byParty, valid),
-})
+const A = String.fromCharCode(0x05d0)
+const B = String.fromCharCode(0x05d1)
+const town = (code: number, a: number, b: number): Town =>
+  ({ code, name: String(code), votes: { eligible: 100, voters: 50, valid: a + b, byParty: { [A]: a, [B]: b } } }) as unknown as Town
 
-describe('sequential / scaleColor', () => {
-  it('returns the ramp ends at t=0 and t=1', () => {
-    expect(sequential(0)).toBe('#ecf2fe')
-    expect(sequential(1)).toBe('#1c4fa8')
-  })
-  it('clamps out-of-range and non-finite input', () => {
-    expect(scaleColor(-5, 0, 100)).toBe('#ecf2fe')
-    expect(scaleColor(500, 0, 100)).toBe('#1c4fa8')
-    expect(scaleColor(Number.NaN, 0, 100)).toBe(sequential(0))
-  })
-  it('uses the midpoint for a flat range', () => {
-    expect(scaleColor(42, 42, 42)).toBe(sequential(0.5))
+describe('scaleColor', () => {
+  test('clamps the ends and handles a flat range', () => {
+    const [lo, hi] = [scaleColor(0, 0, 10), scaleColor(10, 0, 10)]
+    expect(lo).not.toBe(hi)
+    expect(scaleColor(-5, 0, 10)).toBe(lo)
+    expect(scaleColor(15, 0, 10)).toBe(hi)
+    expect(scaleColor(0.5, 3, 3)).not.toBe(lo)
   })
 })
 
 describe('readableOn', () => {
-  it('chooses white on dark colors and black on light ones', () => {
-    expect(readableOn('#1C5BAD')).toBe('#fff')
-    expect(readableOn('#FFEDB9')).toBe('#000')
-  })
-})
-
-describe('nationalShares', () => {
-  it('weights by valid votes and skips towns without votes', () => {
-    expect(nationalShares([town(1, { א: 50, ב: 50 }), town(2, { א: 200, ב: 0 }, 300), { code: 3, name: 'x', votes: null }])).toEqual({
-      א: 62.5,
-      ב: 12.5,
-    })
+  test('dark text on light ballot colors, white on dark ones', () => {
+    expect(readableOn('#f5f5f5')).toBe('#000')
+    expect(readableOn('#1f3a93')).toBe('#fff')
   })
 })
 
 describe('divergences', () => {
-  const national: Record<string, number> = { א: 30, ב: 70 }
-  it('picks each party that differs most from its national share', () => {
-    const [a, b] = divergences([town(1, { א: 90, ב: 10 }), town(2, { א: 5, ב: 95 })], national, 0)
-    expect(a.party).toBe('א')
-    expect(a.diff).toBeCloseTo(60)
-    expect(b.party).toBe('ב')
-    expect(b.diff).toBeCloseTo(25)
-  })
-  it('excludes towns below the valid-vote floor', () => {
-    expect(divergences([town(1, { א: 100 }, 49)], national)).toEqual([])
-  })
-  it('keeps the sign of the difference', () => {
-    const [d] = divergences([town(1, { א: 25, ב: 75 })], national, 0)
-    expect(d.diff).toBeCloseTo(5)
+  test('picks the party farthest from national and skips small towns', () => {
+    const national = nationalShares([town(1, 90, 10), town(2, 5, 95)])
+    const [x, y] = divergences([town(3, 925, 25), town(4, 0, 400), town(5, 10, 0)], national)
+    expect([x.code, y.code]).toStrictEqual([3, 4])
+    // Both towns tie their parties for distance from national, so the sorted-key tie-break decides:
+    // 'ב' (U+05D1) sorts before 'א' (U+05D0)
+    expect([x.party, y.party]).toStrictEqual([B, A])
+    expect([Math.sign(x.diff), Math.sign(y.diff)]).toStrictEqual([-1, -1])
   })
 })

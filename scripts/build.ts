@@ -39,7 +39,7 @@ export function build() {
 
   // Names for GOVMAP-only towns come from the geometry's properties
   const geo = parseGeo()
-  const geoName = new Map<number, string>(geo.objects.municipal.geometries.map((g: { properties: { SETL_CODE: number; 'שם ישוב': string } }) => [g.properties.SETL_CODE, g.properties['שם ישוב']]))
+  const geoName = new Map<number, string>((geo.objects.municipal.geometries ?? []).map((g: { properties: { SETL_CODE: number; 'שם ישוב': string } }) => [g.properties.SETL_CODE, g.properties['שם ישוב']]))
   for (const t of towns) if (!t.name) t.name = geoName.get(t.code) ?? `#${t.code}`
 
   // Kalpi detail and every town's own turnout live in the per-town payload
@@ -60,21 +60,28 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
   const national = parseNationalVotes()
   const votes: Record<string, number> = {}
   for (const l of localities) for (const [k, n] of Object.entries(l.byParty)) votes[k] = (votes[k] ?? 0) + n
-  return Object.keys(cec).map((key) => {
+  // CEC names replace Kaplan names for common keys; keys only one source knows keep that source's
+  const names: Record<string, string> = Object.fromEntries(Object.entries(kaplan).map(([k, v]) => [k, v.name]))
+  // Kaplan lists only 13 of 37, so without the CEC the results' official titles name the rest
+  const official: Record<string, number> = {}
+  for (const l of localities) for (const k of Object.keys(l.byParty)) official[k] = (official[k] ?? 0) + 1
+  for (const k of Object.keys(official)) names[k] ??= k
+  for (const [k, v] of Object.entries(cec)) names[k] = v.name
+  return Object.keys(names).map((key) => {
     const list = candidates.get(key) ?? []
     const leader = list.find((c) => c.isLeader)
     return {
       key,
-      name: cec[key].name,
+      name: names[key],
       nameEn: kaplan[key]?.name_en,
-      color: kaplan[key]?.color ?? cec[key].color,
+      color: kaplan[key]?.color ?? cec[key]?.color ?? '#9E9E9E',
       status: statuses[key]?.status ?? 'unknown',
       votes: votes[key] ?? 0,
       nationalVotes: national[key] ?? 0,
       leader: leader ? { he: leader.nameHe, en: leader.nameEn } : undefined,
       candidates: list.length,
     }
-  })
+  }).filter((p) => p.candidates > 0)
 }
 
 /**

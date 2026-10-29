@@ -63,6 +63,7 @@ function govmapFeatures<T>(file: string): Record<string, T & TurnoutRecord> {
 }
 
 export function parseKalpi(): KalpiRecord[] {
+  if (!fs.existsSync(`${RAW}/kalpi.json`)) return []
   return Object.values(govmapFeatures<{ code: number; kalpi: string }>('kalpi.json')).map((f) => ({
     code: f.code,
     kalpi: f.kalpi,
@@ -74,6 +75,7 @@ export function parseKalpi(): KalpiRecord[] {
 
 export function parseMunicipal(): Record<number, TurnoutRecord> {
   const out: Record<number, TurnoutRecord> = {}
+  if (!fs.existsSync(`${RAW}/municipal.json`)) return out
   for (const [code, f] of Object.entries(govmapFeatures<{ 'שם ישוב': string }>('municipal.json'))) {
     out[Number(code)] = { eligible: f['בזב'], voters: f['מצביעים'], percent: f.percent }
   }
@@ -81,10 +83,13 @@ export function parseMunicipal(): Record<number, TurnoutRecord> {
 }
 
 export function parseGeo() {
+  // Same shape as GovMap's file, without arcs: the map renders as one empty FeatureCollection
+  if (!fs.existsSync(`${RAW}/geometry.topojson`)) return { type: 'Topology', objects: { municipal: { type: 'FeatureCollection', features: [] } }, arcs: [] }
   return JSON.parse(fs.readFileSync(`${RAW}/geometry.topojson`, 'utf8'))
 }
 
 export function parseElectionParties(): Record<string, { name: string; color: string }> {
+  if (!fs.existsSync(`${RAW}/elections.json`)) return {}
   return JSON.parse(fs.readFileSync(`${RAW}/elections.json`, 'utf8')).elections['26'].parties
 }
 
