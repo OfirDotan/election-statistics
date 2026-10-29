@@ -8,6 +8,11 @@ and per-town detail down to polling-station turnout.
 published by the Central Elections Committee. Nothing here is an official result, and the pages that
 simulate seat allocation or coalitions are illustrative only.
 
+## License
+
+Code is MIT (see [`LICENSE`](LICENSE)). The data and logos have their own terms, including
+CC BY-SA 4.0 for the candidate data: see [`DATA-LICENSES.md`](DATA-LICENSES.md).
+
 ## Data sources
 
 | Source | Feeds | Required? | Used for |
