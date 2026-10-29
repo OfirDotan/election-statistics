@@ -13,14 +13,13 @@ type Metric = 'seats' | 'votes' | 'pct'
 const ZERO_SEAT = new Set(['ך', 'די'])
 
 // The four camps of the 26th Knesset, as the campaign itself was framed. The Joint List carries
-// the first Arab bloc; Ra'am the second; the last holds the lists voted in but under the threshold.
+// the first Arab bloc; Ra'am the second
 const BLOCS = [
   // ביחד and ישר stood as an apparentment (s. 81(d)), so their votes are counted together at the threshold
   { id: 'change', color: '#2563EB', keys: ['דרך', 'רק', 'אמת', 'ל', 'כן'] },
   { id: 'netanyahu', color: '#DC2626', keys: ['מחל', 'ב', 'שס', 'ג', 'ט'] },
   { id: 'joint', color: '#16A34A', keys: ['ודם'] },
   { id: 'raam', color: '#EAB308', keys: ['עם'] },
-  { id: 'other', color: '#9CA3AF', keys: [] },
 ] as const
 
 export function Parties() {
@@ -52,11 +51,10 @@ export function Parties() {
   const counted = new Set(ranked.map((p) => p.key))
   const nothing = (ballot.data ?? []).filter((p) => !counted.has(p.key)).map((p) => party(p.key).name)
 
-  // Every list lands in exactly one camp; one that is in no named camp falls to the last
-  const blocOf = (key: string) => BLOCS.find((b) => (b.keys as readonly string[]).includes(key)) ?? BLOCS[BLOCS.length - 1]
+  // Only seated parties form a bloc; lists under the threshold belong to none
   const blocs = BLOCS.map((b) => {
-    const members = ranked.filter((p) => blocOf(p.key).id === b.id)
-    return { ...b, members, seats: members.reduce((n, p) => n + p.seats, 0), votes: members.reduce((n, p) => n + p.votes, 0) }
+    const members = ranked.filter((p) => p.seats > 0 && (b.keys as readonly string[]).includes(p.key))
+    return { ...b, members, seats: members.reduce((n, p) => n + p.seats, 0) }
   })
   const blocMax = Math.max(1, ...blocs.map((b) => b.seats))
 
@@ -82,25 +80,6 @@ export function Parties() {
           )}
           {/* Blocs sit beside the party list, so both are read against each other */}
           <div className="board-pair">
-            <section className="card" aria-labelledby="blocs-head">
-              <h2 id="blocs-head">{t('blocsTitle')}</h2>
-              <ol className="blocs">
-                {blocs.map((b) => (
-                  <li key={b.id}>
-                    <span className="bloc-name">
-                      <span className="dot" style={{ background: b.color }} aria-hidden="true" />
-                      {t(`bloc_${b.id}`)}
-                    </span>
-                    <span className="pb-track">
-                      <span className="pb-fill" style={{ inlineSize: `${(b.seats / blocMax) * 100}%`, background: b.color }} />
-                    </span>
-                    <span className="pb-value num">{b.seats}</span>
-                    <span className="bloc-parties">{b.members.length > 0 ? b.members.map((p) => party(p.key).name).join(' · ') : '—'}</span>
-                  </li>
-                ))}
-              </ol>
-              <p className="note">{t('blocsNote')}</p>
-            </section>
             <section className="card" role="region" aria-label={t('national')}>
               <div className="seg" role="group" aria-label={t('national')}>
                 {(['seats', 'votes', 'pct'] as const).map((m) => (
@@ -130,6 +109,31 @@ export function Parties() {
                 {` · ${t('allLists')}: ${ranked.length}`}
                 {nothing.length > 0 && ` · ${t('noVotes')}: ${nothing.join(', ')}`}
               </p>
+            </section>
+            <section className="card" aria-labelledby="blocs-head">
+              <h2 id="blocs-head">{t('blocsTitle')}</h2>
+              <ol className="blocs">
+                {blocs.map((b) => (
+                  <li key={b.id}>
+                    <span className="bloc-name">
+                      <span className="dot" style={{ background: b.color }} aria-hidden="true" />
+                      {t(`bloc_${b.id}`)}
+                    </span>
+                    <span className="pb-track">
+                      <span className="pb-fill" style={{ inlineSize: `${(b.seats / blocMax) * 100}%`, background: b.color }} />
+                    </span>
+                    <span className="pb-value num">{b.seats}</span>
+                    <ul className="bloc-members">
+                      {b.members.map((p) => (
+                        <li key={p.key}>
+                          <PartyChip name={party(p.key).name} color={p.color} logo={p.logo} />
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ol>
+              <p className="note">{t('blocsNote')}</p>
             </section>
           </div>
         </>

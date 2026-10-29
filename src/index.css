@@ -438,11 +438,34 @@ a:hover {
   border-radius: 50%;
   flex: none;
 }
-.blocs .bloc-parties {
+/* Members as a bulleted list under their bloc's bar, each with its party mark */
+.blocs .bloc-members {
   grid-column: 1 / -1;
+  list-style: disc;
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  display: grid;
+  gap: 0.25rem;
   color: var(--text-2);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   line-height: 1.35;
+}
+/* Each item is one flex row: a bullet, then the party's mark and name */
+.blocs .bloc-members li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.blocs .bloc-members li::before {
+  content: '';
+  flex: none;
+  inline-size: 5px;
+  block-size: 5px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+.blocs .bloc-members .chip {
+  white-space: normal;
 }
 .pb-name {
   grid-column: 1 / -1;

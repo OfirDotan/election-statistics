@@ -53,39 +53,19 @@ export interface MunicipalTopology {
 }
 
 /**
- * GovMap ships Israel's municipal shapes in Israel TM Grid metres (EPSG:2039), a flattened projection
- * in which Israel is a rectangle about 180 km × 480 km with its false northing removed. These constants
- * were fitted to this file: outline + bounding box of every ring, then a linear map onto lon/lat.
+ * GovMap ships Israel's municipal shapes in grid metres: a flattened projection in which Israel is a
+ * rectangle about 180 km × 480 km with its false northing removed. A linear fit put Beer Sheva in
+ * Galilee, so the northing is placed by Mercator instead, fitted on two anchors from this file:
+ * מטולה 33.279°N at y 3,932,334 and אילת 29.557°N at y 3,456,690. Northing grows north.
+ * Easting is linear: אשדוד at 3858470 is 34.768°E, and one degree at 31° is 95,112 m.
  */
-const ITM = { kx: 1 / 88_000, ky: -0.887 / 88_000 }
+const KY = (Math.log(Math.tan(Math.PI / 4 + (33.279 * Math.PI) / 360)) - Math.log(Math.tan(Math.PI / 4 + (29.557 * Math.PI) / 360))) / (3_932_334.6 - 3_456_690.5)
+const KC = Math.log(Math.tan(Math.PI / 4 + (33.279 * Math.PI) / 360)) - KY * 3_932_334.6
 
-/** Places the projected collection on the globe (linear fit from ITM metres to lon/lat) */
-export function toWgs84(topo: MunicipalTopology, geo: MunicipalCollection): MunicipalCollection {
-  const { scale, translate } = topo.transform
-  // Every point in the file is an arc vertex: the deltas are cumulative, so the running sum is the grid coordinate
-  let minX = Infinity
-  let minY = Infinity
-  let maxX = -Infinity
-  let maxY = -Infinity
-  for (const arc of topo.arcs) {
-    let x = 0
-    let y = 0
-    for (const [dx, dy] of arc) {
-      x += dx
-      y += dy
-      const gx = translate[0] + x * scale[0]
-      const gy = translate[1] + y * scale[1]
-      minX = Math.min(minX, gx)
-      maxX = Math.max(maxX, gx)
-      minY = Math.min(minY, gy)
-      maxY = Math.max(maxY, gy)
-    }
-  }
-  // Pin the box to Israel's true outline: its centre sits at 34.97°E, 31.05°N
-  const mx = (minX + maxX) / 2
-  const my = (minY + maxY) / 2
-  const lon = (x: number) => 34.965 + (x - mx) * ITM.kx
-  const lat = (y: number) => 31.05 + (y - my) * ITM.ky
+/** Places the projected collection on the globe (grid metres to lon/lat, see the anchors above) */
+export function toWgs84(geo: MunicipalCollection): MunicipalCollection {
+  const lon = (x: number) => 34.7676 + (x - 3_858_470.7) / 95_112.3
+  const lat = (y: number) => ((2 * Math.atan(Math.exp(KY * y + KC)) - Math.PI / 2) * 180) / Math.PI
   const move = (c: unknown): unknown => (Array.isArray(c) && typeof c[0] === 'number' ? [lon(c[0]), lat(c[1])] : (c as unknown[]).map(move))
   return {
     ...geo,

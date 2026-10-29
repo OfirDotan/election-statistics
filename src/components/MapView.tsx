@@ -37,7 +37,7 @@ export function MapView({
   const [map, setMap] = useState<maplibregl.Map | null>(null)
 
   const { geo, rows } = useMemo(() => {
-    const geo = toWgs84(topo, feature(topo as never, topo.objects.municipal as never) as unknown as MunicipalCollection)
+    const geo = toWgs84(feature(topo as never, topo.objects.municipal as never) as unknown as MunicipalCollection)
     const rows = new Map<number, Row>()
     for (const tw of towns) {
       const v = tw.votes
@@ -59,10 +59,8 @@ export function MapView({
         layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#ebebee' } }],
       },
       center: NATIONAL,
-      // No bearing option means MapLibre starts at -0.01°, which skews the outline
+      // North stays up: a bearing left out starts MapLibre at -0.01°, which skews the outline
       bearing: 0,
-      // A quarter turn, so the Mediterranean sits on the right like on a printed map
-      // (south-up rather than north-up; set both back to 0 for north-up)
       pitch: 0,
       zoom: 6.4,
       minZoom: 4.5,
@@ -76,15 +74,18 @@ export function MapView({
     m.on('error', (e) => console.error('MAPERR', e))
     let watch: MutationObserver | undefined
     m.on('load', () => {
-      // One neutral land colour under every town; the pan limit is the land's own outline
+      // One neutral land colour under every town; the pan limit is the land's own outline.
+      // The stroke only draws union edges, so the country outline appears but town borders do not
       m.addSource('land', { type: 'geojson', data: geo })
       m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
+      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round' }, paint: { 'line-color': '#9CA3AF', 'line-width': 1.5 } })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = matchMedia('(prefers-color-scheme: dark)').matches
         const pinned = document.documentElement.dataset.theme
-        m.setPaintProperty('sea', 'background-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#000' : '#ebebee')
+        m.setPaintProperty('sea', 'background-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#000' : '#d6d6db')
         m.setPaintProperty('land', 'fill-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#1c1c1e' : '#fff')
+        m.setPaintProperty('outline', 'line-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#3f3f46' : '#b4b4bb')
       }
       bg()
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', bg)
