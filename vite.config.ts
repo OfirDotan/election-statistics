@@ -6,6 +6,6 @@ export default defineConfig({
   base: '/election-statistics/',
   plugins: [react()],
   test: {
-    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    include: ['tests/**/*.test.ts'],
   },
 })
