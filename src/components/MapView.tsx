@@ -37,7 +37,9 @@ export function MapView({
   const [tip, setTip] = useState<{ code: number; x: number; y: number } | null>(null)
 
   const { paths, rows } = useMemo(() => {
-    const geo = feature(topo as never, (topo.objects as Record<string, unknown>).municipal as never) as unknown as MunicipalCollection
+    // The object is a GeometryCollection, not a FeatureCollection: feature() returns features with
+    // the geometry's own properties, which is where SETL_CODE lives.
+    const geo = feature(topo as never, topo.objects.municipal as never) as unknown as MunicipalCollection
     const rows = new Map<number, Row>()
     for (const tw of towns) {
       const v = tw.votes

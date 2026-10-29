@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { allocate } from '../lib/mandates.ts'
 import { useI18n } from '../i18n/useI18n.ts'
 import { LoadError, Loading, PartyChip, Title } from '../components/ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
@@ -8,18 +10,29 @@ import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 const TOP = 8
+type Metric = 'pct' | 'seats' | 'votes'
 
 export function Home() {
   const { t } = useI18n()
-  const { towns, party, error } = useDataset()
+  const { towns, party, parties, error } = useDataset()
+  const [metric, setMetric] = useState<Metric>('pct')
   const meta = useLoad('meta', loadMeta)
   useTitle('')
 
   const ranked = towns
     ? [...nationalShares(towns)]
-        .map(([key, pct]) => ({ ...party(key), pct }))
+        .map(([key, pct]) => ({ ...party(key), pct, votes: parties.find((p) => p.key === key)?.votes ?? 0 }))
         .sort((a, b) => b.pct - a.pct)
     : []
+  // Seats need the official national totals: town sums omit the 493k double-envelope ballots
+  const seatOf = Object.fromEntries(
+    allocate({ votes: Object.fromEntries((towns ? parties : []).map((p) => [p.key, p.nationalVotes])) }).seats.map((s) => [s.key, s.seats]),
+  )
+  const maxVotes = ranked[0]?.votes || 1
+  const value = (r: (typeof ranked)[number]) =>
+    metric === 'seats' ? `${seatOf[r.key] ?? 0}` : metric === 'votes' ? fmtInt(r.votes) : fmtPct(r.pct)
+  const width = (r: (typeof ranked)[number]) => (metric === 'seats' ? ((seatOf[r.key] ?? 0) / 120) * 100 : metric === 'votes' ? (r.votes / maxVotes) * 100 : r.pct)
+  const sorted = metric === 'pct' ? ranked : [...ranked].sort((a, b) => width(b) - width(a))
   const withVotes = towns?.filter((x) => x.votes?.source === 'kaplan').length ?? 0
   const eligible = towns?.reduce((s, x) => s + (x.votes?.eligible ?? 0), 0) ?? 0
   const voters = towns?.reduce((s, x) => s + (x.votes?.voters ?? 0), 0) ?? 0
@@ -51,21 +64,30 @@ export function Home() {
       {towns && (
         <>
           <section className="card" aria-labelledby="national">
-            <h2 id="national">{t('national')}</h2>
+            <div className="row-head">
+              <h2 id="national">{t('national')}</h2>
+              <div className="seg" role="group" aria-label={t('national')}>
+                {(['pct', 'seats', 'votes'] as const).map((m) => (
+                  <button key={m} type="button" className={metric === m ? 'on' : undefined} aria-pressed={metric === m} onClick={() => setMetric(m)}>
+                    {{ pct: t('byPct'), seats: t('bySeats'), votes: t('byVotes') }[m]}
+                  </button>
+                ))}
+              </div>
+            </div>
             <ol className="party-bars">
-              {ranked.slice(0, TOP).map((p) => (
+              {sorted.slice(0, TOP).map((p) => (
                 <li key={p.key}>
                   <span className="pb-name">
                     <PartyChip name={p.name} color={p.color} />
                   </span>
                   <span className="pb-track">
-                    <span className="pb-fill" style={{ inlineSize: `${p.pct}%`, background: p.color }} />
+                    <span className="pb-fill" style={{ inlineSize: `${width(p)}%`, background: p.color }} />
                   </span>
-                  <span className="pb-value num">{fmtPct(p.pct)}</span>
+                  <span className="pb-value num">{value(p)}</span>
                 </li>
               ))}
             </ol>
-            <p className="note">{t('ofValid')}</p>
+            <p className="note">{metric === 'seats' ? t('noteSeats') : metric === 'votes' ? t('votesWord') : t('ofValid')}</p>
           </section>
 
           <dl className="stats">

@@ -144,7 +144,7 @@ export function parseCandidates(): Map<string, CandidateRecord[]> {
   return byParty
 }
 
-export function parseCandidateParties(): Record<string, { status: string; note: string }> {
+export function parseCandidateParties(): Record<string, { status: string; note: string; nameEn?: string }> {
   // Some fields are wrapped in smart quotes, which papaparse treats as literal text and the comma spills columns
   const csv = fs.readFileSync(`${RAW}/candidate_parties.csv`, 'utf8').replace(/[“”]/g, '"')
   const { data, errors } = Papa.parse<Record<string, string>>(csv, {
@@ -152,12 +152,13 @@ export function parseCandidateParties(): Record<string, { status: string; note: 
     skipEmptyLines: true,
   })
   if (errors.length) throw new Error(`candidate_parties.csv: ${errors[0].message}`)
-  const out: Record<string, { status: string; note: string }> = {}
+  const out: Record<string, { status: string; note: string; nameEn?: string }> = {}
   for (const row of data) {
     const key = row.ballot_letters?.trim()
     // Known upstream trap: one unquoted title spills several columns; refuse rather than mis-join
     if (!HEBREW_LETTERS.test(key ?? '')) throw new Error(`candidate_parties.csv: bad ballot_letters in row "${row.party_en}"`)
-    out[key] = { status: row.list_status, note: row.status_note }
+    // party_en is the only English name for the 24 lists Kaplan does not translate
+    out[key] = { status: row.list_status, note: row.status_note, nameEn: row.party_en || undefined }
   }
   return out
 }

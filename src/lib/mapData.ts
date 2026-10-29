@@ -1,4 +1,5 @@
 import type { FeatureCollection, Geometry } from 'geojson'
+import type { GeometryCollection } from 'topojson-specification'
 
 export interface TownVotes {
   eligible: number
@@ -42,10 +43,10 @@ const get = async <T>(file: string): Promise<T> => {
 
 export const loadTowns = () => get<Town[]>('towns.json')
 export const loadParties = () => get<Party[]>('parties.json')
-// GovMap's TopoJSON holds a FeatureCollection where topojson-specification assumes a
-// GeometryCollection, so the standard Types don't fit; only `objects.municipal` is used.
+// GovMap's TopoJSON holds a GeometryCollection, which topojson-specification can type, but its
+// properties shape is specific to this file, so the object is described locally.
 export interface MunicipalTopology {
-  objects: { municipal: MunicipalCollection }
+  objects: { municipal: GeometryCollection<MunicipalProps> }
   transform?: unknown
 }
 export const loadGeo = () => get<MunicipalTopology>('geo.topo.json')

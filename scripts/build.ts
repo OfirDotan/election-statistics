@@ -73,7 +73,7 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
     return {
       key,
       name: names[key],
-      nameEn: kaplan[key]?.name_en,
+      nameEn: kaplan[key]?.name_en ?? statuses[key]?.nameEn,
       color: kaplan[key]?.color ?? cec[key]?.color ?? '#9E9E9E',
       status: statuses[key]?.status ?? 'unknown',
       votes: votes[key] ?? 0,
