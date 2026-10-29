@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loading, LoadError } from '../components/ui.tsx'
+import { Loading, LoadError, PartyChip } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
 import { nationalShares, townRows, type TownRow } from '../lib/derive.ts'
 import { fmtPct } from '../lib/fmt.ts'
@@ -71,10 +71,7 @@ export function LeaderboardsPage() {
                   <Link to={`/town/${r.code}`} className="town-link">
                     {r.name}
                   </Link>
-                  <span className="chip">
-                    <span className="dot" style={{ background: party(r.stats.leader).color }} aria-hidden="true" />
-                    {party(r.stats.leader).name}
-                  </span>
+                  <PartyChip name={party(r.stats.leader).name} color={party(r.stats.leader).color} partyKey={r.stats.leader} slug={party(r.stats.leader).slug} />
                   <span className="value">{fmtPct(r.stats.leaderShare)}</span>
                 </li>
               ))}
@@ -95,10 +92,7 @@ export function LeaderboardsPage() {
                     <Link to={`/town/${r.code}`} className="town-link">
                       {r.name}
                     </Link>
-                    <span className="chip">
-                      <span className="dot" style={{ background: party(r.stats.leader).color }} aria-hidden="true" />
-                      {party(r.stats.leader).name}
-                    </span>
+                    <PartyChip name={party(r.stats.leader).name} color={party(r.stats.leader).color} partyKey={r.stats.leader} slug={party(r.stats.leader).slug} />
                     <span className="value">{value(key, r)}</span>
                   </li>
                 ))}
@@ -123,10 +117,7 @@ export function LeaderboardsPage() {
                     <Link to={`/town/${d.code}`} className="town-link">
                       {towns.find((tw) => tw.code === d.code)?.name}
                     </Link>
-                    <span className="chip">
-                      <span className="dot" style={{ background: party(d.party).color }} aria-hidden="true" />
-                      {party(d.party).name}
-                    </span>
+                    <PartyChip name={party(d.party).name} color={party(d.party).color} partyKey={d.party} slug={party(d.party).slug} />
                     <span className="value">
                       {d.diff > 0 ? '+' : '−'}
                       {fmtPct(Math.abs(d.diff))}

@@ -1,26 +1,17 @@
 import { useState } from 'react'
-import { SeatStrip } from '../components/SeatStrip.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
 import { Loading, LoadError, PartyChip } from '../components/ui.tsx'
+import { SeatsPie } from '../components/SeatsPie.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
 import { loadParties } from '../lib/data.ts'
-import { allocate } from '../lib/mandates.ts'
+import { allocate, DEFAULT_THRESHOLD } from '../lib/mandates.ts'
+import { BLOCS } from '../lib/blocs.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 type Metric = 'seats' | 'votes' | 'pct'
 // The two ballot lists that stood and won no seats, which still get a row (with 0 seats)
 const ZERO_SEAT = new Set(['ך', 'די'])
-
-// The four camps of the 26th Knesset, as the campaign itself was framed. The Joint List carries
-// the first Arab bloc; Ra'am the second
-const BLOCS = [
-  // ביחד and ישר stood as an apparentment (s. 81(d)), so their votes are counted together at the threshold
-  { id: 'change', color: '#2563EB', keys: ['דרך', 'רק', 'אמת', 'ל', 'כן'] },
-  { id: 'netanyahu', color: '#DC2626', keys: ['מחל', 'ב', 'שס', 'ג', 'ט'] },
-  { id: 'joint', color: '#16A34A', keys: ['ודם'] },
-  { id: 'raam', color: '#EAB308', keys: ['עם'] },
-] as const
 
 export function Parties() {
   const { t, ln } = useI18n()
@@ -29,7 +20,7 @@ export function Parties() {
   const [metric, setMetric] = useState<Metric>('seats')
   useTitle(t('partiesTitle'))
 
-  // Official national votes and seats; no town has the 493,642 double-envelope ballots, so town sums fall short
+  // Official national votes and seats; no town has the double-envelope ballots (about 8.8%), so town sums fall short
   const result = official ? allocate({ votes: official.votes }) : null
   const seatOf = Object.fromEntries((result?.seats ?? []).map((s) => [s.key, s.seats]))
   const ranked = towns
@@ -45,6 +36,10 @@ export function Parties() {
   const shown = metric === 'seats' ? sorted.filter((p) => p.seats > 0 || ZERO_SEAT.has(p.key)) : ranked
   // Each bar is drawn against the leader, so the biggest party fills the track in every mode
   const max = Math.max(1, ...shown.map((p) => p[metric]))
+  // The threshold marker sits where the 3.25% line falls, just past the top list below it (the bars
+  // share one scale, so one line serves every row)
+  const lineAt = metric === 'pct' ? shown.filter((p) => p.seats === 0).reduce((m, p) => Math.max(m, p.pct), 0) : null
+  const linePct = lineAt === null ? 0 : (lineAt / max) * 100
   const value = (p: (typeof ranked)[number]) => (metric === 'seats' ? `${p.seats}` : metric === 'votes' ? fmtInt(p.votes) : fmtPct(p.pct))
 
   // Lists with no votes and no seats, still on the ballot: named in the note rather than given empty bars
@@ -57,6 +52,7 @@ export function Parties() {
     return { ...b, members, seats: members.reduce((n, p) => n + p.seats, 0) }
   })
   const blocMax = Math.max(1, ...blocs.map((b) => b.seats))
+  const seatRows = [...ranked].filter((p) => p.seats > 0).sort((a, b) => b.seats - a.seats || b.votes - a.votes)
 
   return (
     <section className="page">
@@ -71,16 +67,9 @@ export function Parties() {
       {(!towns || !ballot.data) && !error && <Loading />}
       {towns && ballot.data && (
         <>
-          {result && (
-            <section className="card" aria-labelledby="seats-chart">
-              <h2 id="seats-chart">{t('seatsTitle')}</h2>
-              <SeatStrip blocks={sorted.map((p) => ({ key: p.key, seats: p.seats, color: p.color, label: p.name }))} label={t('seatsTitle')} />
-              <p className="note">{t('seatsIntro')}</p>
-            </section>
-          )}
-          {/* Blocs sit beside the party list, so both are read against each other */}
-          <div className="board-pair">
-            <section className="card" role="region" aria-label={t('national')}>
+          {/* Party list on the left, blocs beside it on the right; the seats pie sits under the blocs */}
+          <div className="board-pair board-columns">
+            <section className="card party-list" role="region" aria-label={t('national')}>
               <div className="seg" role="group" aria-label={t('national')}>
                 {(['seats', 'votes', 'pct'] as const).map((m) => (
                   <button key={m} type="button" className={metric === m ? 'on' : undefined} aria-pressed={metric === m} onClick={() => setMetric(m)}>
@@ -92,7 +81,7 @@ export function Parties() {
                 {shown.map((p) => (
                   <li key={p.key}>
                     <span className="pb-name">
-                      <PartyChip name={p.name} color={p.color} logo={p.logo} />
+                      <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={p.key} slug={p.slug} />
                     </span>
                     <span className="pb-track">
                       <span className="pb-fill" style={{ inlineSize: `${(p[metric] / max) * 100}%`, background: p.color }} />
@@ -100,6 +89,11 @@ export function Parties() {
                     <span className="pb-value num">{value(p)}</span>
                   </li>
                 ))}
+                {lineAt !== null && (
+                  <li className="pb-line" style={{ insetInlineStart: `calc((100% - 5rem - 1.5rem) * ${linePct / 100})` }} aria-hidden="true">
+                    <span className="pb-line-label">אחוז חסימה · {fmtPct(DEFAULT_THRESHOLD * 100, 2)}</span>
+                  </li>
+                )}
               </ol>
               <p className="note">
                 {metric === 'seats' ? t('noteSeats') : metric === 'votes' ? t('votesWord') : t('ofValid')}
@@ -110,31 +104,40 @@ export function Parties() {
                 {nothing.length > 0 && ` · ${t('noVotes')}: ${nothing.join(', ')}`}
               </p>
             </section>
-            <section className="card" aria-labelledby="blocs-head">
-              <h2 id="blocs-head">{t('blocsTitle')}</h2>
-              <ol className="blocs">
-                {blocs.map((b) => (
-                  <li key={b.id}>
-                    <span className="bloc-name">
-                      <span className="dot" style={{ background: b.color }} aria-hidden="true" />
-                      {t(`bloc_${b.id}`)}
-                    </span>
-                    <span className="pb-track">
-                      <span className="pb-fill" style={{ inlineSize: `${(b.seats / blocMax) * 100}%`, background: b.color }} />
-                    </span>
-                    <span className="pb-value num">{b.seats}</span>
-                    <ul className="bloc-members">
-                      {b.members.map((p) => (
-                        <li key={p.key}>
-                          <PartyChip name={party(p.key).name} color={p.color} logo={p.logo} />
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ol>
-              <p className="note">{t('blocsNote')}</p>
-            </section>
+            <div className="board-side">
+              <section className="card" aria-labelledby="blocs-head">
+                <h2 id="blocs-head">{t('blocsTitle')}</h2>
+                <ol className="blocs">
+                  {blocs.map((b) => (
+                    <li key={b.id}>
+                      <span className="bloc-name">
+                        <span className="dot" style={{ background: b.color }} aria-hidden="true" />
+                        {t(`bloc_${b.id}`)}
+                      </span>
+                      <span className="pb-track">
+                        <span className="pb-fill" style={{ inlineSize: `${(b.seats / blocMax) * 100}%`, background: b.color }} />
+                      </span>
+                      <span className="pb-value num">{b.seats}</span>
+                      <ul className="bloc-members">
+                        {b.members.map((p) => (
+                          <li key={p.key}>
+                            <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={p.key} slug={p.slug} />
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ol>
+                <p className="note">{t('blocsNote')}</p>
+              </section>
+              {result && seatRows.length > 0 && (
+                <section className="card" aria-labelledby="seats-pie">
+                  <h2 id="seats-pie">{t('seatsTitle')}</h2>
+                  <SeatsPie slices={seatRows} seatWord={t('seats')} />
+                  <p className="note">{t('noteSeats')}</p>
+                </section>
+              )}
+            </div>
           </div>
         </>
       )}

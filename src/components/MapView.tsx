@@ -1,10 +1,13 @@
+import type { FeatureCollection, Geometry } from 'geojson'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 // maplibre-gl 6 ships its worker next to itself and only looks for it when import.meta.url is blank
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { feature } from 'topojson-client'
 import { useI18n } from '../i18n/useI18n.ts'
+import { partyUrl } from '../lib/links.ts'
 import { fmtPct } from '../lib/fmt.ts'
 import { toWgs84, type MunicipalCollection, type MunicipalTopology } from '../lib/mapData.ts'
 import { readableOn, scaleColor, topParty } from '../lib/mapLogic.ts'
@@ -21,13 +24,15 @@ type Row = { name: string; leader: string | null; leaderShare: number | null; tu
 
 export function MapView({
   topo,
+  country,
   towns,
   party,
   onSelectTown,
 }: {
   topo: MunicipalTopology
+  country: FeatureCollection<Geometry> | undefined
   towns: Town[]
-  party: (key: string) => { name: string; color: string | undefined }
+  party: (key: string) => { key: string; name: string; color: string | undefined; slug?: string }
   onSelectTown: (code: number) => void
 }) {
   const { t, lang } = useI18n()
@@ -63,8 +68,8 @@ export function MapView({
       bearing: 0,
       pitch: 0,
       zoom: 6.4,
-      // Far enough out to see the country whole on a phone, with sea around it
-      minZoom: 2,
+      // Far out enough that the whole country is a small shape in open sea
+      minZoom: 0,
       maxZoom: 13,
       maxPitch: 0,
       attributionControl: false,
@@ -74,12 +79,14 @@ export function MapView({
     m.keyboard.disableRotation()
     m.on('error', (e) => console.error('MAPERR', e))
     let watch: MutationObserver | undefined
-    m.on('load', () => {
-      // One neutral land colour under every town; the pan limit is the land's own outline.
-      // The stroke only draws union edges, so the country outline appears but town borders do not
-      m.addSource('land', { type: 'geojson', data: geo })
+    let landed = false
+    const once = () => {
+      if (landed) return
+      landed = true
+      // Land and country outline under the towns; the stroke is the country edge, not town borders
+      m.addSource('land', { type: 'geojson', data: country ?? { type: 'FeatureCollection', features: [] } })
       m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
-      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 2 } })
+      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
@@ -91,31 +98,24 @@ export function MapView({
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', bg)
       watch = new MutationObserver(bg)
       watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-      let w = 180
-      let e = -180
-      let s = 90
-      let n = -90
-      const walk = (c: unknown): void => {
-        if (Array.isArray(c) && typeof c[0] === 'number') {
-          const [lng, lat] = c as number[]
-          w = Math.min(w, lng)
-          e = Math.max(e, lng)
-          s = Math.min(s, lat)
-          n = Math.max(n, lat)
-        } else if (Array.isArray(c)) (c as unknown[]).forEach(walk)
-      }
-      for (const f of geo.features) walk((f.geometry as { coordinates: unknown } | null)?.coordinates)
+      // Pan limit from the country, padded far enough out that maxBounds never forces a zoom back in
+      const b = new maplibregl.LngLatBounds([NATIONAL.lng, NATIONAL.lat], [NATIONAL.lng, NATIONAL.lat])
+      for (const f of country?.features ?? []) if (f.geometry) b.extend(f.geometry as never)
       m.setMaxBounds([
-        [w, s],
-        [e, n],
+        [b.getWest() - 8, b.getSouth() - 8],
+        [b.getEast() + 8, b.getNorth() + 8],
       ])
+      ;(window as unknown as { __m: unknown }).__m = m
       setMap(m)
-    })
+    }
+    // The empty inline style can finish loading before this effect attaches, and then 'load' never fires
+    if (m.loaded()) once()
+    else m.once('load', once)
     return () => {
       watch?.disconnect()
       m.remove()
     }
-  }, [geo])
+  }, [geo, country])
 
   // The fill colour is a feature property, so a mode change only re-sends the data
   useEffect(() => {
@@ -131,15 +131,20 @@ export function MapView({
       ...geo,
       features: geo.features.map((f) => ({ ...f, properties: { ...f.properties, fill: color(f.properties.SETL_CODE) } })),
     }
-    const source = map.getSource('towns') as maplibregl.GeoJSONSource | undefined
-    if (source) source.setData(data)
-    else {
+    const add = () => {
+      if (map.getSource('towns')) return
       map.addSource('towns', { type: 'geojson', data })
       map.addLayer({ id: 'towns', type: 'fill', source: 'towns', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
       map.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': 'rgba(0,0,0,0.18)', 'line-width': 0.4 } })
     }
+    const source = map.getSource('towns') as maplibregl.GeoJSONSource | undefined
+    // Before the style is loaded MapLibre drops addSource without an error, and the towns never come back
+    if (source) source.setData(data)
+    else if (!map.isStyleLoaded()) {
+      map.once('load', add)
+      return () => { map.off('load', add) }
+    } else add()
   }, [map, geo, mode, rows, party])
-
   useEffect(() => {
     if (!map) return
     const codeOf = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) =>
@@ -200,7 +205,7 @@ export function MapView({
         {tip && active && (
           <div className="map-tip" style={{ left: tip.x, top: tip.y }} role="status">
             <strong>{active.name}</strong>
-            <span>{active.leader ? party(active.leader).name : t('mapNoData')}</span>
+            <span>{active.leader ? <Link to={partyUrl(party(active.leader))}>{party(active.leader).name}</Link> : t('mapNoData')}</span>
             {active.leaderShare != null && (
               <span>
                 {t('colShare')}: {fmtPct(active.leaderShare)}
@@ -220,7 +225,7 @@ export function MapView({
                 <span className="swatch" style={{ display: 'grid', placeItems: 'center', background: party(k).color }} aria-hidden="true">
                   <span style={{ width: 4, height: '60%', background: readableOn(party(k).color ?? '#999'), borderRadius: 1 }} />
                 </span>
-                {party(k).name}
+                <Link to={partyUrl(party(k))}>{party(k).name}</Link>
               </span>
             ))}
             <span className="legend-item">

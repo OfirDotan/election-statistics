@@ -79,7 +79,7 @@ export function TownPage() {
                   return (
                     <tr key={key}>
                       <th scope="row">
-                        <PartyChip name={p.name} color={p.color} logo={p.logo} />
+                        <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={p.key} slug={p.slug} />
                       </th>
                       <td className="bar-col">
                         <span className="bar" aria-hidden="true">

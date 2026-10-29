@@ -1,15 +1,32 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { LOGOS } from './logos.ts'
+import { allocate } from '../src/lib/mandates.ts'
 import { parseCandidates, parseCandidateParties, parseElectionParties, parseGeo, parseKalpi, parseKaplanParties, parseMunicipal, parseNationalVotes, parseResults } from './parse.ts'
 import type { Kalpi, Party, Town } from './types.ts'
 import { validate } from './validate.ts'
 
 const FALLBACK = 'data/fallback'
+/** Party-page name lists: enough for a realistic Knesset, not the whole ballot */
+const CANDIDATES_PER_PARTY = 40
+
+/** The party's main short English name as its URL: "Together (B'Yachad)" is `together`, and lists
+ *  without one fall back to their ballot key */
+const SHORT: Record<string, string> = {
+  מחל: 'likud', דרך: 'yashar', רק: 'together', אמת: 'democrats', ודם: 'joint-list', ל: 'israel-beiteinu',
+  ב: 'otzma', שס: 'shas', ג: 'utj', ט: 'religious-zionist', עם: 'raam', די: 'reservists',
+}
+/** Small lists share URLs once shortened, so the key joins the slug for them */
+const partySlug = (key: string, nameEn: string | undefined) => {
+  if (SHORT[key]) return SHORT[key]
+  const s = (nameEn ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  // No ballot letter in the URL: the list's own index disambiguates instead
+  return `${s || 'list'}-${[...key].reduce((n, ch) => n * 31 + ch.charCodeAt(0), 0) % 1000}`
+}
 
 /** Party names in the results file are official titles; the CEC catalog has the short public names */
 export function build() {
-  const { localities, date, time } = parseResults()
+  const { localities, head } = parseResults()
   const kalpi = parseKalpi()
   const municipal = parseMunicipal()
   const parties = buildParties(localities)
@@ -52,10 +69,13 @@ export function build() {
   const candidates = parseCandidates()
   const candidateList = [...candidates.values()].flat().filter((c) => statuses[c.party]?.status !== 'withdrawn')
 
-  return { towns, parties, candidateList, townKalpi, geo, asOf: { date, time } }
+  return { towns, parties, candidateList, townKalpi, geo, asOf: head }
 }
 
 function buildParties(localities: ReturnType<typeof parseResults>['localities']): Party[] {
+  // Share denominators: Kaplan's table over the town sums, which by construction add up to it
+  const validTotal = localities.reduce((s, l) => s + l.valid, 0)
+  const seatOf = Object.fromEntries(allocate({ votes: Object.fromEntries(Object.entries(parseNationalVotes()).filter(([, n]) => n > 0)) }).seats.map((s) => [s.key, s.seats]))
   const cec = parseElectionParties()
   const kaplan = parseKaplanParties().lists
   const statuses = parseCandidateParties()
@@ -81,11 +101,14 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
   return Object.keys(names).map((key) => {
     const list = candidates.get(key) ?? []
     const leader = list.find((c) => c.isLeader)
+    // The leader is inside every list, so the list without it is the rest of the seats, by position
+    const c = list.filter((x) => !x.isLeader).slice(0, CANDIDATES_PER_PARTY)
     return {
       key,
+      slug: partySlug(key, namesEn[key] ?? kaplan[key]?.name_en ?? statuses[key]?.nameEn),
       name: names[key],
       nameEn: namesEn[key] ?? kaplan[key]?.name_en ?? statuses[key]?.nameEn,
-      logo: LOGOS[key],
+      logo: LOGOS[key] ?? '',
       color: kaplan[key]?.color ?? cec[key]?.color ?? '#9E9E9E',
       status: statuses[key]?.status ?? 'unknown',
       votes: votes[key] ?? 0,
@@ -93,6 +116,10 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
       nationalShare: nationalTotal ? ((national[key] ?? 0) / nationalTotal) * 100 : 0,
       leader: leader ? { he: leader.nameHe, en: leader.nameEn } : undefined,
       candidates: list.length,
+      seats: seatOf[key] ?? 0,
+      candidateNames: c.map((x) => x.nameHe),
+      // Of all valid votes; `nationalShare` is the same share off Kaplan's table, `אחר` folded in
+      share: validTotal ? ((national[key] ?? 0) / validTotal) * 100 : 0,
     }
   }).filter((p) => p.candidates > 0 || p.nationalVotes > 0)
 }
@@ -121,7 +148,16 @@ export async function write(out: string) {
     candidates: data.candidateList.length,
   })
   await fs.rm(out, { recursive: true, force: true })
-  await fs.rename(staging, out)
+  // Windows briefly locks a directory a dev server or watcher just had open; the swap is safe to retry
+  for (let i = 1; ; i++) {
+    try {
+      await fs.rename(staging, out)
+      break
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'EPERM' || i >= 5) throw err
+      await new Promise((resolve) => setTimeout(resolve, 200 * i))
+    }
+  }
   // The fallback copy ships in the image: the site keeps working while the live sources are down
   if (out !== FALLBACK) {
     await fs.rm(FALLBACK, { recursive: true, force: true })

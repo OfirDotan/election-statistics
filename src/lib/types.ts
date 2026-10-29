@@ -31,17 +31,61 @@ export interface Party {
   key: string
   name: string
   nameEn?: string
-  /** File name under assets/parties/, when a logo exists */
-  logo?: string
+  /** URL segment for the party page: English, e.g. `likud` */
+  slug?: string
+  /** File name under assets/parties/, empty when the list has no logo */
+  logo: string
   color: string
   /** 'approved' | 'withdrawn' | 'unknown' */
   status: string
   votes: number
-  /** Official national total, double-envelope ballots included. Not the source for shares: it adds 493,642 ballots no town has */
+  /** Official national total, double-envelope ballots included. Kaplan's per-list totals lack the double envelopes */
   nationalVotes?: number
-  /** Share (percent) of all official valid votes; national totals, so TownPage deltas match elections.gov.il */
+  /** Share (percent) of Kaplan's national total, `אחר` folded in; TownPage deltas use it */
   nationalShare?: number
   leader?: { he: string; en?: string }
   candidates: number
+  /** Seats from the official national votes; 0 for every list below the threshold */
+  seats?: number
+  /** Share (percent) of all valid votes (national table over town valid sums, `אחר` separated) */
+  share?: number
+  /** The list after its leader, in ballot order: candidates[0] is the leader, so seat N is candidates[N - 1] */
+  candidateNames?: string[]
 }
 
+export interface Candidate {
+  /** Name slug, e.g. `benjamin-netanyahu`, see personId */
+  id: string
+  party: string
+  position: number
+  nameHe: string
+  nameEn?: string
+  isLeader: boolean
+  incumbent: boolean
+  component?: string
+}
+
+/** Stable per-list-slot key: the same person is a different MK if they move on the list, so name is not part of it. */
+export type MkProfile = {
+  /** Same as the candidate id */
+  id: string
+  nameHe: string
+  nameEn?: string
+  /** Wikimedia Commons file name; rendered as a /thumb/ URL at the width the page needs */
+  photo?: string
+  photoCredit?: string
+  birthYear?: number
+  /** English; Hebrew in birthPlaceHe */
+  birthPlace?: string
+  birthPlaceHe?: string
+  education?: string[]
+  /** Hebrew; English in professionEn */
+  profession?: string
+  professionEn?: string
+  /** Knesset terms served before the 26th */
+  priorTerms?: string
+  priorRoles?: string[]
+  backgroundHe?: string
+  backgroundEn?: string
+  sources: string[]
+}

@@ -5,7 +5,9 @@ import { Coalition } from './pages/Coalition.tsx'
 import { Home } from './pages/Home.tsx'
 import { LeaderboardsPage } from './pages/LeaderboardsPage.tsx'
 import { MapPage } from './pages/MapPage.tsx'
+import { MkPage } from './pages/MkPage.tsx'
 import { Parties } from './pages/Parties.tsx'
+import { PartyPage } from './pages/PartyPage.tsx'
 import { TownPage } from './pages/TownPage.tsx'
 import { Towns } from './pages/Towns.tsx'
 
@@ -40,6 +42,8 @@ export function App() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/coalition" element={<Coalition />} />
           <Route path="/town/:code" element={<TownPage />} />
+          <Route path="/party/:key" element={<PartyPage />} />
+          <Route path="/mk/:id" element={<MkPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

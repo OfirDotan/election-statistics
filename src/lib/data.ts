@@ -1,4 +1,4 @@
-import type { Kalpi, Party, Town } from './types.ts'
+import type { Candidate, Kalpi, MkProfile, Party, Town } from './types.ts'
 
 const base = import.meta.env.BASE_URL
 
@@ -23,5 +23,23 @@ const get = async <T,>(file: string): Promise<T> => {
 export const loadTowns = () => cached('towns.json', () => get<Town[]>('towns.json'))
 export const loadParties = () => cached('parties.json', () => get<Party[]>('parties.json'))
 export const loadKalpi = () => cached('kalpi.json', () => get<Record<string, Kalpi[]>>('kalpi.json'))
-// eligible: voters on the electoral book (kalpi national total, בזב), which no town list sums to
-export const loadMeta = () => cached('meta.json', () => get<{ date: string; time: string; eligible?: number }>('meta.json'))
+// The results file header: national turnout as the source counts it (voters include the double
+// envelopes no town has), plus `valid`, whose total is the national list result
+export interface Meta {
+  date: string
+  time: string
+  /** Ballot boxes counted, percent */
+  counted?: number
+  voters?: number
+  /** Voters on the electoral book (בזב) */
+  eligible?: number
+  /** Turnout percent, `voting_percent_now` of the results header */
+  turnout?: number
+  /** Valid (`r_כשרים`) and invalid (`r_פסולים`) votes summed over the towns; valid = the national list sum */
+  valid?: number
+  invalid?: number
+}
+export const loadMeta = () => cached('meta.json', () => get<Meta>('meta.json'))
+export const loadCandidates = () => cached('candidates.json', () => get<Candidate[]>('candidates.json'))
+// Hand-collected MK bios, keyed by candidate id (the name slug). A failed fetch only blanks the profile, not the page
+export const loadMks = () => cached('mks.json', () => get<MkProfile[]>('mks.json').catch(() => [] as MkProfile[]))

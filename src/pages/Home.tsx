@@ -1,7 +1,7 @@
 import { allocate } from '../lib/mandates.ts'
 import { useI18n } from '../i18n/useI18n.ts'
 import { LoadError, Loading, PartyChip } from '../components/ui.tsx'
-import { fmtInt, fmtPct } from '../lib/fmt.ts'
+import { fmtInt } from '../lib/fmt.ts'
 import { loadMeta } from '../lib/data.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
@@ -12,8 +12,8 @@ export function Home() {
   const meta = useLoad('meta', loadMeta)
   useTitle('')
 
-  // Official national result, every list on the ballot; official votes include the 493,642
-  // double-envelope ballots that no town has, so town sums never reach these numbers
+  // Official national result, every list on the ballot; official votes include the double-envelope
+  // ballots that no town has, so town sums never reach these numbers
   const ranked = towns
     ? parties
         .map((p) => ({ ...party(p.key), votes: p.nationalVotes ?? 0 }))
@@ -21,15 +21,17 @@ export function Home() {
         .sort((a, b) => b.votes - a.votes)
     : []
   const seatOf = Object.fromEntries((official ? allocate({ votes: official.votes }).seats : []).map((s) => [s.key, s.seats]))
-  // Home shows seats only; the parties page has the seats/votes/percent breakdown
-  const seated = ranked.filter((p) => (seatOf[p.key] ?? 0) > 0)
+  // Home shows seats only; the parties page has the seats/votes/percent breakdown. Ties on seats
+  // keep the vote order, so seats alone decide
+  const seated = ranked.filter((p) => (seatOf[p.key] ?? 0) > 0).sort((a, b) => (seatOf[b.key] ?? 0) - (seatOf[a.key] ?? 0))
   const maxSeats = Math.max(1, ...seated.map((p) => seatOf[p.key] ?? 0))
-  // Eligible voters come from the electoral book; no town list carries all of them. Voters are the
-  // ones the national result counts as cast, double-envelope ballots included
+  // Every figure is the results file's own national header (meta.json), never a party-vote or town
+  // sum: a party sum is the valid count, and voters includes the double envelopes no town has
   const eligible = meta.data?.eligible ?? 0
-  const voters = official?.cast ?? 0
-  const valid = towns?.reduce((s, x) => s + (x.votes?.valid ?? 0), 0) ?? 0
-  const invalid = towns?.reduce((s, x) => s + (x.votes?.invalid ?? 0), 0) ?? 0
+  const voters = meta.data?.voters ?? 0
+  const turnout = meta.data?.turnout ?? 0
+  const valid = meta.data?.valid ?? 0
+  const invalid = meta.data?.invalid ?? 0
 
   return (
     <section className="page">
@@ -41,6 +43,7 @@ export function Home() {
           {meta.data && (
             <span className="asof">
               {t('asOf')} {meta.data.date} · {meta.data.time}
+              {meta.data.counted != null && ` · ${t('boxesCounted')} ${meta.data.counted}%`}
             </span>
           )}
         </div>
@@ -67,7 +70,7 @@ export function Home() {
             </div>
             <div>
               <dt>{t('turnoutOverall')}</dt>
-              <dd className="num">{fmtPct(eligible ? (voters / eligible) * 100 : 0)}</dd>
+              <dd className="num">{turnout.toFixed(2)}%</dd>
             </div>
             <div>
               <dt>{t('validVotes')}</dt>
@@ -84,7 +87,7 @@ export function Home() {
               {seated.map((p) => (
                 <li key={p.key}>
                   <span className="pb-name">
-                    <PartyChip name={p.name} color={p.color} logo={p.logo} />
+                    <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={p.key} slug={p.slug} />
                   </span>
                   <span className="pb-track">
                     <span className="pb-fill" style={{ inlineSize: `${((seatOf[p.key] ?? 0) / maxSeats) * 100}%`, background: p.color }} />

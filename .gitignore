@@ -27,3 +27,7 @@ dist-ssr
 
 # Raw source snapshots and the fallback dataset ARE committed on purpose: the fetcher always
 # refreshes from the live sites and falls back to these when a source is down (CONTRIBUTING in README).
+.data-watermark.json
+
+# Local screenshot debugging: not part of the site
+.shots-*.png

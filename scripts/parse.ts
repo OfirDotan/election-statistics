@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import { decode } from 'geobuf'
 import { PbfReader } from 'pbf'
 import Papa from 'papaparse'
+import { personId } from '../src/lib/mkId.ts'
 
 const RAW = 'data/raw'
 /** The full official national result; kept outside RAW so a live refresh can never wipe it */
@@ -32,10 +33,29 @@ export interface TurnoutRecord {
   percent: number
 }
 
-export function parseResults(): { localities: LocalityRecord[]; date: string; time: string } {
+export interface ResultsHead {
+  date: string
+  time: string
+  /** Ballot boxes counted, percent, as the site shows it */
+  counted: number
+  /** Voters and the electoral book nationally, which include the double envelopes no town has */
+  voters: number
+  eligible: number
+  /** Turnout percent, as the site shows it */
+  turnout: number
+  /** Valid (`r_כשרים`) and invalid (`r_פסולים`) summed over the towns; the valid sum is the national list result */
+  valid: number
+  invalid: number
+}
+
+export function parseResults(): { localities: LocalityRecord[]; head: ResultsHead } {
   const geo = decode(new PbfReader(fs.readFileSync(`${RAW}/results.pbf`))) as unknown as {
     date: string
     time: string
+    precent_counted: string
+    voters_now: string
+    total_bzb: string
+    voting_percent_now: string
     features: { properties: Record<string, string | number> }[]
   }
   const localities = geo.features.map(({ properties: p }) => {
@@ -55,7 +75,19 @@ export function parseResults(): { localities: LocalityRecord[]; date: string; ti
       byParty,
     }
   })
-  return { localities, date: geo.date, time: geo.time }
+  // The header carries the national turnout as the site prints it; the voters it counts include the
+  // double envelopes that no town has (`precent_counted` is the source's own spelling)
+  const head: ResultsHead = {
+    date: geo.date,
+    time: geo.time,
+    counted: Number(geo.precent_counted),
+    voters: Number(geo.voters_now),
+    eligible: Number(geo.total_bzb),
+    turnout: Number(geo.voting_percent_now),
+    valid: localities.reduce((s, l) => s + l.valid, 0),
+    invalid: localities.reduce((s, l) => s + l.invalid, 0),
+  }
+  return { localities, head }
 }
 
 /** GovMap files key features by string and nest values under a `features` object */
@@ -102,14 +134,16 @@ export function parseKaplanParties(): { lists: Record<string, { name: string; na
 /**
  * Official national totals, including the double-envelope ballots (soldiers, diplomats, …) that
  * are counted nationally only and are absent from every locality. Seat allocation must use these.
- * The Kaplan file folds the small lists into `r_אחר`; `official_national.json` (elections.gov.il
- * landing page, copied from the user's check on 2026-10-29) has every list by ballot letters.
+ * The Kaplan file folds the small lists into `r_אחר`; `official_national.json` has every list by
+ * ballot letters. Current copy: the CEC national table, https://media26.bechirot.gov.il/files/expc.csv
+ * (the "download" file behind votes26.bechirot.gov.il/nationalresults), summed and saved with
+ * `npm run data -- --save-official <file>`; that CSV is kept as data/raw/cec_national_*.csv.
  */
 export function parseNationalVotes(): Record<string, number> {
   const raw = JSON.parse(fs.readFileSync(`${RAW}/kaplan_national.json`, 'utf8')) as Record<string, number>
   const out: Record<string, number> = {}
   for (const [k, v] of Object.entries(raw)) if (k !== 'r_אחר') out[k.slice(2)] = v
-  // Saved by `npm run data -- --save-official <file>`; the online database does not publish it
+  // Saved by `npm run data -- --save-official <file>`; not one of the live-fetched sources
   if (fs.existsSync(OFFICIAL)) {
     for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(OFFICIAL, 'utf8')) as Record<string, number>)) out[k] = v
   } else {
@@ -119,6 +153,8 @@ export function parseNationalVotes(): Record<string, number> {
 }
 
 export interface CandidateRecord {
+  /** `${party}-${position}`, the MK page route key */
+  id: string
   party: string
   position: number
   nameHe: string
@@ -140,6 +176,7 @@ export function parseCandidates(): Map<string, CandidateRecord[]> {
     if (!HEBREW_LETTERS.test(key)) throw new Error(`candidates.csv: bad ballot_letters "${key}" for ${row.name_he}`)
     const list = byParty.get(key) ?? []
     list.push({
+      id: personId({ nameEn: row.name_en || row.name_english, nameHe: row.name_he, party: key, position: Number(row.list_position) }),
       party: key,
       position: Number(row.list_position),
       nameHe: row.name_he,

@@ -27,10 +27,12 @@ export interface Kalpi {
 
 export interface Party {
   key: string
+  /** URL segment: the party's main English name, e.g. `likud` */
+  slug: string
   name: string
   nameEn?: string
-  /** Path under public/assets/parties, when a logo exists */
-  logo?: string
+  /** File name under assets/parties/, empty when the list has no logo */
+  logo: string
   color: string
   /** 'approved' | 'withdrawn' | 'unknown' */
   status: string
@@ -40,4 +42,10 @@ export interface Party {
   nationalVotes: number
   leader?: { he: string; en?: string }
   candidates: number
+  /** Seats from the official national votes; 0 for every list below the threshold */
+  seats?: number
+  /** Share (percent) of all valid votes; nationalShare is the same off Kaplan's table with `אחר` folded in */
+  share?: number
+  /** The list after its leader, in ballot order: candidates[0] is the leader, so seat N is candidates[N - 1] */
+  candidateNames?: string[]
 }

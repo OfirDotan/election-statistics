@@ -1,14 +1,16 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n/useI18n.ts'
 import { PartyLogo } from './PartyLogo.tsx'
+import { partyUrl } from '../lib/links.ts'
 
 
-/** Logo (or a colored dot when none was sourced) + party name. */
-export function PartyChip({ name, color, logo }: { name: string; color?: string; logo?: string }) {
+/** Logo (or a colored dot when none was sourced) + party name; links to the party page */
+export function PartyChip({ name, color, logo, partyKey, slug }: { name: string; color?: string; logo?: string; partyKey?: string; slug?: string }) {
   return (
     <span className="chip">
       {logo ? <PartyLogo logo={logo} /> : <span className="dot" style={{ background: color ?? 'var(--dot-unknown)' }} aria-hidden="true" />}
-      {name}
+      {partyKey ? <Link to={partyUrl(slug ?? partyKey)}>{name}</Link> : name}
     </span>
   )
 }
