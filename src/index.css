@@ -1485,7 +1485,7 @@ details.section > summary {
 .coal-bar {
   position: relative;
   block-size: 0.9rem;
-  margin-block: 1rem 0.5rem;
+  margin-block: 1rem 1.75rem;
   border-radius: 999px;
   background: var(--track);
 }
@@ -1509,22 +1509,22 @@ details.section > summary {
   inset-inline-start: 50%;
   transform: translateX(-50%);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-2);
   white-space: nowrap;
-  direction: inherit;
 }
 
 /* 120 seat cells, 12 x 10; the 61st cell gets the majority ring */
 .seat-grid {
   direction: ltr; /* seats always read left-to-right, even in RTL */
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr)); /* minmax keeps every row equal when 12 square tracks overflow */
+  grid-template-columns: repeat(12, 1.75rem);
+  justify-content: center;
   gap: 0.25rem;
-  margin-block: 2.5rem 0.5rem;
+  margin-block: 0.75rem;
 }
 .cell {
-  aspect-ratio: 1;
+  block-size: 1.75rem;
   border-radius: 3px;
   transition: background 0.2s var(--ease);
 }
@@ -1536,7 +1536,6 @@ details.section > summary {
   box-shadow: inset 0 0 0 2px var(--text);
 }
 
-/* Every card is the same size; long names wrap inside it */
 .party-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
@@ -1551,10 +1550,8 @@ details.section > summary {
 .party-card {
   --party: var(--dot-unknown);
   display: grid;
-  grid-template:
-    'logo name seats' auto
-    'logo state state' auto
-    / 2.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  grid-template-rows: 1fr auto;
   align-items: center;
   gap: 0.6rem;
   inline-size: 100%;
@@ -1567,17 +1564,54 @@ details.section > summary {
   font: inherit;
   text-align: start;
   cursor: pointer;
-  transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+  transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.2s var(--ease);
 }
 .party-card:hover {
   border-color: var(--party);
+  transform: translateY(-1px);
 }
+/* Picked: the card is flooded with the party colour, so the state cannot be misread */
 .party-card.on {
   border-color: var(--party);
   background: color-mix(in srgb, var(--party) 16%, var(--surface));
-  box-shadow: inset 0 0 0 2px var(--party);
+  box-shadow: inset 0 0 0 2px var(--party), 0 4px 14px color-mix(in srgb, var(--party) 30%, transparent);
+}
+.party-card-logo {
+  grid-row: 1 / -1;
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  padding: 0.25rem;
+  background: transparent;
+}
+.party-card-logo .party-logo {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.party-card-logo .dot {
+  inline-size: 60%;
+  block-size: 60%;
+  background: #fff;
+}
+.party-card-name {
+  min-inline-size: 0;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.party-card-seats {
+  font-weight: 700;
+  color: var(--party);
+  filter: brightness(0.8);
+}
+@media (prefers-color-scheme: dark) {
+  .party-card-seats {
+    filter: none;
+  }
 }
 .party-card-state {
+  grid-column: 2;
   justify-self: start;
   display: grid;
   place-items: center;
@@ -1596,65 +1630,34 @@ details.section > summary {
   background: var(--party);
   color: var(--on-party, #fff);
 }
-.party-card-logo {
-  display: grid;
-  place-items: center;
-  inline-size: 2.5rem;
-  block-size: 2.5rem;
-  border-radius: 50%;
-  padding: 0.25rem;
-}
-.party-card-logo .party-logo {
-  inline-size: 100%;
-  block-size: 100%;
-}
-.party-card-logo .dot {
-  inline-size: 60%;
-  block-size: 60%;
-  background: #fff;
-}
-.party-card-name {
-  min-inline-size: 0;
-  font-weight: 600;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-.party-card-seats {
-  font-weight: 700;
-  color: var(--text);
-}
 
 @media (max-width: 600px) {
   .party-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
   }
+  .party-card-name {
+    hyphens: auto;
+  }
   .party-card {
-    grid-template: 'logo name seats state' auto / 2rem minmax(0, 1fr) auto auto;
-    gap: 0.25rem 0.4rem;
+    grid-template-columns: 2rem minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    gap: 0.4rem;
     padding: 0.4rem;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   .party-card-logo {
     inline-size: 2rem;
     block-size: 2rem;
   }
   .party-card-state {
+    grid-column: auto;
     justify-self: center;
   }
-  /* The tick moves under the name so the card never overflows */
   .seat-grid {
     gap: 0.2rem;
   }
 }
-
-.party-logo {
-  inline-size: 1.75rem;
-  block-size: 1.75rem;
-  object-fit: contain;
-  flex: none;
-}
-
 
 /* ---------- settings panel ---------- */
 
