@@ -27,7 +27,13 @@ export function Coalition() {
 
   // Seat n belongs to the first chosen party whose running total passes n; the rest of the 120 stay empty
   const fill: string[] = []
-  chosen.forEach((s) => fill.push(...Array<string>(s.seats).fill(party(s.key).color ?? 'var(--dot-unknown)')))
+  // readableOn says which text colour reads on a party colour; white text means the colour itself is dark
+  const dark: boolean[] = []
+  chosen.forEach((s) => {
+    const color = party(s.key).color ?? 'var(--dot-unknown)'
+    fill.push(...Array<string>(s.seats).fill(color))
+    dark.push(...Array<boolean>(s.seats).fill(readableOn(color) === '#ffffff'))
+  })
   const progress = (seats / SEATS) * 100
   const strict = (MAJORITY / SEATS) * 100
 
@@ -74,7 +80,7 @@ export function Coalition() {
 
           <div className="seat-grid" role="img" aria-label={`${t('coalitionTitle')}: ${seats} / ${SEATS}`}>
             {Array.from({ length: SEATS }, (_, i) =>
-              fill[i] ? <span key={i} className="cell" style={{ background: fill[i] }} /> : <span key={i} className="cell cell-empty" />,
+              fill[i] ? <span key={i} className={`cell cell-filled ${dark[i] ? 'on-dark' : 'on-light'}`} style={{ background: fill[i] }} /> : <span key={i} className="cell cell-empty" />,
             )}
           </div>
 

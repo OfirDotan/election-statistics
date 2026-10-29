@@ -194,6 +194,10 @@ a:hover {
   align-items: center;
   gap: 0.5rem;
   white-space: nowrap;
+  /* Keeps the home link clear of the first nav button, so neither is a misclick target */
+  padding-inline-end: 0.875rem;
+  margin-inline-end: 0.25rem;
+  border-inline-end: 1px solid var(--hairline);
 }
 .brand:hover {
   text-decoration: none;
@@ -1527,6 +1531,13 @@ details.section > summary {
   block-size: 1.75rem;
   border-radius: 3px;
   transition: background 0.2s var(--ease);
+}
+.cell-filled {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+  filter: saturate(1.25);
+}
+.cell-filled.on-dark {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 .cell-empty {
   background: var(--surface-2);
