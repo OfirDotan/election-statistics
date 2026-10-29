@@ -30,10 +30,10 @@ const EXT: Record<keyof typeof SOURCES, string> = {
 }
 
 /**
- * The GovMap feeds only add turnout drill-down and the map. mapvotes.bechirot.gov.il answers 403 to
- * GitHub runners, so a failure there warns and skips instead of failing the build.
+ * The GovMap feeds only add turnout drill-down, the map and the party palette. mapvotes.bechirot.gov.il
+ * answers 403 to GitHub runners, so a failure there warns and skips instead of failing the build.
  */
-const OPTIONAL = new Set(['kalpi', 'municipal', 'geometry'])
+const OPTIONAL = new Set(['kalpi', 'municipal', 'geometry', 'elections'])
 const REQUIRED = Object.keys(SOURCES).filter((name) => !OPTIONAL.has(name))
 
 export async function fetchAll(): Promise<void> {
@@ -58,7 +58,7 @@ export async function fetchAll(): Promise<void> {
         error = err instanceof Error ? err.message : String(err)
       }
       if (OPTIONAL.has(name)) {
-        console.warn(`fetch ${name}: ${error} — turnout drill-down and map will be empty for this build`)
+        console.warn(`fetch ${name}: ${error} — map, palette or kalpi detail may be empty for this build`)
       } else {
         console.error(`fetch ${name}: ${error}`)
         failures.push(name)
