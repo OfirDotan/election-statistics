@@ -487,28 +487,27 @@ a:hover {
   background: var(--track);
   border-radius: 5px;
 }
-/* The 3.25% electoral threshold, drawn inside every bar's track on the same scale as the fills */
-.pb-threshold {
-  position: absolute;
-  inset-block: -3px;
-  inset-inline-start: calc(var(--threshold) * 100%);
-  border-inline-start: 2px dashed var(--text);
-  pointer-events: none;
-}
-.pb-track {
+/* The 3.25% electoral threshold: a dotted rule between the last seated list and the first that fell
+   short, its label sitting over the names column at the end the numbers are not */
+.pb-gap {
   position: relative;
+  padding-block-start: 1.75rem;
 }
-.pb-threshold::after {
+.pb-gap::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0.6rem;
+  inset-inline: 0 6.5rem;
+  border-block-start: 2px dotted var(--text-3);
+}
+.pb-gap::after {
   content: attr(data-label);
   position: absolute;
-  inset-block-end: calc(100% + 0.25rem);
-  inset-inline-start: 0;
-  transform: translateX(-50%);
-  padding: 0.1rem 0.35rem;
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text-3);
-  font-size: 0.625rem;
+  inset-block-start: 0.15rem;
+  inset-inline-end: 6.5rem;
+  color: var(--text-2);
+  font-size: 0.75rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 .pb-fill {
@@ -1742,7 +1741,7 @@ details.section > summary {
   object-fit: cover;
   object-position: center top;
 }
-.party-head .badge {
+h1 .badge {
   margin-inline-start: 0.5rem;
   font-size: 0.75rem;
   color: var(--text-2);

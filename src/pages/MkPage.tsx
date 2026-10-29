@@ -23,7 +23,7 @@ export function MkPage() {
   const mk = mks.data?.find((m) => m.id === id)
   const name = lang === 'en' ? candidate.nameEn || candidate.nameHe : candidate.nameHe
   const other = lang === 'he' ? candidate.nameEn : candidate.nameHe
-  const background = mk && lang === 'en' ? mk.backgroundEn : mk?.backgroundHe
+  const background = (lang === 'en' ? mk?.backgroundEn : mk?.backgroundHe) ?? mk?.backgroundHe ?? mk?.backgroundEn
   const age = mk?.birthYear && new Date().getFullYear() - mk.birthYear
 
   // Only what is known: an unknown fact is left out rather than shown as a dash
@@ -33,10 +33,10 @@ export function MkPage() {
     [t('mkBirthYear'), mk?.birthYear?.toString()],
     [t('mkAge'), age?.toString()],
     [t('mkBirthPlace'), lang === 'en' ? mk?.birthPlace : mk?.birthPlaceHe ?? mk?.birthPlace],
-    [t('mkEducation'), mk?.education],
+    [t('mkEducation'), lang === 'en' ? mk?.education : mk?.educationHe ?? mk?.education],
     [t('mkProfession'), lang === 'en' ? mk?.professionEn ?? mk?.profession : mk?.profession],
-    [t('mkPriorTerms'), mk?.priorTerms],
-    [t('mkPriorRoles'), mk?.priorRoles],
+    [t('mkPriorTerms'), lang === 'en' ? mk?.priorTerms : mk?.priorTermsHe ?? mk?.priorTerms],
+    [t('mkPriorRoles'), lang === 'en' ? mk?.priorRoles : mk?.priorRolesHe ?? mk?.priorRoles],
   ]
   const known = facts.filter(([, v]) => (Array.isArray(v) ? v.length > 0 : v))
 
@@ -48,10 +48,12 @@ export function MkPage() {
       <header className="party-head">
         <Portrait mk={mk} name={name} initial={candidate.nameHe.slice(0, 1)} />
         <div>
-          <h1>{name}</h1>
+          <h1>
+            {name}
+            {candidate.incumbent && <span className="badge">{t('incumbent')}</span>}
+          </h1>
           <p className="lead">
             {other} · <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={candidate.party} slug={p.slug} /> #{candidate.position}
-            {candidate.incumbent && <span className="badge">{t('incumbent')}</span>}
           </p>
         </div>
       </header>

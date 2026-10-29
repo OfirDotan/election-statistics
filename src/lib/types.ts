@@ -78,13 +78,19 @@ export type MkProfile = {
   /** English; Hebrew in birthPlaceHe */
   birthPlace?: string
   birthPlaceHe?: string
+  /** English; Hebrew in educationHe */
   education?: string[]
+  educationHe?: string[]
   /** Hebrew; English in professionEn */
   profession?: string
   professionEn?: string
   /** Knesset terms served before the 26th */
+  /** English; Hebrew in priorTermsHe */
   priorTerms?: string
+  priorTermsHe?: string
+  /** English; Hebrew in priorRolesHe */
   priorRoles?: string[]
+  priorRolesHe?: string[]
   backgroundHe?: string
   backgroundEn?: string
   sources: string[]

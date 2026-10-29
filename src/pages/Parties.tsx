@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
 import { useI18n } from '../i18n/useI18n.ts'
 import { Loading, LoadError, PartyChip } from '../components/ui.tsx'
 import { SeatsPie } from '../components/SeatsPie.tsx'
@@ -13,7 +13,6 @@ type Metric = 'seats' | 'votes' | 'pct'
 // The two ballot lists that stood and won no seats, which still get a row (with 0 seats)
 const ZERO_SEAT = new Set(['ך', 'די'])
 // Where the threshold falls in each track: a CSS variable so the stylesheet keeps the placement
-const THRESHOLD_AT = { '--threshold': DEFAULT_THRESHOLD } as CSSProperties
 
 export function Parties() {
   const { t, ln } = useI18n()
@@ -36,6 +35,9 @@ export function Parties() {
   // Seats: only parties that won one (plus עמך and המילואימניקים, who stood and got none);
   // votes and percent: every list on the ballot
   const shown = metric === 'seats' ? sorted.filter((p) => p.seats > 0 || ZERO_SEAT.has(p.key)) : ranked
+  // Percent view only: rows are ranked, so the dotted rule sits between the last list that passed
+  // and the first that did not. It starts past the value column (RTL) so it never cuts the numbers
+  const gap = metric === 'pct' ? shown.filter((p) => p.seats > 0).length : -1
   // Each bar is drawn against the leader, so the biggest party fills the track in every mode
   const max = Math.max(1, ...shown.map((p) => p[metric]))
   const value = (p: (typeof ranked)[number]) => (metric === 'seats' ? `${p.seats}` : metric === 'votes' ? fmtInt(p.votes) : fmtPct(p.pct))
@@ -76,15 +78,13 @@ export function Parties() {
                 ))}
               </div>
               <ol className="party-bars">
-                {shown.map((p) => (
-                  <li key={p.key}>
+                {shown.map((p, index) => (
+                  <li key={p.key} className={index === gap ? 'pb-gap' : undefined} data-label={ln('אחוז חסימה', 'Threshold') + ` ${fmtPct(DEFAULT_THRESHOLD * 100, 2)}`}>
                     <span className="pb-name">
                       <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={p.key} slug={p.slug} />
                     </span>
                     <span className="pb-track">
                       <span className="pb-fill" style={{ inlineSize: `${(p[metric] / max) * 100}%`, background: p.color }} />
-                      {/* The threshold sits on the same scale as the bars, so it rides inside each track */}
-                      {metric === 'pct' && <span className="pb-threshold" data-label={`אחוז חסימה ${fmtPct(DEFAULT_THRESHOLD * 100, 2)}`} style={THRESHOLD_AT} />}
                     </span>
                     <span className="pb-value num">{value(p)}</span>
                   </li>

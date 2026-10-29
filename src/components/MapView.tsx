@@ -16,6 +16,9 @@ import type { Town } from '../lib/types.ts'
 
 maplibregl.config.WORKER_URL = workerUrl
 
+// The mounted map lives in a module value, not React state: setState from the mount effect re-runs it
+export let live: maplibregl.Map | null = null
+
 export type MapMode = 'leader' | 'turnout' | 'share'
 
 const NO_DATA = '#d4d4d9'
@@ -39,7 +42,9 @@ export function MapView({
   const [mode, setMode] = useState<MapMode>('leader')
   const [tip, setTip] = useState<{ code: number; x: number; y: number } | null>(null)
   const box = useRef<HTMLDivElement>(null)
-  const [map, setMap] = useState<maplibregl.Map | null>(null)
+  // Bumped once the map is ready, so the layers effect below runs against it
+  const [ready, setReady] = useState(false)
+  const map = ready ? live : null
 
   const { geo, rows } = useMemo(() => {
     const geo = toWgs84(feature(topo as never, topo.objects.municipal as never) as unknown as MunicipalCollection)
@@ -106,13 +111,15 @@ export function MapView({
         [b.getEast() + 8, b.getNorth() + 8],
       ])
       ;(window as unknown as { __m: unknown }).__m = m
-      setMap(m)
+      live = m
+      setReady(true)
     }
     // The empty inline style can finish loading before this effect attaches, and then 'load' never fires
     if (m.loaded()) once()
     else m.once('load', once)
     return () => {
       watch?.disconnect()
+      live = null
       m.remove()
     }
   }, [geo, country])
@@ -133,11 +140,11 @@ export function MapView({
     }
     const add = () => {
       if (map.getSource('towns')) return
+      // Town borders on top of the fill: each town's strongest party colour, click-through to its page
       map.addSource('towns', { type: 'geojson', data })
       map.addLayer({ id: 'towns', type: 'fill', source: 'towns', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
-      map.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': 'rgba(0,0,0,0.18)', 'line-width': 0.4 } })
+      map.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': ['get', 'fill'], 'line-width': 1 } })
     }
-    console.log('TOWNS?', geo.features.length, data.features.length, map.isStyleLoaded(), !!map.getSource('towns'))
     const source = map.getSource('towns') as maplibregl.GeoJSONSource | undefined
     // Before the style is loaded MapLibre drops addSource without an error, and the towns never come back
     if (source) source.setData(data)
