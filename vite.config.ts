@@ -8,7 +8,8 @@ export default defineConfig({
   // maplibre-gl cannot be pre-bundled by esbuild; its worker module fails to build.
   // It finds its worker by rewriting import.meta.url, which the bundler replaces,
   // so the URL is pointed at the file maplibre-gl ships next to itself instead
-  define: { 'import.meta.url': '""' },
+  // Build only: under Vitest the empty URL breaks module loading
+  ...(process.env.VITEST ? {} : { define: { 'import.meta.url': '""' } }),
   optimizeDeps: { exclude: ['maplibre-gl'] },
   test: {
     include: ['tests/**/*.test.ts'],
