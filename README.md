@@ -18,6 +18,7 @@ CC BY-SA 4.0 for the candidate data: see [`DATA-LICENSES.md`](DATA-LICENSES.md).
 | Source | Feeds | Required? | Used for |
 |---|---|---|---|
 | [Kaplan Open Source](https://elections.kaplanopensource.co.il/26/) | `results.pbf`, `national_results.json`, `parties.json` | yes | Votes per town, national totals, party colors |
+| elections.gov.il national result (pasted 2026-10-29, stored as `data/raw/official_national.json`) | — | yes | Official votes and shares for all 38 lists; Kaplan folds the small ones into `אחר` |
 | [HuggingFace candidate lists](https://huggingface.co/datasets/danielrosehill/Israel-Election-2026-Candidate-Lists) | `candidates.csv`, `parties.csv` | yes | Candidates, leaders, incumbents |
 | [GovMap / CEC](https://mapvotes.bechirot.gov.il/) | kalpi turnout, town geometry, party catalog | no | Per-station turnout, the map, Hebrew party names |
 
