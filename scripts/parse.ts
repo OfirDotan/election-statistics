@@ -88,8 +88,19 @@ export function parseElectionParties(): Record<string, { name: string; color: st
   return JSON.parse(fs.readFileSync(`${RAW}/elections.json`, 'utf8')).elections['26'].parties
 }
 
-export function parseKaplanParties(): { lists: Record<string, { name: string; name_en?: string; color: string }>; threshold: number } {
+export function parseKaplanParties(): { lists: Record<string, { name: string; name_en?: string; name_ar?: string; color: string }>; threshold: number } {
   return JSON.parse(fs.readFileSync(`${RAW}/kaplan_parties.json`, 'utf8'))
+}
+
+/**
+ * Official national totals, including the double-envelope ballots (soldiers, diplomats, …) that
+ * are counted nationally only and are absent from every locality. Seat allocation must use these.
+ */
+export function parseNationalVotes(): Record<string, number> {
+  const raw = JSON.parse(fs.readFileSync(`${RAW}/kaplan_national.json`, 'utf8')) as Record<string, number>
+  const out: Record<string, number> = {}
+  for (const [k, v] of Object.entries(raw)) if (k !== 'r_אחר') out[k.slice(2)] = v
+  return out
 }
 
 export interface CandidateRecord {

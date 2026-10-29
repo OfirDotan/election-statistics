@@ -28,10 +28,14 @@ export interface Kalpi {
 export interface Party {
   key: string
   name: string
+  nameEn?: string
   color: string
   /** 'approved' | 'withdrawn' | 'unknown' */
   status: string
+  /** Votes across localities (excludes double-envelope ballots) */
   votes: number
+  /** Official national total, double-envelope ballots included — the basis for seat allocation */
+  nationalVotes: number
   leader?: { he: string; en?: string }
   candidates: number
 }

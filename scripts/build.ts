@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { parseCandidates, parseCandidateParties, parseElectionParties, parseGeo, parseKalpi, parseKaplanParties, parseMunicipal, parseResults } from './parse.ts'
+import { parseCandidates, parseCandidateParties, parseElectionParties, parseGeo, parseKalpi, parseKaplanParties, parseMunicipal, parseNationalVotes, parseResults } from './parse.ts'
 import type { Kalpi, Party, Town } from './types.ts'
 import { validate } from './validate.ts'
 
@@ -57,6 +57,7 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
   const kaplan = parseKaplanParties().lists
   const statuses = parseCandidateParties()
   const candidates = parseCandidates()
+  const national = parseNationalVotes()
   const votes: Record<string, number> = {}
   for (const l of localities) for (const [k, n] of Object.entries(l.byParty)) votes[k] = (votes[k] ?? 0) + n
   return Object.keys(cec).map((key) => {
@@ -65,9 +66,11 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
     return {
       key,
       name: cec[key].name,
+      nameEn: kaplan[key]?.name_en,
       color: kaplan[key]?.color ?? cec[key].color,
       status: statuses[key]?.status ?? 'unknown',
       votes: votes[key] ?? 0,
+      nationalVotes: national[key] ?? 0,
       leader: leader ? { he: leader.nameHe, en: leader.nameEn } : undefined,
       candidates: list.length,
     }

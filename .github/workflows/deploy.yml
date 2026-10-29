@@ -29,6 +29,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      # Refresh results from the sources on every deploy — a push is enough to pick up new counts
+      - run: npm run data
       - run: npx vite build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

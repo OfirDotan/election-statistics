@@ -21,4 +21,6 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      # public/data is generated, not committed; tests run on fixtures and don't need it
+      - run: npm run data
       - run: npx vite build
