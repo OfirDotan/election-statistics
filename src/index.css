@@ -890,3 +890,101 @@ details.section > summary {
   font-family: var(--font-num);
   font-weight: 600;
 }
+
+/* ---------- seats and coalition ---------- */
+
+.seat-strip {
+  display: flex;
+  gap: 2px;
+  block-size: 2.5rem;
+  margin-block: 0.75rem;
+  direction: ltr; /* seats always read left-to-right, even in RTL */
+}
+.seat-block {
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  overflow: hidden;
+  min-inline-size: 0;
+}
+.seat-empty {
+  background: var(--track);
+}
+.seat-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+.seat-dot {
+  display: inline-block;
+  inline-size: 0.6rem;
+  block-size: 0.6rem;
+  border-radius: 50%;
+  margin-inline-end: 0.35rem;
+  vertical-align: middle;
+}
+.coalition-summary {
+  position: relative;
+}
+.coalition-count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.coalition-count strong {
+  font-size: 3rem;
+  line-height: 1;
+}
+.majority-mark {
+  position: absolute;
+  inset-block: 0.5rem 3.5rem;
+  inline-size: 2px;
+  background: var(--text-3);
+  pointer-events: none;
+}
+.pick-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-block-size: 2.75rem;
+  padding-inline: 0.85rem;
+  border: 2px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.pick.on {
+  color: #fff;
+}
+.pick .num {
+  opacity: 0.75;
+}
+.partner-mark {
+  inline-size: 0.35rem;
+  block-size: 0.9rem;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.5;
+}
+.party-logo {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  object-fit: contain;
+  flex: none;
+}

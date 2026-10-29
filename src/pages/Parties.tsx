@@ -37,7 +37,7 @@ export function Parties() {
             {withVotes.map((p) => (
               <li key={p.key}>
                 <span className="pb-name">
-                  <PartyChip name={p.name} color={p.color} />
+                  <PartyChip name={p.name} color={p.color} logo={p.logo} />
                 </span>
                 <span className="pb-track">
                   <span className="pb-fill" style={{ inlineSize: `${p.pct}%`, background: p.color }} />

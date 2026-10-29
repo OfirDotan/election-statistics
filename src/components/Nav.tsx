@@ -18,7 +18,7 @@ export function Nav() {
   return (
     <header className="masthead">
       <div className="masthead-inner">
-        <NavLink to="/" className="brand">
+        <NavLink to="/" className="brand" end>
           <span className="brand-dot" aria-hidden="true" />
           {t('app')}
         </NavLink>

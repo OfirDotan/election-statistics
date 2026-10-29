@@ -15,7 +15,10 @@ export function MapPage() {
   const geo = useLoad('geo', loadGeo)
   useTitle(t('mapTitle'))
 
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'instant' }), [])
+  // Braces matter: an arrow body returns scrollTo's value, which React would call as a cleanup
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [])
 
   return (
     <section className="page">

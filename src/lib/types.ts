@@ -31,6 +31,8 @@ export interface Party {
   key: string
   name: string
   nameEn?: string
+  /** File name under assets/parties/, when a logo exists */
+  logo?: string
   color: string
   /** 'approved' | 'withdrawn' | 'unknown' */
   status: string

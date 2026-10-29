@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { LOGOS } from './logos.ts'
 import { parseCandidates, parseCandidateParties, parseElectionParties, parseGeo, parseKalpi, parseKaplanParties, parseMunicipal, parseNationalVotes, parseResults } from './parse.ts'
 import type { Kalpi, Party, Town } from './types.ts'
 import { validate } from './validate.ts'
@@ -74,6 +75,7 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
       key,
       name: names[key],
       nameEn: kaplan[key]?.name_en ?? statuses[key]?.nameEn,
+      logo: LOGOS[key],
       color: kaplan[key]?.color ?? cec[key]?.color ?? '#9E9E9E',
       status: statuses[key]?.status ?? 'unknown',
       votes: votes[key] ?? 0,

@@ -1,7 +1,8 @@
 import { HashRouter, Link, Route, Routes } from 'react-router-dom'
 import { Nav } from './components/Nav.tsx'
 import { useI18n } from './i18n/useI18n.ts'
-import { ComingSoon } from './pages/ComingSoon.tsx'
+import { Coalition } from './pages/Coalition.tsx'
+import { Seats } from './pages/Seats.tsx'
 import { Home } from './pages/Home.tsx'
 import { LeaderboardsPage } from './pages/LeaderboardsPage.tsx'
 import { MapPage } from './pages/MapPage.tsx'
@@ -37,8 +38,8 @@ export function App() {
           <Route path="/parties" element={<Parties />} />
           <Route path="/leaderboards" element={<LeaderboardsPage />} />
           <Route path="/map" element={<MapPage />} />
-          <Route path="/seats" element={<ComingSoon titleKey="navSeats" />} />
-          <Route path="/coalition" element={<ComingSoon titleKey="navCoalition" />} />
+          <Route path="/seats" element={<Seats />} />
+          <Route path="/coalition" element={<Coalition />} />
           <Route path="/town/:code" element={<TownPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

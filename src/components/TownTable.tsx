@@ -47,7 +47,7 @@ export function TownTable({
                 <th scope="row">
                   <Link to={`/town/${r.code}`}>{r.name}</Link>
                 </th>
-                <td>{p ? <PartyChip name={p.name} color={p.color} /> : <span className="muted">{t('noVotes')}</span>}</td>
+                <td>{p ? <PartyChip name={p.name} color={p.color} logo={p.logo} /> : <span className="muted">{t('noVotes')}</span>}</td>
                 <td className="num">{p ? fmtPct(s!.leaderShare) : '—'}</td>
                 <td className="num">{p ? fmtPct(s!.margin) : '—'}</td>
                 {showTurnout && <td className="num">{r.turnout ? fmtPct(r.turnout) : '—'}</td>}

@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react'
 import { useI18n } from '../i18n/useI18n.ts'
+import { PartyLogo } from './PartyLogo.tsx'
 
 
-/** Colored dot + party name. Unknown keys render the key as-is with a neutral dot. */
-export function PartyChip({ name, color }: { name: string; color?: string }) {
+/** Logo (or a colored dot when none was sourced) + party name. */
+export function PartyChip({ name, color, logo }: { name: string; color?: string; logo?: string }) {
   return (
     <span className="chip">
-      <span className="dot" style={{ background: color ?? 'var(--dot-unknown)' }} aria-hidden="true" />
+      {logo ? <PartyLogo logo={logo} /> : <span className="dot" style={{ background: color ?? 'var(--dot-unknown)' }} aria-hidden="true" />}
       {name}
     </span>
   )

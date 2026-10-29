@@ -78,7 +78,7 @@ export function Home() {
               {sorted.slice(0, TOP).map((p) => (
                 <li key={p.key}>
                   <span className="pb-name">
-                    <PartyChip name={p.name} color={p.color} />
+                    <PartyChip name={p.name} color={p.color} logo={p.logo} />
                   </span>
                   <span className="pb-track">
                     <span className="pb-fill" style={{ inlineSize: `${width(p)}%`, background: p.color }} />
