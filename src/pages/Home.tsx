@@ -4,7 +4,6 @@ import { allocate } from '../lib/mandates.ts'
 import { useI18n } from '../i18n/useI18n.ts'
 import { LoadError, Loading, PartyChip, Title } from '../components/ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
-import { nationalShares } from '../lib/derive.ts'
 import { loadMeta } from '../lib/data.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
@@ -14,25 +13,25 @@ type Metric = 'pct' | 'seats' | 'votes'
 
 export function Home() {
   const { t } = useI18n()
-  const { towns, party, parties, error } = useDataset()
+  const { towns, party, parties, official, error } = useDataset()
   const [metric, setMetric] = useState<Metric>('seats')
   const meta = useLoad('meta', loadMeta)
   useTitle('')
 
+  // Official national result, every list on the ballot; official votes include the 493,642
+  // double-envelope ballots that no town has, so town sums never reach these numbers
   const ranked = towns
-    ? [...nationalShares(towns)]
-        .map(([key, pct]) => ({ ...party(key), pct, votes: parties.find((p) => p.key === key)?.votes ?? 0 }))
-        .sort((a, b) => b.pct - a.pct)
+    ? parties
+        .map((p) => ({ ...party(p.key), pct: p.nationalShare ?? 0, votes: p.nationalVotes ?? 0 }))
+        .filter((p) => p.votes > 0)
+        .sort((a, b) => b.votes - a.votes)
     : []
-  // Seats need the official national totals: town sums omit the 493k double-envelope ballots
-  const seatOf = Object.fromEntries(
-    allocate({ votes: Object.fromEntries((towns ? parties : []).map((p) => [p.key, p.nationalVotes])) }).seats.map((s) => [s.key, s.seats]),
-  )
+  const seatOf = Object.fromEntries((official ? allocate({ votes: official.votes }).seats : []).map((s) => [s.key, s.seats]))
   const maxVotes = ranked[0]?.votes || 1
   const value = (r: (typeof ranked)[number]) =>
     metric === 'seats' ? `${seatOf[r.key] ?? 0}` : metric === 'votes' ? fmtInt(r.votes) : fmtPct(r.pct)
-  const width = (r: (typeof ranked)[number]) => (metric === 'seats' ? ((seatOf[r.key] ?? 0) / 120) * 100 : metric === 'votes' ? (r.votes / maxVotes) * 100 : r.pct)
-  // Shares arrive pre-sorted; seats and votes can reorder the parties, so sort on the shown value
+  const width = (r: (typeof ranked)[number]) => (metric === 'seats' ? ((seatOf[r.key] ?? 0) / 120) * 100 : metric === 'votes' ? (r.votes / maxVotes) * 100 : (r.pct / (ranked[0]?.pct || 1)) * 100)
+  // Ranked by votes; seats reorder the list, so sort on the shown value
   const sorted = metric === 'pct' ? ranked : [...ranked].sort((a, b) => width(b) - width(a))
   const withVotes = towns?.filter((x) => x.votes?.source === 'kaplan').length ?? 0
   const eligible = towns?.reduce((s, x) => s + (x.votes?.eligible ?? 0), 0) ?? 0

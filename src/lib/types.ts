@@ -37,8 +37,10 @@ export interface Party {
   /** 'approved' | 'withdrawn' | 'unknown' */
   status: string
   votes: number
-  /** Official national total, double-envelope ballots included */
+  /** Official national total, double-envelope ballots included. Not the source for shares: it adds 493,642 ballots no town has */
   nationalVotes?: number
+  /** Share (percent) of all official valid votes; national totals, so TownPage deltas match elections.gov.il */
+  nationalShare?: number
   leader?: { he: string; en?: string }
   candidates: number
 }

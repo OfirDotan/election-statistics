@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import { decode } from 'geobuf'
 import { PbfReader } from 'pbf'
 import Papa from 'papaparse'
@@ -100,11 +101,15 @@ export function parseKaplanParties(): { lists: Record<string, { name: string; na
 /**
  * Official national totals, including the double-envelope ballots (soldiers, diplomats, …) that
  * are counted nationally only and are absent from every locality. Seat allocation must use these.
+ * The Kaplan file folds the small lists into `r_אחר`; `official_national.json` (elections.gov.il
+ * landing page, copied from the user's check on 2026-10-29) has every list by ballot letters.
  */
 export function parseNationalVotes(): Record<string, number> {
   const raw = JSON.parse(fs.readFileSync(`${RAW}/kaplan_national.json`, 'utf8')) as Record<string, number>
   const out: Record<string, number> = {}
   for (const [k, v] of Object.entries(raw)) if (k !== 'r_אחר') out[k.slice(2)] = v
+  const overrides = path.join(RAW, 'official_national.json')
+  for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(overrides, 'utf8')) as Record<string, number>)) out[k] = v
   return out
 }
 
@@ -144,7 +149,7 @@ export function parseCandidates(): Map<string, CandidateRecord[]> {
   return byParty
 }
 
-export function parseCandidateParties(): Record<string, { status: string; note: string; nameEn?: string }> {
+export function parseCandidateParties(): Record<string, { status: string; note: string; name?: string; nameEn?: string }> {
   // Some fields are wrapped in smart quotes, which papaparse treats as literal text and the comma spills columns
   const csv = fs.readFileSync(`${RAW}/candidate_parties.csv`, 'utf8').replace(/[“”]/g, '"')
   const { data, errors } = Papa.parse<Record<string, string>>(csv, {
@@ -152,13 +157,13 @@ export function parseCandidateParties(): Record<string, { status: string; note: 
     skipEmptyLines: true,
   })
   if (errors.length) throw new Error(`candidate_parties.csv: ${errors[0].message}`)
-  const out: Record<string, { status: string; note: string; nameEn?: string }> = {}
+  const out: Record<string, { status: string; note: string; name?: string; nameEn?: string }> = {}
   for (const row of data) {
     const key = row.ballot_letters?.trim()
     // Known upstream trap: one unquoted title spills several columns; refuse rather than mis-join
     if (!HEBREW_LETTERS.test(key ?? '')) throw new Error(`candidate_parties.csv: bad ballot_letters in row "${row.party_en}"`)
     // party_en is the only English name for the 24 lists Kaplan does not translate
-    out[key] = { status: row.list_status, note: row.status_note, nameEn: row.party_en || undefined }
+    out[key] = { status: row.list_status, note: row.status_note, name: row.party_he?.trim() || undefined, nameEn: row.party_en || undefined }
   }
   return out
 }

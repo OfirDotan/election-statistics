@@ -68,22 +68,31 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
   for (const l of localities) for (const k of Object.keys(l.byParty)) official[k] = (official[k] ?? 0) + 1
   for (const k of Object.keys(official)) names[k] ??= k
   for (const [k, v] of Object.entries(cec)) names[k] = v.name
+  const nationalTotal = Object.values(national).reduce((s, n) => s + n, 0)
+  const namesEn: Record<string, string> = {}
+  // Every list on the official result, so the national table is the full ballot
+  for (const key of Object.keys(national)) {
+    names[key] ??= key
+    if (statuses[key]?.name) names[key] = statuses[key].name
+    if (statuses[key]?.nameEn) namesEn[key] = statuses[key].nameEn
+  }
   return Object.keys(names).map((key) => {
     const list = candidates.get(key) ?? []
     const leader = list.find((c) => c.isLeader)
     return {
       key,
       name: names[key],
-      nameEn: kaplan[key]?.name_en ?? statuses[key]?.nameEn,
+      nameEn: namesEn[key] ?? kaplan[key]?.name_en ?? statuses[key]?.nameEn,
       logo: LOGOS[key],
       color: kaplan[key]?.color ?? cec[key]?.color ?? '#9E9E9E',
       status: statuses[key]?.status ?? 'unknown',
       votes: votes[key] ?? 0,
       nationalVotes: national[key] ?? 0,
+      nationalShare: nationalTotal ? ((national[key] ?? 0) / nationalTotal) * 100 : 0,
       leader: leader ? { he: leader.nameHe, en: leader.nameEn } : undefined,
       candidates: list.length,
     }
-  }).filter((p) => p.candidates > 0)
+  }).filter((p) => p.candidates > 0 || p.nationalVotes > 0)
 }
 
 /**

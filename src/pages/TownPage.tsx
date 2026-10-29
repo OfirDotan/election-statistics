@@ -1,9 +1,8 @@
-import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Loading, LoadError, PartyChip } from '../components/ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
 import { useI18n } from '../i18n/useI18n.ts'
-import { nationalShares, townRows, townVotes } from '../lib/derive.ts'
+import { townRows, townVotes } from '../lib/derive.ts'
 import { loadKalpi } from '../lib/data.ts'
 import { rankedShares } from '../lib/stats.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
@@ -12,12 +11,11 @@ import { useTitle } from '../lib/useTitle.ts'
 export function TownPage() {
   const { code } = useParams()
   const { t } = useI18n()
-  const { towns, party, error } = useDataset()
+  const { towns, party, nationalShare, error } = useDataset()
   const kalpi = useLoad('kalpi', loadKalpi)
   const town = towns?.find((x) => String(x.code) === code)
   useTitle(town?.name ?? '')
 
-  const national = useMemo(() => (towns ? nationalShares(towns) : new Map<string, number>()), [towns])
   if (error) return <LoadError />
   if (!towns || !town) return town ? <Loading /> : <p className="state">{t('notFound')}</p>
 
@@ -77,7 +75,7 @@ export function TownPage() {
               <tbody>
                 {ranked.map(([key, pct]) => {
                   const p = party(key)
-                  const delta = pct - (national.get(key) ?? 0)
+                  const delta = pct - (nationalShare.get(key) ?? 0)
                   return (
                     <tr key={key}>
                       <th scope="row">

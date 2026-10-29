@@ -20,7 +20,9 @@ export function useDataset() {
     return { key, name: (lang === 'en' ? p?.nameEn || p?.name : p?.name) ?? key, color: p?.color, logo: p?.logo }
   }
   const official = officialTotals(parties.data ?? [])
-  return { towns: towns.data, parties: parties.data ?? [], party, official, error: towns.error || parties.error }
+  // Town deltas are measured against this: the town sums ignore the 493,642 ballots no town has
+  const nationalShare = new Map((parties.data ?? []).map((p) => [p.key, p.nationalShare ?? 0]))
+  return { towns: towns.data, parties: parties.data ?? [], party, official, nationalShare, error: towns.error || parties.error }
 }
 
 export { useLoad, loadKalpi, loadMeta }
@@ -31,7 +33,7 @@ export { useLoad, loadKalpi, loadMeta }
  */
 export function officialTotals(parties: Party[]) {
   if (!parties.length) return null
-  const votes = Object.fromEntries(parties.map((p) => [p.key, p.nationalVotes ?? 0]))
+  const votes = Object.fromEntries(parties.filter((p) => (p.nationalVotes ?? 0) > 0).map((p) => [p.key, p.nationalVotes ?? 0]))
   const cast = parties.reduce((s, p) => s + p.votes, 0) + DOUBLE_ENVELOPE
   return { votes, cast }
 }
