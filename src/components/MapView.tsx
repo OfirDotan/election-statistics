@@ -115,6 +115,7 @@ export function MapView({
       setReady(true)
     }
     // The empty inline style can finish loading before this effect attaches, and then 'load' never fires
+    console.log('SETUP', m.loaded())
     if (m.loaded()) once()
     else m.once('load', once)
     return () => {

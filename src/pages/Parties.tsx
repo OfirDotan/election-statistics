@@ -79,7 +79,12 @@ export function Parties() {
               </div>
               <ol className="party-bars">
                 {shown.map((p, index) => (
-                  <li key={p.key} className={index === gap ? 'pb-gap' : undefined} data-label={ln('אחוז חסימה', 'Threshold') + ` ${fmtPct(DEFAULT_THRESHOLD * 100, 2)}`}>
+                  <li key={p.key} className={index === gap ? 'pb-gap' : undefined}>
+                    {index === gap && (
+                      <span className="pb-gap-label" aria-hidden="true">
+                        {ln('אחוז חסימה', 'Threshold')} {fmtPct(DEFAULT_THRESHOLD * 100, 2)}
+                      </span>
+                    )}
                     <span className="pb-name">
                       <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={p.key} slug={p.slug} />
                     </span>
