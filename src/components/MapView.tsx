@@ -55,15 +55,16 @@ export function MapView({
       style: {
         version: 8,
         sources: {},
-        // Outside the country's borders, themed by the page (light gray / black in dark mode)
-        layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#ebebee' } }],
+        // First colour the canvas ever gets: a background layer added later leaves the cleared buffer black
+        layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#cfd3d8' } }],
       },
       center: NATIONAL,
       // North stays up: a bearing left out starts MapLibre at -0.01°, which skews the outline
       bearing: 0,
       pitch: 0,
       zoom: 6.4,
-      minZoom: 4.5,
+      // Far enough out to see the country whole on a phone, with sea around it
+      minZoom: 2,
       maxZoom: 13,
       maxPitch: 0,
       attributionControl: false,
@@ -78,14 +79,13 @@ export function MapView({
       // The stroke only draws union edges, so the country outline appears but town borders do not
       m.addSource('land', { type: 'geojson', data: geo })
       m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
-      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round' }, paint: { 'line-color': '#9CA3AF', 'line-width': 1.5 } })
+      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 2 } })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
-        const dark = matchMedia('(prefers-color-scheme: dark)').matches
-        const pinned = document.documentElement.dataset.theme
-        m.setPaintProperty('sea', 'background-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#000' : '#d6d6db')
-        m.setPaintProperty('land', 'fill-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#1c1c1e' : '#fff')
-        m.setPaintProperty('outline', 'line-color', pinned === 'dark' || (pinned !== 'light' && dark) ? '#3f3f46' : '#b4b4bb')
+        const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+        m.setPaintProperty('sea', 'background-color', dark ? '#141416' : '#cfd3d8')
+        m.setPaintProperty('land', 'fill-color', dark ? '#2a2a2e' : '#fff')
+        m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
       }
       bg()
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', bg)
@@ -212,7 +212,7 @@ export function MapView({
           </div>
         )}
       </div>
-      <div className="map-legend" role="group" aria-label={t('mapMap')}>
+      <div className={mode === 'leader' ? 'map-legend map-leaders' : 'map-legend'} role="group" aria-label={t('mapMap')}>
         {mode === 'leader' ? (
           <>
             {leaders.map((k) => (

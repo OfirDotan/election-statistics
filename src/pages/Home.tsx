@@ -24,8 +24,10 @@ export function Home() {
   // Home shows seats only; the parties page has the seats/votes/percent breakdown
   const seated = ranked.filter((p) => (seatOf[p.key] ?? 0) > 0)
   const maxSeats = Math.max(1, ...seated.map((p) => seatOf[p.key] ?? 0))
-  const eligible = towns?.reduce((s, x) => s + (x.votes?.eligible ?? 0), 0) ?? 0
-  const voters = towns?.reduce((s, x) => s + (x.votes?.voters ?? 0), 0) ?? 0
+  // Eligible voters come from the electoral book; no town list carries all of them. Voters are the
+  // ones the national result counts as cast, double-envelope ballots included
+  const eligible = meta.data?.eligible ?? 0
+  const voters = official?.cast ?? 0
   const valid = towns?.reduce((s, x) => s + (x.votes?.valid ?? 0), 0) ?? 0
   const invalid = towns?.reduce((s, x) => s + (x.votes?.invalid ?? 0), 0) ?? 0
 
@@ -54,24 +56,6 @@ export function Home() {
 
       {towns && (
         <>
-          <section className="card" aria-labelledby="national">
-            <h2 id="national">{t('national')}</h2>
-            <ol className="party-bars">
-              {seated.map((p) => (
-                <li key={p.key}>
-                  <span className="pb-name">
-                    <PartyChip name={p.name} color={p.color} logo={p.logo} />
-                  </span>
-                  <span className="pb-track">
-                    <span className="pb-fill" style={{ inlineSize: `${((seatOf[p.key] ?? 0) / maxSeats) * 100}%`, background: p.color }} />
-                  </span>
-                  <span className="pb-value num">{seatOf[p.key] ?? 0}</span>
-                </li>
-              ))}
-            </ol>
-            <p className="note">{t('noteSeats')}</p>
-          </section>
-
           <dl className="stats">
             <div>
               <dt>{t('eligible')}</dt>
@@ -94,6 +78,23 @@ export function Home() {
               <dd className="num">{fmtInt(invalid)}</dd>
             </div>
           </dl>
+          <section className="card" aria-labelledby="national">
+            <h2 id="national">{t('national')}</h2>
+            <ol className="party-bars">
+              {seated.map((p) => (
+                <li key={p.key}>
+                  <span className="pb-name">
+                    <PartyChip name={p.name} color={p.color} logo={p.logo} />
+                  </span>
+                  <span className="pb-track">
+                    <span className="pb-fill" style={{ inlineSize: `${((seatOf[p.key] ?? 0) / maxSeats) * 100}%`, background: p.color }} />
+                  </span>
+                  <span className="pb-value num">{seatOf[p.key] ?? 0}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="note">{t('noteSeats')}</p>
+          </section>
         </>
       )}
     </section>

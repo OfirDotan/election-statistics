@@ -23,4 +23,5 @@ const get = async <T,>(file: string): Promise<T> => {
 export const loadTowns = () => cached('towns.json', () => get<Town[]>('towns.json'))
 export const loadParties = () => cached('parties.json', () => get<Party[]>('parties.json'))
 export const loadKalpi = () => cached('kalpi.json', () => get<Record<string, Kalpi[]>>('kalpi.json'))
-export const loadMeta = () => cached('meta.json', () => get<{ date: string; time: string }>('meta.json'))
+// eligible: voters on the electoral book (kalpi national total, בזב), which no town list sums to
+export const loadMeta = () => cached('meta.json', () => get<{ date: string; time: string; eligible?: number }>('meta.json'))

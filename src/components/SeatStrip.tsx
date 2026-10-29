@@ -29,17 +29,6 @@ export function SeatStrip({ blocks, label }: { blocks: SeatBlock[]; label: strin
           ))}
         {empty > 0 && <span className="seat-block seat-empty" style={{ inlineSize: `${(empty / SEATS) * 100}%` }} />}
       </div>
-      <ol className="seat-key">
-        {blocks
-          .filter((b) => b.seats > 0)
-          .map((b) => (
-            <li key={b.key}>
-              <span className="seat-dot" style={{ background: b.color ?? '#9E9E9E' }} aria-hidden="true" />
-              {b.label}
-              <span className="num"> {b.seats}</span>
-            </li>
-          ))}
-      </ol>
     </>
   )
 }

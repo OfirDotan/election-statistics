@@ -56,7 +56,7 @@ export interface MunicipalTopology {
  * GovMap ships Israel's municipal shapes in grid metres: a flattened projection in which Israel is a
  * rectangle about 180 km × 480 km with its false northing removed. A linear fit put Beer Sheva in
  * Galilee, so the northing is placed by Mercator instead, fitted on two anchors from this file:
- * מטולה 33.279°N at y 3,932,334 and אילת 29.557°N at y 3,456,690. Northing grows north.
+ * מטולה 33.279°N at y 3,932,334 and אילת 29.557°N at y 3,456,690.
  * Easting is linear: אשדוד at 3858470 is 34.768°E, and one degree at 31° is 95,112 m.
  */
 const KY = (Math.log(Math.tan(Math.PI / 4 + (33.279 * Math.PI) / 360)) - Math.log(Math.tan(Math.PI / 4 + (29.557 * Math.PI) / 360))) / (3_932_334.6 - 3_456_690.5)
