@@ -33,28 +33,30 @@ export function Seats() {
             <p className="note">{t('noteSeats')}</p>
           </section>
           <section className="card">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th scope="col">{t('leaderParty')}</th>
-                  <th scope="col" className="num">{t('votes')}</th>
-                  <th scope="col" className="num">{t('byPct')}</th>
-                  <th scope="col" className="num">{t('seatsTitle')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.key} className={r.seats === 0 ? 'muted' : undefined}>
-                    <td>
-                      <span className="seat-dot" style={{ background: party(r.key).color }} aria-hidden="true" /> {party(r.key).name}
-                    </td>
-                    <td className="num">{fmtInt(r.votes)}</td>
-                    <td className="num">{fmtPct((r.votes / Math.max(1, result.validVotes)) * 100)}</td>
-                    <td className="num">{r.seats || '—'}</td>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th scope="col">{t('leaderParty')}</th>
+                    <th scope="col" className="num">{t('votes')}</th>
+                    <th scope="col" className="num">{t('byPct')}</th>
+                    <th scope="col" className="num">{t('seatsTitle')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.key} className={r.seats === 0 ? 'muted' : undefined}>
+                      <td>
+                        <span className="seat-dot" style={{ background: party(r.key).color }} aria-hidden="true" /> {party(r.key).name}
+                      </td>
+                      <td className="num">{fmtInt(r.votes)}</td>
+                      <td className="num">{fmtPct((r.votes / Math.max(1, result.validVotes)) * 100)}</td>
+                      <td className="num">{r.seats || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <dl className="stats">
               <div>
                 <dt>{t('officialVotes')}</dt>

@@ -1,7 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useI18n } from '../i18n/useI18n.ts'
 
-// TODO: Map / Seats / Coalition screens are built by other workstreams; routes render a stub until they land.
 const routes = [
   { to: '/towns', key: 'navTowns' },
   { to: '/parties', key: 'navParties' },

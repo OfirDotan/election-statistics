@@ -640,6 +640,7 @@ details.section > summary {
   .segmented {
     order: 3;
     inline-size: 100%;
+    max-inline-size: none;
     margin-inline: 0;
   }
   .segment {
@@ -661,6 +662,94 @@ details.section > summary {
   }
   .hero {
     padding-block-start: 2rem;
+  }
+  .main {
+    padding-inline: 1rem;
+  }
+  .masthead-inner {
+    padding-inline: 1rem;
+  }
+  .brand {
+    min-inline-size: 0;
+  }
+  .card {
+    padding: 1rem 1rem 1.25rem;
+  }
+  .pb-name {
+    min-inline-size: 0;
+  }
+  /* Long party names wrap inside the row instead of pushing the value off-screen */
+  .chip {
+    white-space: normal;
+  }
+  .pb-value {
+    min-inline-size: 0;
+  }
+  /* Narrow tables keep every column: the wrapper scrolls sideways instead of the page */
+  .table-wrap {
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  th,
+  td {
+    padding: 0.75rem 0.5rem;
+  }
+  .table .bar-col,
+  .breakdown .bar-col,
+  .kalpi .bar-col {
+    display: none;
+  }
+  .seg button {
+    min-block-size: 44px;
+    padding-inline: 0.6rem;
+  }
+  .filters {
+    padding: 1rem;
+  }
+  .more {
+    min-block-size: 44px;
+  }
+  /* Seat blocks stay wide enough to hold their count */
+  .seat-block {
+    font-size: 0.6875rem;
+  }
+  .seat-block:not(.seat-empty) {
+    min-inline-size: 2ch;
+  }
+  .seat-strip {
+    gap: 1px;
+  }
+  .pick {
+    padding-inline: 0.7rem;
+    font-size: 0.9375rem;
+  }
+  .coalition-count strong {
+    font-size: 2.5rem;
+  }
+  .map-bar {
+    padding: 0.75rem 0.75rem 0;
+  }
+  .map-bar .seg {
+    display: flex;
+    inline-size: 100%;
+  }
+  .map-bar .seg button {
+    flex: 1;
+    min-block-size: 44px;
+    padding-inline: 0.25rem;
+  }
+  .map-frame {
+    margin-inline: 0.75rem;
+  }
+  .map-svg {
+    max-block-size: 68svh;
+  }
+  .map-legend,
+  .map-note,
+  .map-title-hint {
+    padding-inline: 0.75rem;
   }
 }
 
