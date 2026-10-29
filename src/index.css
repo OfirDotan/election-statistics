@@ -1136,8 +1136,7 @@ details.section > summary {
   font: inherit;
   cursor: pointer;
 }
-.hemicycle + .majority-note + .party-cards + .note { margin-block-start: 1rem; }
-.key-item:not(.key-note):hover {
+.key-item:hover {
   background: var(--surface-2);
 }
 .key-item .num {
@@ -1145,94 +1144,39 @@ details.section > summary {
   font-variant-numeric: tabular-nums;
 }
 
-/* Seats are placed in % of a square box; direction: ltr keeps the map identical in RTL and LTR */
-.hemicycle {
-  --seat: clamp(10px, calc((100vw - 6rem) / 30), 22px);
-  --floor-h: clamp(1.75rem, 5vw, 3rem);
-  position: relative;
-  inline-size: 100%;
-  max-inline-size: 760px;
-  aspect-ratio: 2 / 1.08;
+/* The plenary as a 12×10 grid; direction: ltr keeps cell order identical in RTL and LTR */
+.seat-grid {
+  --cell: clamp(12px, calc((100vw - 6rem) / 14), 34px);
+  display: grid;
+  grid-template-columns: repeat(12, var(--cell));
+  gap: 4px;
+  inline-size: fit-content;
   margin: 1.5rem auto 0;
-  direction: ltr;
-}
-.hemicycle-floor {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
-  block-size: var(--floor-h);
-  border-block-start: 1px solid var(--hairline);
-  border-radius: 50% 50% 0 0 / 12% 12% 0 0;
-  background: linear-gradient(var(--surface-2), transparent);
-  opacity: 0.6;
-}
-.hemicycle-seats {
-  position: absolute;
-  inset: 0;
-  margin: 0;
   padding: 0;
   list-style: none;
+  direction: ltr;
 }
-.hs {
-  position: absolute;
-  inline-size: var(--seat);
-  block-size: var(--seat);
-  margin-inline-start: calc(var(--seat) / -2);
-  margin-block-start: calc(var(--seat) / -2);
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
-  animation: seat-in 0.35s var(--ease) both;
+.cell {
+  inline-size: var(--cell);
+  block-size: var(--cell);
+  border-radius: 22%;
+  animation: seat-in 0.3s var(--ease) both;
 }
-.hs.is-empty {
+.cell.is-empty {
   background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--text-3);
-  opacity: 0.45;
+  opacity: 0.4;
 }
-.hs.is-majority {
+.cell.is-majority {
   outline: 2px solid var(--text);
-  outline-offset: calc(var(--seat) * 0.45);
+  outline-offset: 2px;
+  z-index: 1;
 }
 @keyframes seat-in {
   from {
     scale: 0.4;
     opacity: 0;
   }
-}
-.hemicycle-61 {
-  position: absolute;
-  inset-inline-start: 50%;
-  inset-block-end: 0;
-  translate: -50% 0;
-  block-size: var(--floor-h);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-num);
-  font-weight: 700;
-  font-size: 0.8125rem;
-  color: var(--text-2);
-  border-inline-start: 2px solid var(--text);
-  border-inline-end: 2px solid var(--text);
-  padding-inline: 0.5rem;
-}
-.hemicycle-61 span {
-  background: var(--surface);
-  padding: 0 0.2rem;
-  position: relative;
-  z-index: 1;
-}
-
-.majority-note {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  justify-content: center;
-  color: var(--text-2);
-  font-size: 0.875rem;
-}
-.majority-line {
-  inline-size: 2px;
-  margin-block-start: calc(-1 * clamp(1.75rem, 5vw, 3rem));
-  background: var(--text);
 }
 
 .party-cards {
@@ -1305,65 +1249,10 @@ details.section > summary {
   }
 }
 
-.key-item.key-note {
-  position: relative;
-  inline-size: 0.875rem;
-  block-size: var(--floor-h, 2rem);
-  min-block-size: 0;
-  padding: 0;
-  cursor: default;
-  overflow: visible;
-}
-.key-item.key-note .majority-line {
-  position: absolute;
-  margin: 0;
-  inset-block: 0;
-  inset-inline-start: 50%;
-}
-
-/* Refusal dialog: native <dialog> gives Esc, focus trapping and the backdrop */
-.clash {
-  inline-size: min(34rem, calc(100vw - 2rem));
-  padding: 1.5rem;
-  border: 0;
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow), 0 0 0 1px var(--hairline);
-}
-.clash::backdrop {
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(2px);
-}
-.clash h2 {
-  margin: 0 0 0.5rem;
-  font-size: 1.375rem;
-}
-.clash-line {
-  margin: 0 0 0.75rem;
-}
-.clash-reason {
-  margin: 0 0 0.75rem;
-  padding: 0.75rem 1rem;
-  border-inline-start: 3px solid var(--warn);
-  background: var(--warn-bg);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-}
-.clash-source {
-  margin: 0 0 1.25rem;
-  font-size: 0.8125rem;
-  color: var(--text-3);
-}
-.clash-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
 
 @media (max-width: 600px) {
-  .hemicycle {
-    aspect-ratio: 1 / 0.95;
+  .seat-grid {
+    gap: 3px;
   }
   .party-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1376,10 +1265,5 @@ details.section > summary {
   .party-card-logo {
     inline-size: 2rem;
     block-size: 2rem;
-  }
-  .clash-actions .button {
-    flex: 1;
-    padding-inline: 0.75rem;
-    font-size: 0.875rem;
   }
 }
