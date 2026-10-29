@@ -374,14 +374,26 @@ a:hover {
 }
 .party-bars li {
   display: grid;
-  grid-template-columns: minmax(0, 16rem) minmax(4rem, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) 5rem;
   align-items: center;
-  gap: 0.875rem;
+  column-gap: 0.75rem;
+  row-gap: 0.25rem;
 }
-/* The name may wrap onto its own logotype line; it must never spill over the track */
+/* Row 1 is the name (it wraps there, never over the bar); row 2 is the bar plus its value */
 .pb-name {
+  grid-column: 1 / -1;
   min-inline-size: 0;
   overflow-wrap: anywhere;
+}
+.pb-name .chip {
+  white-space: normal;
+}
+.pb-track,
+.pb-value {
+  grid-row: 2;
+}
+.pb-value {
+  grid-column: 2;
 }
 .pb-track {
   block-size: 14px;
@@ -663,12 +675,7 @@ details.section > summary {
 
 @media (max-width: 600px) {
   .party-bars li {
-    grid-template-columns: minmax(0, 1fr) auto;
-    row-gap: 0.35rem;
-  }
-  .pb-track {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr) 4.5rem;
   }
   .hero {
     padding-block-start: 2rem;

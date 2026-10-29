@@ -30,7 +30,10 @@ export function Home() {
   const maxVotes = ranked[0]?.votes || 1
   const value = (r: (typeof ranked)[number]) =>
     metric === 'seats' ? `${seatOf[r.key] ?? 0}` : metric === 'votes' ? fmtInt(r.votes) : fmtPct(r.pct)
-  const width = (r: (typeof ranked)[number]) => (metric === 'seats' ? ((seatOf[r.key] ?? 0) / 120) * 100 : metric === 'votes' ? (r.votes / maxVotes) * 100 : (r.pct / (ranked[0]?.pct || 1)) * 100)
+  // Each bar is drawn against the leader, so the biggest party fills the track in every mode
+  const maxSeats = Math.max(1, ...ranked.map((r) => seatOf[r.key] ?? 0))
+  const maxPct = ranked[0]?.pct || 1
+  const width = (r: (typeof ranked)[number]) => (metric === 'seats' ? ((seatOf[r.key] ?? 0) / maxSeats) * 100 : metric === 'votes' ? (r.votes / maxVotes) * 100 : (r.pct / maxPct) * 100)
   // Ranked by votes; seats reorder the list, so sort on the shown value
   const sorted = metric === 'pct' ? ranked : [...ranked].sort((a, b) => width(b) - width(a))
   const withVotes = towns?.filter((x) => x.votes?.source === 'kaplan').length ?? 0
