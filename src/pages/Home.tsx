@@ -15,7 +15,7 @@ type Metric = 'pct' | 'seats' | 'votes'
 export function Home() {
   const { t } = useI18n()
   const { towns, party, parties, error } = useDataset()
-  const [metric, setMetric] = useState<Metric>('pct')
+  const [metric, setMetric] = useState<Metric>('seats')
   const meta = useLoad('meta', loadMeta)
   useTitle('')
 
@@ -32,6 +32,7 @@ export function Home() {
   const value = (r: (typeof ranked)[number]) =>
     metric === 'seats' ? `${seatOf[r.key] ?? 0}` : metric === 'votes' ? fmtInt(r.votes) : fmtPct(r.pct)
   const width = (r: (typeof ranked)[number]) => (metric === 'seats' ? ((seatOf[r.key] ?? 0) / 120) * 100 : metric === 'votes' ? (r.votes / maxVotes) * 100 : r.pct)
+  // Shares arrive pre-sorted; seats and votes can reorder the parties, so sort on the shown value
   const sorted = metric === 'pct' ? ranked : [...ranked].sort((a, b) => width(b) - width(a))
   const withVotes = towns?.filter((x) => x.votes?.source === 'kaplan').length ?? 0
   const eligible = towns?.reduce((s, x) => s + (x.votes?.eligible ?? 0), 0) ?? 0
