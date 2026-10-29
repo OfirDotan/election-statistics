@@ -1,75 +1,91 @@
-# React + TypeScript + Vite
+# 26th Knesset election statistics
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An index of the Israeli 26th Knesset election (held 27 October 2026): every town's result, full-text
+search, filters by party and leader, leaderboards for one-party towns and closest races, a town map,
+and per-town detail down to polling-station turnout.
 
-Currently, two official plugins are available:
+**The results shown are partial and unofficial.** They are compiled from third-party sources, not
+published by the Central Elections Committee. Nothing here is an official result, and the pages that
+simulate seat allocation or coalitions are illustrative only.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Data sources
 
-## React Compiler
+| Source | Feeds | Required? | Used for |
+|---|---|---|---|
+| [Kaplan Open Source](https://elections.kaplanopensource.co.il/26/) | `results.pbf`, `national_results.json`, `parties.json` | yes | Votes per town, national totals, party colors |
+| [HuggingFace candidate lists](https://huggingface.co/datasets/danielrosehill/Israel-Election-2026-Candidate-Lists) | `candidates.csv`, `parties.csv` | yes | Candidates, leaders, incumbents |
+| [GovMap / CEC](https://mapvotes.bechirot.gov.il/) | kalpi turnout, town geometry, party catalog | no | Per-station turnout, the map, Hebrew party names |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The GovMap feeds are optional because that host answers `403` to GitHub Actions runners. The build
+warns and continues without them; local runs with an open network get everything.
 
-## Expanding the ESLint configuration
+Vote counts come from Kaplan's per-town records, but the **national totals** (`national_results.json`)
+are the ones that matter for seat math: about 493,000 votes (8.7%) were cast in double envelopes and
+are counted only nationally, never in any town.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Attribution
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Candidate data: [Daniel Rosehill's Israel Election 2026 Candidate Lists](https://huggingface.co/datasets/danielrosehill/Israel-Election-2026-Candidate-Lists), CC BY-SA 4.0.
+- Election results: Kaplan Open Source.
+- Party logos: see [`src/assets/parties/CREDITS.md`](src/assets/parties/CREDITS.md). Two of them (Shas, Yisrael Beiteinu) are non-free fair-use images and are not currently shown in the UI.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Getting started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Requires Node 24 or newer (the data script uses `--experimental-strip-types`).
 
+```bash
+npm install
+npm run data    # fetch, parse, validate, write public/data/
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+`npm run data -- --no-fetch` rebuilds from snapshots already in `data/raw/`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Commands
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command | What it does |
+|---|---|
+| `npm run dev` | Vite dev server |
+| `npm run data` | Full pipeline: fetch → parse → validate → write `public/data/` |
+| `npm test` | Vitest, all files under `tests/` |
+| `npm run typecheck` | `tsc -b` |
+| `npm run lint` | ESLint |
+| `npm run build` | Typecheck plus production build into `dist/` |
+
+## How the data pipeline works
 
 ```
+scripts/fetch.ts    download 9 sources into data/raw/ (atomic: temp file then rename)
+scripts/parse.ts    decode geobuf PBF, TopoJSON and CSV into plain records
+scripts/build.ts    join on CBS locality code and ballot letter; write to public/data.staging
+scripts/validate.ts invariants; the build only swaps staging into public/data after they hold
+scripts/data.ts     orchestrates all of the above; non-zero exit on failure
+```
+
+The generated dataset (`public/data/`) and the raw snapshots (`data/raw/`) are **not committed**.
+They are rebuilt by `npm run data`, which CI and the deploy both run.
+
+Validation fails the build on: duplicate or out-of-range locality codes, voters above eligible,
+valid plus invalid not matching voters, party votes exceeding valid votes, a kalpi belonging to an
+unknown town, and malformed ballot letters in the candidate CSV. A failed build leaves the previous
+dataset untouched.
+
+## Project layout
+
+```
+scripts/     data pipeline (Node, TypeScript, no bundler)
+src/lib/     pure logic: stats, town derivations, map scale, seat allocation, coalitions
+src/components/  shared UI
+src/pages/   routes
+src/i18n/    Hebrew and English strings
+tests/       Vitest suites mirroring src/
+```
+
+Routes: `/` home, `/towns` table and filters, `/town/:code` detail, `/parties`, `/leaderboards`,
+`/map`. `/seats` and `/coalition` are placeholders.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs typecheck, lint, tests, the data pipeline and a build on every push
+and pull request. `.github/workflows/deploy.yml` does the same on `main` and publishes to GitHub
+Pages.
