@@ -61,6 +61,12 @@ describe('allocate — invariants', () => {
     expect(r.seats).toEqual([{ key: 'א', votes: 1000, seats: 120, inApparentment: false }])
   })
 
+  it('never asks an apparentment with no votes left for a seat', () => {
+    // Home passes a single-party dataset here and crashed on a null pair before the guard
+    const r = allocate({ votes: { מחל: 1_000_000, ב: 0, ג: 0 } })
+    expect(r.seats.reduce((s, x) => s + x.seats, 0)).toBe(120)
+  })
+
   it('is unaffected by apparentments that are not in the input', () => {
     const votes = { א: 500, ב: 300, ג: 200 }
     const single = allocate({ votes, apparentments: [] })

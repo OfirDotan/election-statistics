@@ -127,6 +127,9 @@ export function allocate(input: MandateInput): MandateResult {
         bestKey = k
       }
     }
+    // No list has a vote left (e.g. a single list holding every valid vote, or partial data):
+    // stop instead of allocating seats nothing earned
+    if (!bestKey && !bestPair) break
     if (bestKey) {
       seats[bestKey]++
       final[bestKey]++
