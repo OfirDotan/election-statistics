@@ -34,7 +34,10 @@ export async function fetchAll(): Promise<void> {
   let failed = 0
   await Promise.all(
     Object.entries(SOURCES).map(async ([name, url]) => {
-      const res = await fetch(url)
+      // mapvotes.bechirot.gov.il rejects requests without a browser UA/Referer (403), incl. from GitHub runners
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0', Referer: 'https://mapvotes.bechirot.gov.il/' },
+      })
       if (!res.ok) {
         console.error(`fetch ${name}: HTTP ${res.status}`)
         failed++
