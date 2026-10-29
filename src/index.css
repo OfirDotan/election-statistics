@@ -402,6 +402,16 @@ a:hover {
   row-gap: 0.25rem;
 }
 /* Row 1 is the name (it wraps there, never over the bar); row 2 is the bar plus its value */
+/* Blocs beside the party list; one column where two cards would be too narrow */
+.board-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+.board-pair .card {
+  margin: 0;
+}
 .blocs {
   list-style: none;
   margin: 0;

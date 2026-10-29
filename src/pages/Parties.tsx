@@ -80,55 +80,58 @@ export function Parties() {
               <p className="note">{t('seatsIntro')}</p>
             </section>
           )}
-          <section className="card" aria-labelledby="blocs-head">
-            <h2 id="blocs-head">{t('blocsTitle')}</h2>
-            <ol className="blocs">
-              {blocs.map((b) => (
-                <li key={b.id}>
-                  <span className="bloc-name">
-                    <span className="dot" style={{ background: b.color }} aria-hidden="true" />
-                    {t(`bloc_${b.id}`)}
-                  </span>
-                  <span className="pb-track">
-                    <span className="pb-fill" style={{ inlineSize: `${(b.seats / blocMax) * 100}%`, background: b.color }} />
-                  </span>
-                  <span className="pb-value num">{b.seats}</span>
-                  <span className="bloc-parties">{b.members.length > 0 ? b.members.map((p) => party(p.key).name).join(' · ') : '—'}</span>
-                </li>
-              ))}
-            </ol>
-            <p className="note">{t('blocsNote')}</p>
-          </section>
-          <section className="card" role="region" aria-label={t('national')}>
-            <div className="seg" role="group" aria-label={t('national')}>
-              {(['seats', 'votes', 'pct'] as const).map((m) => (
-                <button key={m} type="button" className={metric === m ? 'on' : undefined} aria-pressed={metric === m} onClick={() => setMetric(m)}>
-                  {{ seats: t('bySeats'), votes: t('byVotes'), pct: t('byPct') }[m]}
-                </button>
-              ))}
-            </div>
-            <ol className="party-bars">
-              {shown.map((p) => (
-                <li key={p.key}>
-                  <span className="pb-name">
-                    <PartyChip name={p.name} color={p.color} logo={p.logo} />
-                  </span>
-                  <span className="pb-track">
-                    <span className="pb-fill" style={{ inlineSize: `${(p[metric] / max) * 100}%`, background: p.color }} />
-                  </span>
-                  <span className="pb-value num">{value(p)}</span>
-                </li>
-              ))}
-            </ol>
-            <p className="note">
-              {metric === 'seats' ? t('noteSeats') : metric === 'votes' ? t('votesWord') : t('ofValid')}
-            </p>
-            <p className="note">
-              {ln(`בפתק ${ballot.data.length} רשימות`, `${ballot.data.length} lists on the ballot`)}
-              {` · ${t('allLists')}: ${ranked.length}`}
-              {nothing.length > 0 && ` · ${t('noVotes')}: ${nothing.join(', ')}`}
-            </p>
-          </section>
+          {/* Blocs sit beside the party list, so both are read against each other */}
+          <div className="board-pair">
+            <section className="card" aria-labelledby="blocs-head">
+              <h2 id="blocs-head">{t('blocsTitle')}</h2>
+              <ol className="blocs">
+                {blocs.map((b) => (
+                  <li key={b.id}>
+                    <span className="bloc-name">
+                      <span className="dot" style={{ background: b.color }} aria-hidden="true" />
+                      {t(`bloc_${b.id}`)}
+                    </span>
+                    <span className="pb-track">
+                      <span className="pb-fill" style={{ inlineSize: `${(b.seats / blocMax) * 100}%`, background: b.color }} />
+                    </span>
+                    <span className="pb-value num">{b.seats}</span>
+                    <span className="bloc-parties">{b.members.length > 0 ? b.members.map((p) => party(p.key).name).join(' · ') : '—'}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className="note">{t('blocsNote')}</p>
+            </section>
+            <section className="card" role="region" aria-label={t('national')}>
+              <div className="seg" role="group" aria-label={t('national')}>
+                {(['seats', 'votes', 'pct'] as const).map((m) => (
+                  <button key={m} type="button" className={metric === m ? 'on' : undefined} aria-pressed={metric === m} onClick={() => setMetric(m)}>
+                    {{ seats: t('bySeats'), votes: t('byVotes'), pct: t('byPct') }[m]}
+                  </button>
+                ))}
+              </div>
+              <ol className="party-bars">
+                {shown.map((p) => (
+                  <li key={p.key}>
+                    <span className="pb-name">
+                      <PartyChip name={p.name} color={p.color} logo={p.logo} />
+                    </span>
+                    <span className="pb-track">
+                      <span className="pb-fill" style={{ inlineSize: `${(p[metric] / max) * 100}%`, background: p.color }} />
+                    </span>
+                    <span className="pb-value num">{value(p)}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className="note">
+                {metric === 'seats' ? t('noteSeats') : metric === 'votes' ? t('votesWord') : t('ofValid')}
+              </p>
+              <p className="note">
+                {ln(`בפתק ${ballot.data.length} רשימות`, `${ballot.data.length} lists on the ballot`)}
+                {` · ${t('allLists')}: ${ranked.length}`}
+                {nothing.length > 0 && ` · ${t('noVotes')}: ${nothing.join(', ')}`}
+              </p>
+            </section>
+          </div>
         </>
       )}
     </section>
