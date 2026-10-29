@@ -30,17 +30,15 @@ const EXT: Record<keyof typeof SOURCES, string> = {
 }
 
 /**
- * The GovMap feeds only add turnout drill-down, the map and the party palette. mapvotes.bechirot.gov.il
- * answers 403 to GitHub runners, so a failure there warns and skips instead of failing the build.
+ * Refreshes `data/raw` from the live sites. Every download lands in a temp file first, so a failed
+ * or torn fetch leaves the last good snapshot in place — that copy is the fallback the site builds from.
  */
-const OPTIONAL = new Set(['kalpi', 'municipal', 'geometry', 'elections'])
-const REQUIRED = Object.keys(SOURCES).filter((name) => !OPTIONAL.has(name))
-
 export async function fetchAll(): Promise<void> {
   await fs.mkdir(RAW, { recursive: true })
-  const failures: string[] = []
+  const warnings: string[] = []
   await Promise.all(
     Object.entries(SOURCES).map(async ([name, url]) => {
+      const file = path.join(RAW, `${name}.${EXT[name as keyof typeof SOURCES]}`)
       // mapvotes.bechirot.gov.il rejects requests without a browser UA/Referer (403)
       let error: string
       try {
@@ -48,23 +46,24 @@ export async function fetchAll(): Promise<void> {
           headers: { 'User-Agent': 'Mozilla/5.0', Referer: 'https://mapvotes.bechirot.gov.il/' },
         })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const file = path.join(RAW, `${name}.${EXT[name as keyof typeof SOURCES]}`)
-        // Write beside the target and rename, so a torn download never replaces a good snapshot
-        await fs.writeFile(`${file}.tmp`, Buffer.from(await res.arrayBuffer()))
+        const body = Buffer.from(await res.arrayBuffer())
+        if (!body.length) throw new Error('empty body')
+        await fs.writeFile(`${file}.tmp`, body)
         await fs.rename(`${file}.tmp`, file)
         console.log(`fetch ${name}: ok`)
         return
       } catch (err) {
         error = err instanceof Error ? err.message : String(err)
       }
-      if (OPTIONAL.has(name)) {
-        console.warn(`fetch ${name}: ${error} — map, palette or kalpi detail may be empty for this build`)
-      } else {
-        console.error(`fetch ${name}: ${error}`)
-        failures.push(name)
+      try {
+        await fs.access(file)
+        warnings.push(`${name}: ${error} — kept the saved copy from ${(await fs.stat(file)).mtime.toISOString().slice(0, 16).replace('T', ' ')}`)
+      } catch {
+        // No saved copy and the network failed: nothing to fall back on
+        if (name.startsWith('kaplan') || name === 'results') throw new Error(`fetch ${name}: ${error}, and no saved copy to fall back on`)
+        warnings.push(`${name}: ${error} — no saved copy, this part of the site stays empty`)
       }
     }),
   )
-  const required = failures.filter((name) => REQUIRED.includes(name))
-  if (required.length) throw new Error(`${required.length} source(s) failed to download: ${required.join(', ')}`)
+  for (const w of warnings) console.warn(`warn fetch ${w}`)
 }

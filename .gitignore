@@ -25,8 +25,5 @@ dist-ssr
 .claude/settings.local.json
 .tmp/
 
-# Raw source snapshots (~4.5 MB) and the dataset baked from them.
-# `npm run data` regenerates both; committing them bloats every clone and goes stale silently.
-data/raw/
-public/data/
-public/data.staging/
+# Raw source snapshots and the fallback dataset ARE committed on purpose: the fetcher always
+# refreshes from the live sites and falls back to these when a source is down (CONTRIBUTING in README).

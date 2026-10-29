@@ -5,6 +5,8 @@ import { parseCandidates, parseCandidateParties, parseElectionParties, parseGeo,
 import type { Kalpi, Party, Town } from './types.ts'
 import { validate } from './validate.ts'
 
+const FALLBACK = 'data/fallback'
+
 /** Party names in the results file are official titles; the CEC catalog has the short public names */
 export function build() {
   const { localities, date, time } = parseResults()
@@ -120,5 +122,17 @@ export async function write(out: string) {
   })
   await fs.rm(out, { recursive: true, force: true })
   await fs.rename(staging, out)
+  // The fallback copy ships in the image: the site keeps working while the live sources are down
+  if (out !== FALLBACK) {
+    await fs.rm(FALLBACK, { recursive: true, force: true })
+    await fs.cp(out, FALLBACK, { recursive: true })
+  }
   return data
+}
+
+/** Puts the saved dataset in place; a failed rebuild calls it with the fallback itself */
+export async function copyFallback(from = FALLBACK, out = 'public/data') {
+  await fs.rm(out, { recursive: true, force: true })
+  await fs.cp(from, out, { recursive: true })
+  return JSON.parse(await fs.readFile(`${out}/index.json`, 'utf8')) as { towns: number; parties: number; candidates: number }
 }

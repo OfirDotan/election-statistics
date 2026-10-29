@@ -374,9 +374,14 @@ a:hover {
 }
 .party-bars li {
   display: grid;
-  grid-template-columns: minmax(9rem, 14rem) 1fr auto;
+  grid-template-columns: minmax(0, 16rem) minmax(4rem, 1fr) auto;
   align-items: center;
   gap: 0.875rem;
+}
+/* The name may wrap onto its own logotype line; it must never spill over the track */
+.pb-name {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
 }
 .pb-track {
   block-size: 14px;
@@ -658,7 +663,8 @@ details.section > summary {
 
 @media (max-width: 600px) {
   .party-bars li {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.35rem;
   }
   .pb-track {
     grid-column: 1 / -1;
@@ -1085,4 +1091,295 @@ details.section > summary {
   block-size: 1.75rem;
   object-fit: contain;
   flex: none;
+}
+
+/* ---------- coalition plenary ---------- */
+
+.plenary-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+}
+.plenary-count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.plenary-count strong {
+  font-family: var(--font-num);
+  font-size: clamp(2.5rem, 1.8rem + 3vw, 4rem);
+  line-height: 1;
+}
+.plenary-head p {
+  margin: 0;
+  font-weight: 600;
+}
+.plenary-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+}
+.key-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.hemicycle + .majority-note + .party-cards + .note { margin-block-start: 1rem; }
+.key-item:not(.key-note):hover {
+  background: var(--surface-2);
+}
+.key-item .num {
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Seats are placed in % of a square box; direction: ltr keeps the map identical in RTL and LTR */
+.hemicycle {
+  --seat: clamp(10px, calc((100vw - 6rem) / 30), 22px);
+  --floor-h: clamp(1.75rem, 5vw, 3rem);
+  position: relative;
+  inline-size: 100%;
+  max-inline-size: 760px;
+  aspect-ratio: 2 / 1.08;
+  margin: 1.5rem auto 0;
+  direction: ltr;
+}
+.hemicycle-floor {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: var(--floor-h);
+  border-block-start: 1px solid var(--hairline);
+  border-radius: 50% 50% 0 0 / 12% 12% 0 0;
+  background: linear-gradient(var(--surface-2), transparent);
+  opacity: 0.6;
+}
+.hemicycle-seats {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hs {
+  position: absolute;
+  inline-size: var(--seat);
+  block-size: var(--seat);
+  margin-inline-start: calc(var(--seat) / -2);
+  margin-block-start: calc(var(--seat) / -2);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+  animation: seat-in 0.35s var(--ease) both;
+}
+.hs.is-empty {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--text-3);
+  opacity: 0.45;
+}
+.hs.is-majority {
+  outline: 2px solid var(--text);
+  outline-offset: calc(var(--seat) * 0.45);
+}
+@keyframes seat-in {
+  from {
+    scale: 0.4;
+    opacity: 0;
+  }
+}
+.hemicycle-61 {
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-end: 0;
+  translate: -50% 0;
+  block-size: var(--floor-h);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-num);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  border-inline-start: 2px solid var(--text);
+  border-inline-end: 2px solid var(--text);
+  padding-inline: 0.5rem;
+}
+.hemicycle-61 span {
+  background: var(--surface);
+  padding: 0 0.2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.majority-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  color: var(--text-2);
+  font-size: 0.875rem;
+}
+.majority-line {
+  inline-size: 2px;
+  margin-block-start: calc(-1 * clamp(1.75rem, 5vw, 3rem));
+  background: var(--text);
+}
+
+.party-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.6rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.party-card {
+  --party: var(--dot-unknown);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  inline-size: 100%;
+  min-block-size: 3.5rem;
+  padding-block: 0.4rem;
+  padding-inline: 0.4rem 0.75rem;
+  border: 2px solid color-mix(in srgb, var(--party) 55%, var(--hairline));
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.party-card:hover {
+  border-color: var(--party);
+  transform: translateY(-1px);
+}
+.party-card.on {
+  border-color: var(--party);
+  box-shadow: inset 0 0 0 2px var(--party), 0 4px 14px color-mix(in srgb, var(--party) 35%, transparent);
+}
+.party-card-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 50%;
+  padding: 0.25rem;
+  background: transparent;
+}
+.party-card-logo .party-logo {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.party-card-logo .dot {
+  inline-size: 60%;
+  block-size: 60%;
+  background: #fff;
+}
+.party-card-name {
+  flex: 1;
+  min-inline-size: 0;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.party-card-seats {
+  font-weight: 700;
+  color: var(--party);
+  filter: brightness(0.8);
+}
+@media (prefers-color-scheme: dark) {
+  .party-card-seats {
+    filter: none;
+  }
+}
+
+.key-item.key-note {
+  position: relative;
+  inline-size: 0.875rem;
+  block-size: var(--floor-h, 2rem);
+  min-block-size: 0;
+  padding: 0;
+  cursor: default;
+  overflow: visible;
+}
+.key-item.key-note .majority-line {
+  position: absolute;
+  margin: 0;
+  inset-block: 0;
+  inset-inline-start: 50%;
+}
+
+/* Refusal dialog: native <dialog> gives Esc, focus trapping and the backdrop */
+.clash {
+  inline-size: min(34rem, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow), 0 0 0 1px var(--hairline);
+}
+.clash::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+}
+.clash h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.375rem;
+}
+.clash-line {
+  margin: 0 0 0.75rem;
+}
+.clash-reason {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 1rem;
+  border-inline-start: 3px solid var(--warn);
+  background: var(--warn-bg);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+}
+.clash-source {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+.clash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .hemicycle {
+    aspect-ratio: 1 / 0.95;
+  }
+  .party-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .party-card {
+    padding-inline-end: 0.5rem;
+    font-size: 0.875rem;
+  }
+  .party-card-logo {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+  .clash-actions .button {
+    flex: 1;
+    padding-inline: 0.75rem;
+    font-size: 0.875rem;
+  }
 }

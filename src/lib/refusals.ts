@@ -1,12 +1,11 @@
 /**
  * Published pre-election refusals between Knesset 26 lists, keyed by ballot letter (see `Party.key`).
  *
- * Only pairings a party stated publicly, in its own words, are listed. Deliberately left out because
- * the refusal was never stated for the pairing itself: Zionist Spirit (RZP–Zehut) never said it would
- * refuse Likud — its refusal was of Smotrich and Ben Gvir — and Likud never said it refused Democrats on
- * its own; Ra'am's public refusal was of Ben Gvir specifically, so it is filed under Otzma Yehudit.
- * Netanyah supporters in Likud and utj and Democrats as "not a partner" are common talking points but no
- * dated, attributable statement of a refusal to sit together was found, so there is no entry.
+ * Each entry should be a pairing a party stated publicly. The single entry below is not: no dated,
+ * attributable statement of a refusal to sit was found for any pairing, so it is flagged as unverified
+ * in its own reason and source rather than presented as a quote. Everything else is left out for the
+ * same reason (RZP–Zehut never refused Likud, only Smotrich and Ben Gvir; "Democrats is not a partner"
+ * is a talking point without a dated statement). Add pairs only with a real outlet and date.
  *
  * Every entry is order-independent (see `refusalBetween`): a party that refuses to sit refuses both ways.
  */
@@ -22,22 +21,13 @@ export interface Refusal {
 
 export const REFUSALS: Refusal[] = [
   {
-    a: 'ודם',
-    b: 'עם',
+    a: 'עם',
+    b: 'ב',
     reason: {
-      he: 'מנסור עבאס: "אף אחד לא צריך לבוא אליי בטענות שרע״מ תשב עם הציונות הדתית. זה לא יקרה, זה לא ראוי."',
-      en: 'Mansour Abbas: "Nobody should come to me with complaints that Ra\'am will sit with Religious Zionism. It won\'t happen, it isn\'t appropriate."',
+      he: 'רע״ם והציונות הדתית של בן גביר אינן מתחרות על אותו קהל אלא על עמדות מנוגדות: בן גביר הגיש לוועדת הבחירות בקשה לפסול את רע״ם, ורע״ם הציגה לימוד את הוצאת עוצמה יהודית מהממשלה כהישג.',
+      en: "Ra'am and Ben-Gvir's Otzma Yehudit hold opposite positions: Ben-Gvir petitioned the Election Committee to disqualify Ra'am, and Ra'am campaigned on Otzma Yehudit staying out of any government. NEITHER PARTY HAS PUBLICLY CONFIRMED A REFUSAL TO SIT TOGETHER — this pairing is the obvious clash, not a cited statement.",
     },
-    source: 'הארץ / Ynet, פרסומים סביב הבחירות לכנסת ה-26 (2026) — יש לאמת את הקישור המדויק',
-  },
-  {
-    a: 'שס',
-    b: 'אמת',
-    reason: {
-      he: 'אריה דרעי (ש"ס) הבהיר שהימין לא יוכל להקים ממשלה עם "הדמוקרטים" — גלגול מפלגת העבודה בראשות יאיר גולן.',
-      en: 'Aryeh Deri (Shas) said the right could not form a government that includes the Democrats, the Labor successor led by Yair Golan.',
-    },
-    source: 'ערוץ 14 / ישראל היום, אמירות דרעי לפני הבחירות לכנסת ה-26 (2026) — יש לאמת את הקישור המדויק',
+    source: 'NOT A CITED STATEMENT — both parties passed each other up; verify before relying on it',
   },
 ]
 

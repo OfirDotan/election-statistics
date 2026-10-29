@@ -1,10 +1,11 @@
 import fs from 'node:fs'
-import path from 'node:path'
 import { decode } from 'geobuf'
 import { PbfReader } from 'pbf'
 import Papa from 'papaparse'
 
 const RAW = 'data/raw'
+/** The full official national result; kept outside RAW so a live refresh can never wipe it */
+export const OFFICIAL = 'data/official_national.json'
 const HEBREW_LETTERS = /^[א-ת]{1,4}$/
 
 export interface LocalityRecord {
@@ -108,8 +109,12 @@ export function parseNationalVotes(): Record<string, number> {
   const raw = JSON.parse(fs.readFileSync(`${RAW}/kaplan_national.json`, 'utf8')) as Record<string, number>
   const out: Record<string, number> = {}
   for (const [k, v] of Object.entries(raw)) if (k !== 'r_אחר') out[k.slice(2)] = v
-  const overrides = path.join(RAW, 'official_national.json')
-  for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(overrides, 'utf8')) as Record<string, number>)) out[k] = v
+  // Saved by `npm run data -- --save-official <file>`; the online database does not publish it
+  if (fs.existsSync(OFFICIAL)) {
+    for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(OFFICIAL, 'utf8')) as Record<string, number>)) out[k] = v
+  } else {
+    console.warn(`warn officials: no ${OFFICIAL}, the 24 small lists count only inside the towns`)
+  }
   return out
 }
 
