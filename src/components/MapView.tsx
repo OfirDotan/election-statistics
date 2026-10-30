@@ -5,11 +5,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 // maplibre-gl 6 ships its worker next to itself and only looks for it when import.meta.url is blank
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
-import { feature } from 'topojson-client'
 import { useI18n } from '../i18n/useI18n.ts'
 import { partyUrl } from '../lib/links.ts'
 import { fmtPct } from '../lib/fmt.ts'
-import { toWgs84, type MunicipalCollection, type MunicipalTopology } from '../lib/mapData.ts'
+import { toWgs84, type MunicipalTopology } from '../lib/mapData.ts'
 import { readableOn, scaleColor, topParty } from '../lib/mapLogic.ts'
 import { share } from '../lib/stats.ts'
 import type { Town } from '../lib/types.ts'
@@ -42,12 +41,10 @@ export function MapView({
   const [mode, setMode] = useState<MapMode>('leader')
   const [tip, setTip] = useState<{ code: number; x: number; y: number } | null>(null)
   const box = useRef<HTMLDivElement>(null)
-  // Bumped once the map is ready, so the layers effect below runs against it
-  const [ready, setReady] = useState(false)
-  const map = ready ? live : null
-
+  // Set once the style has loaded and every source and layer is added, so the effects below are ordered after it
+  const [map, setMap] = useState<maplibregl.Map | null>(null)
   const { geo, rows } = useMemo(() => {
-    const geo = toWgs84(feature(topo as never, topo.objects.municipal as never) as unknown as MunicipalCollection)
+    const geo = toWgs84(topo)
     const rows = new Map<number, Row>()
     for (const tw of towns) {
       const v = tw.votes
@@ -84,10 +81,11 @@ export function MapView({
     m.keyboard.disableRotation()
     m.on('error', (e) => console.error('MAPERR', e))
     let watch: MutationObserver | undefined
-    let landed = false
-    const once = () => {
-      if (landed) return
-      landed = true
+    let dark: (() => void) | undefined
+    const scheme = matchMedia('(prefers-color-scheme: dark)')
+    const onScheme = () => dark?.()
+    // Fires as the map is constructed for the empty inline style, so it cannot be missed here
+    m.once('style.load', () => {
       // Land and country outline under the towns; the stroke is the country edge, not town borders
       m.addSource('land', { type: 'geojson', data: country ?? { type: 'FeatureCollection', features: [] } })
       m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
@@ -98,9 +96,16 @@ export function MapView({
         m.setPaintProperty('sea', 'background-color', dark ? '#141416' : '#cfd3d8')
         m.setPaintProperty('land', 'fill-color', dark ? '#2a2a2e' : '#fff')
         m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
+        // Town borders, Kaplan's scheme: a 1px grey line over the fill; #d3d3d3 vanishes on dark fills
+        const townStroke = dark ? 'rgba(255,255,255,0.18)' : '#d3d3d3'
+        if (m.getLayer('towns-line')) m.setPaintProperty('towns-line', 'line-color', townStroke)
+        if (m.getLayer('towns-hover')) m.setPaintProperty('towns-hover', 'line-color', dark ? '#fff' : '#000')
       }
+      ;(window as unknown as { __m: unknown }).__m = m
+      live = m
       bg()
-      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', bg)
+      dark = bg
+      scheme.addEventListener('change', onScheme)
       watch = new MutationObserver(bg)
       watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
       // Pan limit from the country, padded far enough out that maxBounds never forces a zoom back in
@@ -110,16 +115,25 @@ export function MapView({
         [b.getWest() - 8, b.getSouth() - 8],
         [b.getEast() + 8, b.getNorth() + 8],
       ])
-      ;(window as unknown as { __m: unknown }).__m = m
-      live = m
-      setReady(true)
-    }
-    // The empty inline style can finish loading before this effect attaches, and then 'load' never fires
-    console.log('SETUP', m.loaded())
-    if (m.loaded()) once()
-    else m.once('load', once)
+      // The towns source starts empty; the effects below set its data once React has handed over `map`
+      // Town id = SETL_CODE, which is how the hover feature-state finds its feature
+      m.addSource('towns', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })
+      m.addLayer({ id: 'towns', type: 'fill', source: 'towns', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
+      m.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': '#d3d3d3', 'line-width': 1 } })
+      // Hover emphasis, as on Kaplan: a thicker white line on top of the border
+      m.addLayer({
+        id: 'towns-hover',
+        type: 'line',
+        source: 'towns',
+        // feature-state belongs in paint or layout only: `filter` rejects it
+        paint: { 'line-color': '#fff', 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0] },
+      })
+      // 'load' means the style's sources and layers are in and the worker is up, so the towns effect below applies
+      m.once('load', () => setMap(m))
+    })
     return () => {
       watch?.disconnect()
+      scheme.removeEventListener('change', onScheme)
       live = null
       m.remove()
     }
@@ -135,36 +149,30 @@ export function MapView({
       if (mode === 'turnout') return scaleColor(r.turnout, 0, 100)
       return r.leaderShare === null ? NO_DATA : scaleColor(r.leaderShare, 0, 100)
     }
-    const data = {
-      ...geo,
-      features: geo.features.map((f) => ({ ...f, properties: { ...f.properties, fill: color(f.properties.SETL_CODE) } })),
-    }
-    const add = () => {
-      if (map.getSource('towns')) return
-      // Town borders on top of the fill: each town's strongest party colour, click-through to its page
-      map.addSource('towns', { type: 'geojson', data })
-      map.addLayer({ id: 'towns', type: 'fill', source: 'towns', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
-      map.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': ['get', 'fill'], 'line-width': 1 } })
-    }
-    const source = map.getSource('towns') as maplibregl.GeoJSONSource | undefined
-    // Before the style is loaded MapLibre drops addSource without an error, and the towns never come back
-    if (source) source.setData(data)
-    else if (!map.isStyleLoaded()) {
-      map.once('load', add)
-      return () => { map.off('load', add) }
-    } else add()
+    const data = { ...geo, features: geo.features.map((f) => ({ ...f, properties: { ...f.properties, fill: color(f.properties.SETL_CODE) } })) }
+    ;(map.getSource('towns') as maplibregl.GeoJSONSource).setData(data)
   }, [map, geo, mode, rows, party])
   useEffect(() => {
     if (!map) return
     const codeOf = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) =>
       e.features?.[0]?.properties?.SETL_CODE as number | undefined
+    // Hover state drives the towns-hover line; the source promotes SETL_CODE to the feature id
+    const hovered = { id: null as number | null }
+    const hover = (id: number | null) => {
+      if (id === hovered.id) return
+      if (hovered.id != null) map.setFeatureState({ source: 'towns', id: hovered.id }, { hover: false })
+      hovered.id = id
+      if (id != null) map.setFeatureState({ source: 'towns', id }, { hover: true })
+    }
     const onMove = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) => {
       const code = codeOf(e)
       const known = code != null && rows.has(code)
+      hover(known ? code : null)
       map.getCanvas().style.cursor = known ? 'pointer' : ''
       setTip(known ? { code, x: e.point.x, y: e.point.y } : null)
     }
     const onLeave = () => {
+      hover(null)
       map.getCanvas().style.cursor = ''
       setTip(null)
     }

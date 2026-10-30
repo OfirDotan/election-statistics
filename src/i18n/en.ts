@@ -174,6 +174,10 @@ export const en: Record<keyof typeof he, string> = {
   mkPhotoCredit: 'Photo',
   mkNoProfile: 'No extended profile for this candidate yet.',
   mkNote: 'Details gathered from the public sources listed below.',
+  mkFacts: 'Facts',
+  mkAbout: 'About',
+  mkReligion: 'Religion',
+  mkYearsAt: 'Years at',
   electedNote: 'The list up to the seats won: positions 1 to the number of seats the party won.',
   coalitionMajority: '61 — majority',
 } as const

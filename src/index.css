@@ -751,6 +751,14 @@ a:hover {
   font-weight: 600;
   overflow-wrap: anywhere;
 }
+/* Lists in a fact read as rows, not as bold headline values */
+.party-facts dd:has(.fact-list) {
+  font-weight: 400;
+}
+/* The MK facts span two columns on wide screens; roles and education take the full width */
+.party-facts > div:has(.fact-list) {
+  grid-column: 1 / -1;
+}
 .dot {
   inline-size: 10px;
   block-size: 10px;
@@ -1733,18 +1741,25 @@ details.section > summary {
   padding-block-start: 0.75rem;
 }
 .map-page .map {
+  /* none of these may be a grid: the 1fr header rows land on implicit rows of `auto`, which `align-content: start` squeezes */
   flex: 1;
   min-block-size: 0;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   padding-block-end: 0.75rem;
+}
+.map-page .map > .map-bar,
+.map-page .map > .map-legend,
+.map-page .map > .map-note {
+  flex: none;
 }
 .map-page .map-bar {
   padding-block-start: 0.75rem;
 }
 .map-page .map-frame {
-  block-size: auto;
-  min-block-size: 200px;
+  flex: 1;
+  /* the 0 matters: the canvas leg needs it or a relayout follows the canvas's old drawn height */
+  min-block-size: 0;
 }
 .map-page .map-note {
   padding-block-end: 0;
@@ -1760,13 +1775,13 @@ details.section > summary {
 /* MK page portrait: a 4:5 Commons photo, or the same box filled by an initials disc */
 .mk-photo,
 .mk-avatar {
-  inline-size: 120px;
-  block-size: 150px;
+  inline-size: clamp(132px, 20vw, 180px);
+  block-size: clamp(165px, 25vw, 225px);
   border-radius: var(--radius-sm);
   background: var(--surface-2, var(--hairline));
   display: grid;
   place-items: center;
-  font-size: 3rem;
+  font-size: clamp(2.5rem, 6vw, 3.5rem);
   font-weight: 600;
   color: var(--text-3);
   flex: none;
@@ -1792,4 +1807,179 @@ h1 .badge {
   object-position: center top;
   margin-inline-end: 0.5rem;
   vertical-align: middle;
+}
+
+/* Name line box kept tight so its baseline lines up with the party line beside it */
+.mk-head-name {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* MK facts: list values as bulleted rows, one per line; the roles column gets real width */
+.fact-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.25rem;
+}
+.fact-list li {
+  position: relative;
+  padding-inline-start: 0.9rem;
+  line-height: 1.4;
+}
+.fact-list li::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0.6em;
+  inset-inline-start: 0;
+  inline-size: 4px;
+  block-size: 4px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+
+/* Roles are long: give their column room and hold the text to a readable measure */
+.party-facts dd .fact-list {
+  max-inline-size: 46ch;
+}
+
+/* ---------- MK profile page ---------- */
+/* Portrait beside the name on wide screens, stacked on a phone; sections divided by hairlines */
+.mk-card {
+  gap: 0;
+  padding: 1.5rem;
+}
+.mk-head {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  padding-block-end: 1.25rem;
+}
+.mk-head-text {
+  display: grid;
+  gap: 0.4rem;
+  min-inline-size: 0;
+  align-content: center;
+}
+.mk-name {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+/* The other language's name: muted, clearly below the main name in both directions */
+.mk-name-alt {
+  margin: 0.4rem 0 0;
+  color: var(--text-3);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+.mk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: 0.35rem;
+}
+.mk-tag {
+  font-size: 0.875rem;
+  color: var(--text-2);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+.mk-sec {
+  padding-block: 1.25rem;
+  border-block-start: 1px solid var(--hairline);
+}
+.mk-sec h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.mk-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 1rem 1.5rem;
+}
+.mk-facts dt {
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+.mk-facts dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+/* One item per row: text, then its years in a column aligned to the reading edge-opposite side */
+.mk-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+.mk-rows li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 1.25rem;
+  align-items: baseline;
+  padding-block: 0.5rem;
+  border-block-start: 1px solid var(--hairline);
+}
+.mk-rows li:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
+.mk-rows li > span:first-child {
+  overflow-wrap: anywhere;
+}
+.mk-date {
+  color: var(--text-3);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: end;
+}
+.mk-sources li {
+  grid-template-columns: minmax(0, 1fr);
+}
+.mk-sources a {
+  overflow-wrap: anywhere;
+}
+.mk-prose {
+  margin: 0;
+  max-inline-size: 65ch;
+  line-height: 1.65;
+  color: var(--text);
+}
+.mk-note {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 0.8125rem;
+}
+.mk-foot {
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--hairline);
+}
+@media (max-width: 600px) {
+  .mk-card {
+    padding: 1rem;
+  }
+  .mk-head {
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+  .mk-rows li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mk-date {
+    text-align: start;
+  }
 }
