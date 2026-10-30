@@ -10,6 +10,7 @@ export const SOURCES = {
   elections: 'https://mapvotes.bechirot.gov.il/data/votes/elections.json',
   kaplan_parties: 'https://elections.kaplanopensource.co.il/26/data/parties.json',
   kaplan_national: 'https://elections.kaplanopensource.co.il/26/data/national_results.json',
+  kaplan_towns: 'https://elections.kaplanopensource.co.il/knesset/data/localities.json',
   results: 'https://elections.kaplanopensource.co.il/26/data/results.pbf',
   candidates:
     'https://huggingface.co/datasets/danielrosehill/Israel-Election-2026-Candidate-Lists/resolve/main/candidates.csv',
@@ -24,6 +25,7 @@ const EXT: Record<keyof typeof SOURCES, string> = {
   elections: 'json',
   kaplan_parties: 'json',
   kaplan_national: 'json',
+  kaplan_towns: 'json',
   results: 'pbf',
   candidates: 'csv',
   candidate_parties: 'csv',

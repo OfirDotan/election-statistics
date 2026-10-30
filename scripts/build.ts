@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { LOGOS } from './logos.ts'
 import { allocate } from '../src/lib/mandates.ts'
-import { parseCandidates, parseCandidateParties, parseElectionParties, parseGeo, parseKalpi, parseKaplanParties, parseMunicipal, parseNationalVotes, parseResults } from './parse.ts'
+import { parseCandidates, parseCandidateParties, parseElectionParties, parseGeo, parseKalpi, parseKaplanParties, parseMunicipal, parseNationalVotes, parseResults, parseTownNames } from './parse.ts'
 import type { Kalpi, Party, Town } from './types.ts'
 import { validate } from './validate.ts'
 
@@ -26,10 +26,10 @@ const partySlug = (key: string, nameEn: string | undefined) => {
 
 /** Party names in the results file are official titles; the CEC catalog has the short public names */
 export function build() {
-  const { localities, head } = parseResults()
+  const { towns, head } = parseResults()
   const kalpi = parseKalpi()
   const municipal = parseMunicipal()
-  const parties = buildParties(localities)
+  const parties = buildParties(towns)
   const statuses = parseCandidateParties()
 
   const kalpiByTown = new Map<number, Kalpi[]>()
@@ -39,19 +39,23 @@ export function build() {
     kalpiByTown.set(k.code, list)
   }
 
-  const towns: Town[] = localities.map((l) => ({
+  // English names go on the towns themselves: the app searches by either and the map labels in the page's language
+  const { en } = parseTownNames()
+  const out: Town[] = towns.map((l) => ({
     code: l.code,
     name: l.name,
+    nameEn: en.get(l.code),
     votes: { eligible: l.eligible, voters: l.voters, valid: l.valid, invalid: l.invalid, byParty: l.byParty, source: 'kaplan' },
   }))
 
-  // Localities GovMap knows about but the results file does not: keep them as turnout-only rows
-  const known = new Set(towns.map((t) => t.code))
+  // Towns GovMap knows about but the results file does not: keep them as turnout-only rows
+  const known = new Set(out.map((t) => t.code))
   for (const [code, m] of Object.entries(municipal)) {
     if (!known.has(Number(code))) {
-      towns.push({
+      out.push({
         code: Number(code),
         name: '',
+        nameEn: en.get(Number(code)),
         votes: { eligible: m.eligible, voters: m.voters, valid: 0, invalid: 0, byParty: {}, source: 'govmap' },
       })
     }
@@ -60,7 +64,7 @@ export function build() {
   // Names for GOVMAP-only towns come from the geometry's properties
   const geo = parseGeo()
   const geoName = new Map<number, string>((geo.objects.municipal.geometries ?? []).map((g: { properties: { SETL_CODE: number; 'שם ישוב': string } }) => [g.properties.SETL_CODE, g.properties['שם ישוב']]))
-  for (const t of towns) if (!t.name) t.name = geoName.get(t.code) ?? `#${t.code}`
+  for (const t of out) if (!t.name) t.name = geoName.get(t.code) ?? `#${t.code}`
 
   // Kalpi detail and every town's own turnout live in the per-town payload
   const townKalpi: Record<number, Kalpi[]> = {}
@@ -69,12 +73,12 @@ export function build() {
   const candidates = parseCandidates()
   const candidateList = [...candidates.values()].flat().filter((c) => statuses[c.party]?.status !== 'withdrawn')
 
-  return { towns, parties, candidateList, townKalpi, geo, asOf: head }
+  return { towns: out, parties, candidateList, townKalpi, geo, asOf: head }
 }
 
-function buildParties(localities: ReturnType<typeof parseResults>['localities']): Party[] {
+function buildParties(towns: ReturnType<typeof parseResults>['towns']): Party[] {
   // Share denominators: Kaplan's table over the town sums, which by construction add up to it
-  const validTotal = localities.reduce((s, l) => s + l.valid, 0)
+  const validTotal = towns.reduce((s, l) => s + l.valid, 0)
   const seatOf = Object.fromEntries(allocate({ votes: Object.fromEntries(Object.entries(parseNationalVotes()).filter(([, n]) => n > 0)) }).seats.map((s) => [s.key, s.seats]))
   const cec = parseElectionParties()
   const kaplan = parseKaplanParties().lists
@@ -82,12 +86,12 @@ function buildParties(localities: ReturnType<typeof parseResults>['localities'])
   const candidates = parseCandidates()
   const national = parseNationalVotes()
   const votes: Record<string, number> = {}
-  for (const l of localities) for (const [k, n] of Object.entries(l.byParty)) votes[k] = (votes[k] ?? 0) + n
+  for (const l of towns) for (const [k, n] of Object.entries(l.byParty)) votes[k] = (votes[k] ?? 0) + n
   // CEC names replace Kaplan names for common keys; keys only one source knows keep that source's
   const names: Record<string, string> = Object.fromEntries(Object.entries(kaplan).map(([k, v]) => [k, v.name]))
   // Kaplan lists only 13 of 37, so without the CEC the results' official titles name the rest
   const official: Record<string, number> = {}
-  for (const l of localities) for (const k of Object.keys(l.byParty)) official[k] = (official[k] ?? 0) + 1
+  for (const l of towns) for (const k of Object.keys(l.byParty)) official[k] = (official[k] ?? 0) + 1
   for (const k of Object.keys(official)) names[k] ??= k
   for (const [k, v] of Object.entries(cec)) names[k] = v.name
   const nationalTotal = Object.values(national).reduce((s, n) => s + n, 0)

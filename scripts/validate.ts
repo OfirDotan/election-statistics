@@ -13,7 +13,7 @@ export function validate(d: Dataset): void {
   const codes = new Set<number>()
   for (const t of d.towns) {
     if (!Number.isInteger(t.code) || t.code <= 0) fail(`town ${t.name}: bad code ${t.code}`)
-    if (t.code > 9999) fail(`town ${t.name}: code ${t.code} is not a CBS 4-digit locality code`)
+    if (t.code > 9999) fail(`town ${t.name}: code ${t.code} is not a CBS 4-digit town code`)
     if (codes.has(t.code)) fail(`duplicate town code ${t.code}`)
     codes.add(t.code)
 

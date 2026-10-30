@@ -6,6 +6,7 @@ import { townRows, townVotes } from '../lib/derive.ts'
 import { loadKalpi } from '../lib/data.ts'
 import { rankedShares } from '../lib/stats.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
+import { useTownName } from '../lib/townNames.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 export function TownPage() {
@@ -14,7 +15,8 @@ export function TownPage() {
   const { towns, party, nationalShare, error } = useDataset()
   const kalpi = useLoad('kalpi', loadKalpi)
   const town = towns?.find((x) => String(x.code) === code)
-  useTitle(town?.name ?? '')
+  const name = useTownName(town)
+  useTitle(name)
 
   if (error) return <LoadError />
   if (!towns || !town) return town ? <Loading /> : <p className="state">{t('notFound')}</p>
@@ -31,7 +33,7 @@ export function TownPage() {
         <nav className="crumb" aria-label={t('townsTitle')}>
           <Link to="/towns">← {t('townsTitle')}</Link>
         </nav>
-        <h1>{town.name}</h1>
+        <h1>{name}</h1>
         {votes.voters > 0 && (
           <dl className="stats">
             <div>

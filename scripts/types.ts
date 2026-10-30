@@ -3,9 +3,10 @@
 export interface Town {
   code: number
   name: string
+  nameEn?: string
   /** Apparentment group this list belongs to, if any */
   apparentment?: string
-  /** Null when no vote data exists for the locality */
+  /** Null when no vote data exists for the town */
   votes: {
     eligible: number
     voters: number
@@ -36,7 +37,7 @@ export interface Party {
   color: string
   /** 'approved' | 'withdrawn' | 'unknown' */
   status: string
-  /** Votes across localities (excludes double-envelope ballots) */
+  /** Votes across towns (excludes double-envelope ballots) */
   votes: number
   /** Official national total, double-envelope ballots included — the basis for seat allocation */
   nationalVotes: number

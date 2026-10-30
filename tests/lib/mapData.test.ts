@@ -45,14 +45,3 @@ describe('shoreline', () => {
     expect(moved.filter((x) => x[0][1] < 29.6).length).toBeGreaterThan(5)
   })
 })
-
-describe('locality-names.json', () => {
-  it('names every town of the map in English, keyed by its code, in both the data and the served copies', () => {
-    const towns: { code: number; name: string }[] = JSON.parse(readFileSync(new URL('../../public/data/towns.json', import.meta.url), 'utf8'))
-    const names = JSON.parse(readFileSync(new URL('../../data/locality-names.json', import.meta.url), 'utf8')) as Record<string, string>
-    const missing = towns.filter((t) => !names[t.code])
-    expect(missing.map((t) => t.code).sort()).toEqual([1196, 1339, 1362, 3786, 3815, 3825, 3861, 3864, 3869])
-    expect(Object.values(names).filter((n) => !n || /[\u0590-\u05FF]/.test(n))).toEqual([])
-    for (const f of ['../../public/data/', '../../data/fallback/']) expect(readFileSync(new URL(f + 'locality-names.json', import.meta.url), 'utf8')).toBe(JSON.stringify(names, null, 2) + '\n')
-  })
-})

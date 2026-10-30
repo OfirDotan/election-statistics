@@ -9,7 +9,7 @@ const RAW = 'data/raw'
 export const OFFICIAL = 'data/official_national.json'
 const HEBREW_LETTERS = /^[א-ת]{1,4}$/
 
-export interface LocalityRecord {
+export interface TownRecord {
   code: number
   name: string
   eligible: number
@@ -48,7 +48,18 @@ export interface ResultsHead {
   invalid: number
 }
 
-export function parseResults(): { localities: LocalityRecord[]; head: ResultsHead } {
+/** Kaplan's `'` is its ayin mark: it sits under a letter, so it reads as a stray leading quote in English text */
+const AYIN = '̠'
+
+/** English town names keyed by code, for searching and labels; Kaplan's spellings without its ayin marks */
+export function parseTownNames(): { en: Map<number, string> } {
+  const raw = JSON.parse(fs.readFileSync(`${RAW}/kaplan_towns.json`, 'utf8')) as Record<string, [string | null, string | null]>
+  const en = new Map<number, string>()
+  for (const [code, [name]] of Object.entries(raw)) if (name) en.set(Number(code), name.replaceAll(AYIN, ''))
+  return { en }
+}
+
+export function parseResults(): { towns: TownRecord[]; head: ResultsHead } {
   const geo = decode(new PbfReader(fs.readFileSync(`${RAW}/results.pbf`))) as unknown as {
     date: string
     time: string
@@ -58,7 +69,7 @@ export function parseResults(): { localities: LocalityRecord[]; head: ResultsHea
     voting_percent_now: string
     features: { properties: Record<string, string | number> }[]
   }
-  const localities = geo.features.map(({ properties: p }) => {
+  const towns = geo.features.map(({ properties: p }) => {
     const byParty: Record<string, number> = {}
     for (const [k, v] of Object.entries(p)) {
       if (k.startsWith('r_') && !['r_בזב', 'r_מצביעים', 'r_פסולים', 'r_כשרים', 'r_אחר'].includes(k)) {
@@ -84,10 +95,10 @@ export function parseResults(): { localities: LocalityRecord[]; head: ResultsHea
     voters: Number(geo.voters_now),
     eligible: Number(geo.total_bzb),
     turnout: Number(geo.voting_percent_now),
-    valid: localities.reduce((s, l) => s + l.valid, 0),
-    invalid: localities.reduce((s, l) => s + l.invalid, 0),
+    valid: towns.reduce((s, l) => s + l.valid, 0),
+    invalid: towns.reduce((s, l) => s + l.invalid, 0),
   }
-  return { localities, head }
+  return { towns, head }
 }
 
 /** GovMap files key features by string and nest values under a `features` object */
@@ -133,7 +144,7 @@ export function parseKaplanParties(): { lists: Record<string, { name: string; na
 
 /**
  * Official national totals, including the double-envelope ballots (soldiers, diplomats, …) that
- * are counted nationally only and are absent from every locality. Seat allocation must use these.
+ * are counted nationally only and are absent from every town. Seat allocation must use these.
  * The Kaplan file folds the small lists into `r_אחר`; `official_national.json` has every list by
  * ballot letters. Current copy: the CEC national table, https://media26.bechirot.gov.il/files/expc.csv
  * (the "download" file behind votes26.bechirot.gov.il/nationalresults), summed and saved with

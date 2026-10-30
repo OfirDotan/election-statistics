@@ -5,9 +5,11 @@
 export interface Town {
   code: number
   name: string
+  /** Kaplan's English name; absent for the few it has none for, and search also accepts it */
+  nameEn?: string
   /** Apparentment group this list belongs to, if any */
   apparentment?: string
-  /** Null when no vote data exists for the locality */
+  /** Null when no vote data exists for the town */
   votes: {
     eligible: number
     voters: number

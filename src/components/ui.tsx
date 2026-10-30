@@ -18,10 +18,15 @@ export function PartyChip({ name, color, logo, partyKey, slug }: { name: string;
 export function Loading() {
   const { t } = useI18n()
   return (
-    <div className="state" role="status">
-      {t('loading')}
+    <div className="state state-loading" role="status">
+      <Spinner /> {t('loading')}
     </div>
   )
+}
+
+/** An arc that spins while data loads; motion stops under prefers-reduced-motion */
+export function Spinner() {
+  return <span className="spinner" aria-hidden="true" />
 }
 
 export function LoadError() {

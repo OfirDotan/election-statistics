@@ -61,9 +61,9 @@ npm run dev
 ## How the data pipeline works
 
 ```
-scripts/fetch.ts    download 9 sources into data/raw/ (atomic: temp file then rename)
+scripts/fetch.ts    download 10 sources into data/raw/ (atomic: temp file then rename)
 scripts/parse.ts    decode geobuf PBF, TopoJSON and CSV into plain records
-scripts/build.ts    join on CBS locality code and ballot letter; write to public/data.staging
+scripts/build.ts    join on CBS town code and ballot letter; write to public/data.staging
 scripts/validate.ts invariants; the build only swaps staging into public/data after they hold
 scripts/data.ts     orchestrates all of the above; non-zero exit on failure
 ```
@@ -71,7 +71,7 @@ scripts/data.ts     orchestrates all of the above; non-zero exit on failure
 The generated dataset (`public/data/`) and the raw snapshots (`data/raw/`) are **not committed**.
 They are rebuilt by `npm run data`, which CI and the deploy both run.
 
-Validation fails the build on: duplicate or out-of-range locality codes, voters above eligible,
+Validation fails the build on: duplicate or out-of-range town codes, voters above eligible,
 valid plus invalid not matching voters, party votes exceeding valid votes, a kalpi belonging to an
 unknown town, and malformed ballot letters in the candidate CSV. A failed build leaves the previous
 dataset untouched.

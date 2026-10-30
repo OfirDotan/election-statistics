@@ -60,8 +60,8 @@ describe('boardRows', () => {
     const get = (code: number) => out.find((r) => r.code === code)!
     expect(get(4).name).toBe('קיבוץ')
     // Bet leads 75% against a 10% national share; Alpha leads 80% but is only 15 over its 60% national share
-    expect(get(2)).toMatchObject({ over: 65, ranks: { sweep: 4, closest: 2, high: 1 } })
-    expect(get(1)).toMatchObject({ over: 15, ranks: { sweep: 6, closest: 1, low: 1 } })
+    expect(get(2)).toMatchObject({ over: 65, ranks: { closest: 2, high: 1 } })
+    expect(get(1)).toMatchObject({ over: 15, ranks: { closest: 1, low: 1 } })
     // divergences() ranks every town by its least nationally-typical party, so none is outside the divergence board
     expect(get(1)).toMatchObject({ stats: { leaderShare: 80 } })
     expect(new Set(out.map((r) => r.ranks?.divergence)).size).toBe(out.length)

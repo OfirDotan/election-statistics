@@ -333,6 +333,34 @@ a:hover {
 .state-error {
   color: var(--neg);
 }
+.state-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* ---------- loading spinner ---------- */
+
+.spinner {
+  display: inline-block;
+  inline-size: 1.1em;
+  block-size: 1.1em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
 
 /* ---------- stat tiles ---------- */
 
