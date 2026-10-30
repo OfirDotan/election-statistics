@@ -2,22 +2,19 @@ import { useMemo, useState } from 'react'
 import { TownTable } from '../components/TownTable.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
-import { boardRows, filterStats, MIN_VALID, nationalShares, RANK_COLUMN, sortRows, townRows, type Board, type SortKey, type TownFilters } from '../lib/derive.ts'
+import { boardRows, filterStats, nameRows, MIN_VALID, nationalShares, RANK_COLUMN, sortRows, townRows, type Board, type SortKey, type TownFilters } from '../lib/derive.ts'
 import { divergences } from '../lib/mapLogic.ts'
 import { useDataset } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
-const LABEL = { sweep: 'bSweep', majority: 'bMajority', margins: 'bMargins', high: 'bTurnoutHigh', low: 'bTurnoutLow', closest: 'bClosest', divergence: 'bDivergence' } as const
-const NOTE = { sweep: 'bSweepNote', majority: 'bMajorityNote', margins: 'bMarginsNote', high: 'bTurnoutNote', low: 'bTurnoutNote', closest: 'bClosestNote', divergence: 'bDivergenceNote' } as const
-/** Sweeps start at this share; the box in the bar changes it */
-const SWEEP_FROM = 90
+const LABEL = { margins: 'bMargins', high: 'bTurnoutHigh', low: 'bTurnoutLow', closest: 'bClosest', divergence: 'bDivergence' } as const
+const NOTE = { margins: 'bMarginsNote', high: 'bTurnoutNote', low: 'bTurnoutNote', closest: 'bClosestNote', divergence: 'bDivergenceNote' } as const
 const NONE_FILTERS: TownFilters = { query: '', leader: '', minShare: 0, minTurnout: 0, majorityOnly: false, pluralityOnly: false }
 
 export function LeaderboardsPage() {
-  const { t, locale } = useI18n()
+  const { t, lang, locale } = useI18n()
   const { towns, party, error } = useDataset()
   const [board, setBoard] = useState<Board>('all')
-  const [threshold, setThreshold] = useState(SWEEP_FROM)
   const [f, setF] = useState<TownFilters>(NONE_FILTERS)
   const [sort, setSort] = useState<SortKey>('share')
   const [dir, setDir] = useState<1 | -1>(-1)
@@ -30,9 +27,9 @@ export function LeaderboardsPage() {
   const leaders = useMemo(() => [...new Set(all.map((r) => r.stats?.leader).filter((k): k is string => !!k))], [all])
   const shown = useMemo(() => {
     const need = board === 'high' || board === 'low' || board === 'divergence' ? MIN_VALID : 0
-    const kept = all.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need && (board !== 'sweep' || (r.stats?.leaderShare ?? 0) >= threshold)))
-    return sortRows(filterStats(kept, f), sort, dir, locale)
-  }, [all, board, threshold, f, sort, dir, locale])
+    const kept = all.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need))
+    return sortRows(filterStats(nameRows(kept, lang), f), sort, dir, locale)
+  }, [all, board, f, sort, dir, locale, lang])
   const set = <K extends keyof TownFilters>(k: K) => (v: TownFilters[K]) => setF((s) => ({ ...s, [k]: v }))
   // A board opens at its top: its own column, big first (closest races and low turnout small first)
   const open = (b: Board) => {
@@ -70,12 +67,6 @@ export function LeaderboardsPage() {
                 </option>
               ))}
             </select>
-            {board === 'sweep' && (
-              <label className="field">
-                <span>{t('threshold')}</span>
-                <input type="number" min={0} max={100} step={5} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} />
-              </label>
-            )}
             <p className="muted" aria-live="polite">
               <span className="num">{shown.length}</span> / <span className="num">{all.length}</span>
             </p>
@@ -116,7 +107,7 @@ export function LeaderboardsPage() {
               </button>
             </p>
           )}
-          <TownTable rows={shown} party={party} sort={sort} dir={dir} onSort={onSort} board={board} />
+          <TownTable rows={shown} party={party} sort={sort} dir={dir} onSort={onSort} board={board} onOpen={open} />
         </>
       )}
     </section>

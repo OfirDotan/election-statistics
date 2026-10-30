@@ -56,6 +56,19 @@ export function parseTownNames(): { en: Map<number, string> } {
   const raw = JSON.parse(fs.readFileSync(`${RAW}/kaplan_towns.json`, 'utf8')) as Record<string, [string | null, string | null]>
   const en = new Map<number, string>()
   for (const [code, [name]] of Object.entries(raw)) if (name) en.set(Number(code), name.replaceAll(AYIN, ''))
+  // Kaplan lists these nine in Hebrew only; the names are the user's spelling
+  const own: Record<number, string> = {
+    1196: 'Mahane Yatir',
+    1339: 'Al-Azi',
+    1362: "Gva'ot Eden",
+    3786: 'Ovnat',
+    3861: "Asa'el",
+    3864: 'Beit Hogla',
+    3869: 'Avigayil',
+    3815: 'Tel Zion',
+    3825: "Mevo'ot Yeriho",
+  }
+  for (const [code, name] of Object.entries(own)) en.set(Number(code), name)
   return { en }
 }
 

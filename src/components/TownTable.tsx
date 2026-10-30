@@ -5,7 +5,7 @@ import type { PartyLookup } from '../lib/useData.ts'
 import { PartyChip, SortTh } from './ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
 
-const RANK_LABEL = { sweep: 'bSweep', majority: 'bMajority', margins: 'bMargins', high: 'bTurnoutHigh', low: 'bTurnoutLow', closest: 'bClosest', divergence: 'bDivergence' } as const
+const RANK_LABEL = { margins: 'bMargins', high: 'bTurnoutHigh', low: 'bTurnoutLow', closest: 'bClosest', divergence: 'bDivergence' } as const
 const RANKED = Object.keys(RANK_LABEL) as Exclude<Board, 'all'>[]
 
 export function TownTable({
@@ -16,6 +16,7 @@ export function TownTable({
   onSort,
   showTurnout = true,
   board,
+  onOpen,
 }: {
   rows: TownRow[]
   party: PartyLookup
@@ -26,6 +27,7 @@ export function TownTable({
   showTurnout?: boolean
   /** Leaderboards: every board's rank at the end of the row, and a header to open each board from its column */
   board?: Board
+  onOpen?: (b: Exclude<Board, 'all'>) => void
 }) {
   const { t } = useI18n()
   const ranked = board !== undefined
@@ -43,7 +45,11 @@ export function TownTable({
             {th('margin', t('colMargin'))}
             {showTurnout && th('turnout', t('colTurnout'))}
             {th('valid', t('colValid'))}
-            {ranked && RANKED.map((b) => <th key={b} scope="col" className="num board-rank">{t(RANK_LABEL[b])}</th>)}
+            {ranked && RANKED.map((b) => (
+              <th key={b} scope="col" className="num board-rank">
+                <button type="button" className="sort" onClick={() => onOpen?.(b)}>{t(RANK_LABEL[b])}</button>
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>

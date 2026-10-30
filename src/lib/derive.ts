@@ -2,7 +2,7 @@ import type { Divergence } from './mapLogic.ts'
 import { townStats, type TownStats, type TownVoteInput } from './stats.ts'
 import type { Kalpi, Town } from './types.ts'
 
-export type Board = 'all' | 'sweep' | 'majority' | 'margins' | 'high' | 'low' | 'closest' | 'divergence'
+export type Board = 'all' | 'margins' | 'high' | 'low' | 'closest' | 'divergence'
 
 /** Per-town ranks, 1 = top of that board; `null` where the board doesn't rank the town (no ballots, or under its floor) */
 export type BoardRanks = Record<Exclude<Board, 'all'>, number | null>
@@ -10,6 +10,8 @@ export type BoardRanks = Record<Exclude<Board, 'all'>, number | null>
 export interface TownRow {
   code: number
   name: string
+  /** Searched as well as the name, so either language finds the town */
+  nameEn?: string
   stats: TownStats | null
   source: 'kaplan' | 'govmap' | null
   valid: number
@@ -41,16 +43,17 @@ export function nationalShares(towns: Town[]): Map<string, number> {
 export function townRows(towns: Town[], kalpi?: Record<string, Kalpi[]>): TownRow[] {
   const sum = (code: number, k: 'eligible' | 'voters') => (kalpi?.[code] ?? []).reduce((s, r) => s + r[k], 0)
   // Towns without own votes are measured by their kalpi totals (they have no byParty)
-  return towns.map(({ code, name, votes }) =>
+  return towns.map(({ code, name, nameEn, votes }) =>
     votes
-      ? { code, name, votes }
-      : { code, name, votes: { eligible: sum(code, 'eligible'), voters: sum(code, 'voters'), valid: 0, invalid: 0, byParty: {}, source: 'govmap' as const } },
-  ).map(({ code, name, votes }) => {
+      ? { code, name, nameEn, votes }
+      : { code, name, nameEn, votes: { eligible: sum(code, 'eligible'), voters: sum(code, 'voters'), valid: 0, invalid: 0, byParty: {}, source: 'govmap' as const } },
+  ).map(({ code, name, nameEn, votes }) => {
     const v: TownVoteInput = votes ?? { eligible: 0, voters: 0, valid: 0, byParty: {} }
     const known = v.voters > 0
     return {
       code,
       name,
+      nameEn,
       stats: known ? townStats(v) : null,
       source: votes?.source ?? null,
       valid: v.valid,
@@ -68,6 +71,11 @@ export interface TownFilters {
   pluralityOnly: boolean
 }
 
+/** Rows named in the page's language; either language still matches the search */
+export function nameRows(rows: TownRow[], lang: string): TownRow[] {
+  return lang === 'en' ? rows.map((r) => ({ ...r, name: r.nameEn ?? r.name, nameEn: undefined })) : rows
+}
+
 export function filterStats(rows: TownRow[], f: TownFilters): TownRow[] {
   const q = f.query.trim()
   return rows.filter((r) => matches(r, q, f))
@@ -78,7 +86,7 @@ function matches(r: TownRow, q: string, f: TownFilters): boolean {
   // Unmeasured rows never match (the same result the bounded/s null rule gives)
   if (s === null) return false
   return (
-    (q === '' || r.name.includes(q)) &&
+    (q === '' || [r.name, r.nameEn].some((n) => n?.toLowerCase().includes(q.toLowerCase()))) &&
     (f.leader === '' || s.leader === f.leader) &&
     (!f.majorityOnly || s.majority) &&
     (!f.pluralityOnly || (s.margin > 0 && s.leaderShare <= 50)) &&
@@ -89,10 +97,8 @@ function matches(r: TownRow, q: string, f: TownFilters): boolean {
 
 export type SortKey = 'name' | 'leader' | 'share' | 'margin' | 'turnout' | 'valid'
 
-/** The column a board's ranks follow: same ranking, different column. Sweeps, majority and margins all rank by share */
+/** The column a board's ranks follow: same ranking, different column */
 export const RANK_COLUMN: Record<Exclude<Board, 'all'>, SortKey> = {
-  sweep: 'share',
-  majority: 'share',
   margins: 'share',
   divergence: 'share',
   closest: 'margin',
@@ -105,8 +111,6 @@ export const MIN_VALID = 50
 
 /** What each board ranks by, and whether big is best */
 const TOP: Record<Exclude<Board, 'all'>, { top: (r: TownRow) => number | null; desc: boolean }> = {
-  sweep: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
-  majority: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
   margins: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
   // Reads the gap, not the share: boardRows rewrites a diverging town's share to that same gap before ranking
   divergence: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
@@ -123,6 +127,7 @@ export function boardRows(rows: TownRow[], towns: Town[], national: Map<string, 
     return {
       ...r,
       name: towns.find((t) => t.code === r.code)?.name ?? r.name,
+      nameEn: r.nameEn,
       over: s ? s.leaderShare - (national.get(s.leader ?? '') ?? 0) : undefined,
       // A diverging town's share column reads its gap from national: that is what the divergence board ranks
       stats: s && gap.has(r.code) ? { ...s, leaderShare: gap.get(r.code)! } : s,

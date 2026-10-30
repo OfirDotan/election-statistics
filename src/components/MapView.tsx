@@ -12,13 +12,8 @@ import { toWgs84, type MunicipalTopology } from '../lib/mapData.ts'
 import { readableOn, scaleColor, topParty } from '../lib/mapLogic.ts'
 import { share } from '../lib/stats.ts'
 import type { Town } from '../lib/types.ts'
-import { useLoad } from '../lib/useLoad.ts'
 
 maplibregl.config.WORKER_URL = workerUrl
-
-// Every town's English name, Kaplan's transliteration, keyed by its code
-const loadEnNames = async () =>
-  (await fetch(`${import.meta.env.BASE_URL}data/locality-names.json`)).json() as Promise<Record<number, string>>
 
 // The mounted map lives in a module value, not React state: setState from the mount effect re-runs it
 export let live: maplibregl.Map | null = null
@@ -27,7 +22,11 @@ export type MapMode = 'leader' | 'turnout' | 'share'
 
 const NO_DATA = '#d4d4d9'
 const NATIONAL = { lng: 34.99, lat: 31.2 }
-// The towns that get a name before zooming in does; their names are in both i18n files, keyed by Hebrew
+// Where names start and where every town has one, and the big towns that also have one zoomed out
+const LABEL_FROM = 6.9
+const LABEL_ALL_FROM = 8.2
+const MAJOR_CODES = [3000, 5000, 4000, 8300, 7900, 7400, 70, 9000]
+// Every place gets a name once zoomed in; their names are in both i18n files, keyed by Hebrew
 const PLACES: { name: string; lonlat: [number, number] }[] = [
   { name: `place_'ירושלים'`, lonlat: [35.2137, 31.7683] },
   { name: `place_'תל אביב -יפו'`, lonlat: [34.7818, 32.0853] },
@@ -95,7 +94,6 @@ export function MapView({
   onSelectTown: (code: number) => void
 }) {
   const { t, lang } = useI18n()
-  const { data: enNames } = useLoad('enNames', loadEnNames)
   const [mode, setMode] = useState<MapMode>('leader')
   const [tip, setTip] = useState<{ code: number; x: number; y: number } | null>(null)
   const box = useRef<HTMLDivElement>(null)
@@ -112,13 +110,14 @@ export function MapView({
     }
     return { geo, rows }
   }, [topo, towns])
-  // A town's name in the page's language, its English one where Kaplan has a name for its code
-  const nameOf = useCallback((code: number, he: string) => (lang === 'en' ? (enNames ?? {})[code] ?? he : he), [lang, enNames])
+  // A town's name in the page's language, its English one where Kaplan has a name for its code;
+  // the Hebrew one otherwise, as Kaplan's own map does for the few it has no English for
+  const nameOf = useCallback((code: number, he: string) => (lang === 'en' ? (towns.find((t) => t.code === code)?.nameEn ?? he) : he), [lang, towns])
   // A place's own name where the town has one, as Kaplan shows Yafo as Tel Aviv, else the town's
   const labelOf = useCallback((code: number) => {
     const he = rows.get(code)?.name
     if (!he) return null
-    return PLACES.some((p) => p.name === `place_'${he}'`) ? nameOf(code, he) : lang === 'he' ? he : null
+    return PLACES.some((p) => p.name === `place_'${he}'`) ? nameOf(code, he) : he
   }, [rows, nameOf, lang])
 
   useEffect(() => {
@@ -163,15 +162,22 @@ export function MapView({
         m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
         // Town borders, Kaplan's scheme: a 1px grey line over the fill. Dark flips it, since #d3d3d3
         // vanishes on dark fills and would only trace the grey towns
+        // Guarded like the names below: bg() runs from style.load, before these layers are added
         const lines = [['towns-line', '#d3d3d3'], ['towns-hover', '#fff']] as const
         for (const [id, light] of lines) if (m.getLayer(id)) m.setPaintProperty(id, 'line-color', dark ? '#141416' : light)
-        // Names are black with a white halo, as Kaplan's are; the dark theme inverts both
-        m.setPaintProperty('labels', 'text-color', dark ? '#fff' : '#000')
-        m.setPaintProperty('labels', 'text-halo-color', dark ? '#141416' : '#fff')
+        // As Kaplan's: black on a white halo on light fills. On dark fills, black or a white halo
+        // would sit on the fill, so names are white on a dark halo, over every fill. Unguarded until
+        // now, this threw on the first run and left the names MapLibre's default black in dark
+        if (m.getLayer('labels')) {
+          m.setPaintProperty('labels', 'text-color', dark ? '#f4f4f5' : '#000')
+          m.setPaintProperty('labels', 'text-halo-color', dark ? '#141416' : '#fff')
+        }
       }
       live = m
       bg()
+      // Again now the names exist, and so a theme switch after this point colours them too
       dark = bg
+      bg()
       scheme.addEventListener('change', onScheme)
       watch = new MutationObserver(bg)
       watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
@@ -196,18 +202,20 @@ export function MapView({
         paint: { 'line-color': '#fff', 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0] },
       })
       // Town names, a place's own where the town has one, so no name is drawn twice
-      m.addSource('labels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })
-      m.addLayer({
+      m.addSource('labels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })      m.addLayer({
         id: 'labels',
         type: 'symbol',
         source: 'labels',
-        minzoom: 7.5,
+        minzoom: LABEL_FROM,
         layout: {
-          'text-field': ['get', 'name'],
           'text-font': ['Noto Sans Regular'],
           'text-letter-spacing': 0.01,
           // A step, not a case: maplibre only allows zoom inside a top-level interpolate/step
-          'text-size': ['step', ['zoom'], 15, 8.5, 17, 11, 20],
+          'text-size': ['step', ['zoom'], 14, LABEL_ALL_FROM, 16, LABEL_ALL_FROM + 2, 18],
+          // Zoomed out only the towns at the head of PLACES are named, where the zoomed-in map would
+          // name them too; their rank decides, not their size, since a big unlisted town showed as a
+          // blank pale shape among named ones (MAJOR_CODES)
+          'text-field': ['step', ['zoom'], ['case', ['in', ['id'], ['literal', MAJOR_CODES]], ['get', 'name'], ''], LABEL_ALL_FROM, ['get', 'name']],
           'text-max-width': 6,
           'text-padding': 4,
           'text-allow-overlap': false,
@@ -257,9 +265,6 @@ export function MapView({
   useEffect(() => {
     for (const f of labels.features) if (labelOf(f.properties.SETL_CODE)) map?.setFeatureState({ source: 'labels', id: f.properties.SETL_CODE }, { on: tip?.code === f.properties.SETL_CODE })
   }, [map, labels, labelOf, tip])
-  // The names are the newest layer and on top, so they would take the clicks meant for the towns
-  const hideLabel = () => map?.setLayoutProperty('labels', 'visibility', 'none')
-  const showLabels = () => map?.setLayoutProperty('labels', 'visibility', 'visible')
   useEffect(() => {
     if (!map) return
     const codeOf = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) =>
@@ -291,14 +296,10 @@ export function MapView({
     map.on('mousemove', 'towns', onMove)
     map.on('mouseleave', 'towns', onLeave)
     map.on('click', 'towns', onClick)
-    map.on('mousemove', hideLabel)
-    map.on('mouseout', showLabels)
     return () => {
       map.off('mousemove', 'towns', onMove)
       map.off('mouseleave', 'towns', onLeave)
       map.off('click', 'towns', onClick)
-      map.off('mousemove', hideLabel)
-      map.off('mouseout', showLabels)
     }
   }, [map, rows, onSelectTown])
 

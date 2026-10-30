@@ -6,6 +6,8 @@ describe('parseTownNames', () => {
     const { en } = parseTownNames()
     expect(en.get(511)).toBe("'Aylut")
     expect(en.get(7)).toBe('Shahar')
+    // The nine Kaplan has only in Hebrew carry the user's English names
+    expect(en.get(3786)).toBe('Ovnat')
     expect([...en.values()].some((n) => n.includes('̠'))).toBe(false)
   })
 })
