@@ -347,6 +347,7 @@ a:hover {
   z-index: 100;
   display: grid;
   place-items: center;
+  cursor: progress;
   background: color-mix(in srgb, var(--bg) 55%, transparent);
 }
 .lang-overlay .spinner {

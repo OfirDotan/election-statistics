@@ -19,14 +19,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(stored)
   const [switching, setSwitching] = useState(false)
   const choose = (l: Lang) => {
-    // Re-rendering every page in the other language takes a beat: show the spinner until it paints
+    // Re-rendering every page in the other language takes a beat: hold the spinner long enough to be seen
+    if (l === lang) return
     setSwitching(true)
     setLang(l)
     requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         setSwitching(false)
         ;(document.activeElement as HTMLElement | null)?.blur()
-      }),
+      }, 450),
     )
     try {
       localStorage.setItem(KEY, l)
@@ -56,7 +57,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 /** Covers the page while the language changes, so the half-switched render is never seen */
 function LangOverlay() {
   return (
-    <div className="lang-overlay" role="status">
+    <div className="lang-overlay" role="status" aria-label="Loading">
       <span className="spinner" aria-hidden="true" />
     </div>
   )
