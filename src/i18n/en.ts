@@ -2,6 +2,7 @@ import type { he } from './he.ts'
 
 export const en: Record<keyof typeof he, string> = {
   app: 'Elections 2026',
+  home: 'Home page',
   title: '26th Knesset election',
   subtitle: 'Results by town, party and polling station',
   asOf: 'Data as of',

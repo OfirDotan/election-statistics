@@ -187,27 +187,20 @@ a:hover {
   gap: 1rem;
 }
 
+/* The mark alone, at the nav's start: a 26px target needs padding to be tappable */
 .brand {
-  color: var(--text);
-  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  white-space: nowrap;
-  /* Keeps the home link clear of the first nav button, so neither is a misclick target */
-  padding-inline-end: 0.875rem;
-  margin-inline-end: 0.25rem;
-  border-inline-end: 1px solid var(--hairline);
+  padding: 0.375rem;
+  margin-inline-start: -0.375rem;
+  border-radius: 9px;
 }
 .brand:hover {
   text-decoration: none;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
 }
-/* Multi-color dot: the parties' colors, as a through-line */
-.brand-dot {
-  inline-size: 14px;
-  block-size: 14px;
-  border-radius: 50%;
-  background: conic-gradient(#1c5bad, #6079fc, #fc6b60, #69d1e5, #f7c94c, #1c5bad);
+.brand-mark {
+  display: block;
 }
 
 .segmented {
@@ -1079,9 +1072,6 @@ details.section > summary {
   }
   .masthead-inner {
     padding-inline: 1rem;
-  }
-  .brand {
-    min-inline-size: 0;
   }
   .card {
     padding: 1rem 1rem 1.25rem;

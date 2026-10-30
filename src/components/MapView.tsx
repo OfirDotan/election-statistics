@@ -144,6 +144,9 @@ export function MapView({
     // A photo can be rotated, an outline cannot: north stays up
     m.touchZoomRotate.disableRotation()
     m.keyboard.disableRotation()
+    // Without a gl context the map throws on construction, before its first resize observer callback
+    const ro = new ResizeObserver(() => m.resize())
+    ro.observe(box.current)
     let watch: MutationObserver | undefined
     let dark: (() => void) | undefined
     const scheme = matchMedia('(prefers-color-scheme: dark)')
@@ -171,13 +174,15 @@ export function MapView({
         if (m.getLayer('labels')) {
           m.setPaintProperty('labels', 'text-color', dark ? '#f4f4f5' : '#000')
           m.setPaintProperty('labels', 'text-halo-color', dark ? '#141416' : '#fff')
+          // On dark fills the towns are small and their edge is the fill colour too, so a 2px halo
+          // swallowed "Tel Aviv" into the Likud fill; a wider one reads on both
+          m.setPaintProperty('labels', 'text-halo-width', dark ? 1.4 : 2)
         }
       }
       live = m
+      // The layers go in below, so run it once more after them: the first call runs before they exist
       bg()
-      // Again now the names exist, and so a theme switch after this point colours them too
       dark = bg
-      bg()
       scheme.addEventListener('change', onScheme)
       watch = new MutationObserver(bg)
       watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
@@ -202,6 +207,7 @@ export function MapView({
         paint: { 'line-color': '#fff', 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0] },
       })
       // Town names, a place's own where the town has one, so no name is drawn twice
+      // Id = SETL_CODE, which the zoomed-out name rule reads (all the setFeatureState calls are on 'towns')
       m.addSource('labels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })
       m.addLayer({
         id: 'labels',
@@ -212,11 +218,10 @@ export function MapView({
           'text-font': ['Noto Sans Regular'],
           'text-letter-spacing': 0.01,
           // A step, not a case: maplibre only allows zoom inside a top-level interpolate/step
-          'text-size': ['step', ['zoom'], 14, LABEL_ALL_FROM, 16, LABEL_ALL_FROM + 2, 18],
-          // Zoomed out only the towns at the head of PLACES are named, where the zoomed-in map would
-          // name them too; their rank decides, not their size, since a big unlisted town showed as a
-          // blank pale shape among named ones (MAJOR_CODES)
-          'text-field': ['step', ['zoom'], ['case', ['in', ['id'], ['literal', MAJOR_CODES]], ['get', 'name'], ''], LABEL_ALL_FROM, ['get', 'name']],
+          'text-size': ['step', ['zoom'], 13, LABEL_ALL_FROM, 15, LABEL_ALL_FROM + 2, 17],
+          // Zoomed out only MAJOR_CODES are named, chosen in PLACES' order rather than by size: the
+          // map must name a town the same way at every zoom
+          'text-field': ['step', ['zoom'], ['case', ['in', ['get', 'SETL_CODE'], ['literal', MAJOR_CODES]], ['get', 'name'], ''], LABEL_ALL_FROM, ['get', 'name']],
           'text-max-width': 6,
           'text-padding': 4,
           'text-allow-overlap': false,
@@ -224,11 +229,13 @@ export function MapView({
         },
         paint: { 'text-halo-width': 2 },
       })
+      bg()
       // 'load' means the style's sources and layers are in and the worker is up, so the towns effect below applies
       m.once('load', () => setMap(m))
     })
     return () => {
       watch?.disconnect()
+      ro.disconnect()
       scheme.removeEventListener('change', onScheme)
       live = null
       m.remove()
