@@ -22,6 +22,7 @@ export type MapMode = 'leader' | 'turnout' | 'share'
 
 // OSM's own link to the country, and the plain OSM tiles under the towns
 const NATIONAL = { lng: 35.074, lat: 31.438, zoom: 8 }
+// OSM's own tiles, with their names only inside the country
 const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const NO_DATA = '#d4d4d9'
 // Where names start and where every town has one, and the big towns that also have one zoomed out
@@ -128,10 +129,9 @@ export function MapView({
       container: box.current,
       style: {
         version: 8,
-        // OSM's terms forbid bulk or app use of these tiles; upgrade to a self-hosted or paid tile provider if traffic grows
-        sources: { osm: { type: 'raster', tiles: [TILES], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' } },
-        // Washed out so the towns' colours, not OSM's roads and greens, are what the eye reads; dark dims it further
-        layers: [{ id: 'osm', type: 'raster', source: 'osm', paint: { 'raster-opacity': 0.4, 'raster-saturation': -1 } }],
+        sources: {},
+        // The first style layer is always drawn: this plate is the country's own colour, under everything
+        layers: [{ id: 'plate', type: 'background', paint: { 'background-color': '#f2f2f0' } }],
       },
       center: { lng: NATIONAL.lng, lat: NATIONAL.lat },
       zoom: NATIONAL.zoom,
@@ -156,19 +156,35 @@ export function MapView({
     const onScheme = () => dark?.()
     // Fires as the map is constructed for the empty inline style, so it cannot be missed here
     m.once('style.load', () => {
-      // Land and country outline are OSM's; bg() tones the land mask
+      // OSM's tiles carry every country's name; only our land may keep them, so a negative copy of the country
+      // is painted over the tiles everywhere but here
+      const flip = (g: Geometry): Geometry =>
+        'coordinates' in g ? ({ ...g, coordinates: (function walk(c: unknown): unknown {
+          if (!Array.isArray(c)) return c
+          return typeof c[0] === 'number' ? [-(c[0] as number), c[1]] : c.map(walk)
+        })(g.coordinates) } as Geometry) : g
+      const negated = country && { ...country, features: country.features.map((f) => ({ ...f, geometry: flip(f.geometry) })) }
       m.addSource('land', { type: 'geojson', data: country ?? { type: 'FeatureCollection', features: [] } })
-      m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
-      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
+      m.addSource('mask', { type: 'geojson', data: negated ?? { type: 'FeatureCollection', features: [] } })
+      m.addSource('tiles', { type: 'raster', tiles: [TILES], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' })
+      // Bottom up: the tiles, the plain country over the rest of them, our washed land, the outline
+      m.addLayer({ id: 'basemap', type: 'raster', source: 'tiles', paint: { 'raster-saturation': -1, 'raster-opacity': 0.85, 'raster-brightness-max': 0.6 } })
+      m.addLayer({ id: 'paper', type: 'fill', source: 'mask', paint: { 'fill-color': '#f2f2f0', 'fill-opacity': 1 } })
+      m.addLayer({ id: 'mine', type: 'fill', source: 'land', paint: { 'fill-color': '#f2f2f0', 'fill-opacity': 0.6 } })
+      m.addLayer({ id: 'outline', type: 'line', source: 'mask', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
       // The camera first goes on the whole country while the page is still narrow; settled here, where the frame is its final size
       const bounds = m.getMaxBounds()
       if (bounds && !bounds.contains(m.getCenter())) m.fitBounds(bounds, { animate: false })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
-        // OSM's land is nearly white already; dark mode mutes it toward the page's dark ground
-        m.setPaintProperty('land', 'fill-color', dark ? '#2a2a2e' : '#fff')
-        m.setPaintProperty('land', 'fill-opacity', dark ? 0.6 : 0.3)
+        // Our land at a wash, so OSM's coast and country show through; dark sinks it toward the ground
+        m.setPaintProperty('mine', 'fill-color', dark ? '#141416' : '#f2f2f0')
+        m.setPaintProperty('mine', 'fill-opacity', dark ? 0.85 : 0.6)
+        m.setPaintProperty('plate', 'background-color', dark ? '#141416' : '#f2f2f0')
+        m.setPaintProperty('basemap', 'raster-opacity', 0.85)
+        m.setPaintProperty('basemap', 'raster-brightness-max', dark ? 0.25 : 0.6)
+        m.setPaintProperty('paper', 'fill-color', dark ? '#141416' : '#f2f2f0')
         m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
         // Town borders, Kaplan's scheme: a 1px grey line over the fill. Dark flips it, since #d3d3d3
         // vanishes on dark fills and would only trace the grey towns
