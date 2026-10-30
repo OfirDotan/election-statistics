@@ -2,14 +2,14 @@ import { useMemo, useState } from 'react'
 import { TownTable } from '../components/TownTable.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
-import { filterStats, nameRows, sortRows, townRows, type SortKey, type TownFilters } from '../lib/derive.ts'
+import { filterStats, sortRows, townRows, type SortKey, type TownFilters } from '../lib/derive.ts'
 import { useDataset } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 const initial: TownFilters = { query: '', leader: '', minShare: 0, minTurnout: 0, majorityOnly: false, pluralityOnly: false }
 
 export function Towns() {
-  const { t, lang, locale } = useI18n()
+  const { t, locale } = useI18n()
   const { towns, party, error } = useDataset()
   const rowsAll = townRows(towns ?? [])
   useTitle(t('townsTitle'))
@@ -19,7 +19,7 @@ export function Towns() {
 
   // Leader keys aren't sorted (they're ballot letters); the <option>s render party names, which browsers order by script
   const leaders = useMemo(() => [...new Set(rowsAll.map((r) => r.stats?.leader).filter((k): k is string => !!k))], [rowsAll])
-  const rows = useMemo(() => sortRows(filterStats(nameRows(rowsAll, lang), f), sort, dir, locale), [rowsAll, f, sort, dir, locale, lang])
+  const rows = useMemo(() => sortRows(filterStats(rowsAll, f), sort, dir, locale), [rowsAll, f, sort, dir, locale])
   const set = <K extends keyof TownFilters>(k: K) => (v: TownFilters[K]) => setF((s) => ({ ...s, [k]: v }))
   const onSort = (k: string) => {
     const key = k as SortKey

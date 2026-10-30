@@ -341,6 +341,20 @@ a:hover {
 }
 
 /* ---------- loading spinner ---------- */
+.lang-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+}
+.lang-overlay .spinner {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-width: 3px;
+  color: var(--text-3);
+}
 
 .spinner {
   display: inline-block;
@@ -523,8 +537,10 @@ a:hover {
   font-weight: 600;
 }
 
+/* The mark and the name share one line; a long name wraps under itself, not under the logo */
 .chip {
   display: inline-flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.45rem;
   white-space: nowrap;
@@ -532,6 +548,7 @@ a:hover {
 /* Party names are links: a row of chips gives each one its own hit area */
 .chip > a {
   color: inherit;
+  min-inline-size: 0;
 }
 .chip > a:hover {
   color: var(--tint);

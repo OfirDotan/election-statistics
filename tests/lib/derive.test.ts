@@ -51,6 +51,17 @@ describe('filterStats', () => {
     expect(names(filterStats(rows, { ...none(), query: ' שבע ' }))).toEqual([])
     expect(names(filterStats(rows, { ...none(), query: 'lph' }))).toEqual(['Alpha'])
   })
+  it('matches a town by either language, ignoring quotes and case and skipping unmeasured rows', () => {
+    const mixed = townRows([{ ...town(1, 'עילוט', 80, { א: 60 }), nameEn: "'Aylut" }, { ...town(2, 'אום אל-פחם', 50, { א: 50 }), nameEn: 'Umm al-Fahm' }, govmap])
+    const names = (q: string) => filterStats(mixed, { ...none(), query: q }).map((r) => r.code)
+    expect(names('עילוט')).toEqual([1])
+    expect(names('AYLUT')).toEqual([1])
+    expect(names("'Aylut")).toEqual([1])
+    expect(names('umm AL')).toEqual([2])
+    expect(names('פחם')).toEqual([2])
+    // the ballot-less town has no stats, so even its own name cannot reach it
+    expect(names('קיבוץ')).toEqual([])
+  })
 })
 
 describe('boardRows', () => {

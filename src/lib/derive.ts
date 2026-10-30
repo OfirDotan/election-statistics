@@ -71,22 +71,23 @@ export interface TownFilters {
   pluralityOnly: boolean
 }
 
-/** Rows named in the page's language; either language still matches the search */
-export function nameRows(rows: TownRow[], lang: string): TownRow[] {
-  return lang === 'en' ? rows.map((r) => ({ ...r, name: r.nameEn ?? r.name, nameEn: undefined })) : rows
-}
+/** A town's name in the page's language */
+export const townName = (name: string, nameEn: string | undefined, lang: string) => (lang === 'en' ? (nameEn ?? name) : name)
 
 export function filterStats(rows: TownRow[], f: TownFilters): TownRow[] {
   const q = f.query.trim()
   return rows.filter((r) => matches(r, q, f))
 }
 
+/** The names in one searched form: lower case, and ' and - read as spaces, so aylut finds 'Aylut */
+const searchable = (...names: (string | undefined)[]) => names.join(' ').toLowerCase().replace(/['’-]+/g, ' ').replace(/\s+/g, ' ').trim()
+
 function matches(r: TownRow, q: string, f: TownFilters): boolean {
   const s = r.stats
   // Unmeasured rows never match (the same result the bounded/s null rule gives)
   if (s === null) return false
   return (
-    (q === '' || [r.name, r.nameEn].some((n) => n?.toLowerCase().includes(q.toLowerCase()))) &&
+    (q === '' || searchable(r.name, r.nameEn).includes(searchable(q))) &&
     (f.leader === '' || s.leader === f.leader) &&
     (!f.majorityOnly || s.majority) &&
     (!f.pluralityOnly || (s.margin > 0 && s.leaderShare <= 50)) &&

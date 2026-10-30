@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n/useI18n.ts'
-import type { Board, SortKey, TownRow } from '../lib/derive.ts'
+import { townName, type Board, type SortKey, type TownRow } from '../lib/derive.ts'
 import type { PartyLookup } from '../lib/useData.ts'
 import { PartyChip, SortTh } from './ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
@@ -29,7 +29,7 @@ export function TownTable({
   board?: Board
   onOpen?: (b: Exclude<Board, 'all'>) => void
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const ranked = board !== undefined
   const th = (k: SortKey, label: string, numeric = true) => (
     <SortTh label={label} k={k} sort={sort} dir={dir} onSort={onSort} numeric={numeric} />
@@ -59,7 +59,7 @@ export function TownTable({
             return (
               <tr key={r.code}>
                 <th scope="row">
-                  <Link to={`/town/${r.code}`}>{r.name}</Link>
+                  <Link to={`/town/${r.code}`}>{townName(r.name, r.nameEn, lang)}</Link>
                 </th>
                 <td>{p ? <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={p.key} slug={p.slug} /> : <span className="muted">{t('noVotes')}</span>}</td>
                 <td className="num">{p ? fmtPct(s!.leaderShare) : '—'}</td>

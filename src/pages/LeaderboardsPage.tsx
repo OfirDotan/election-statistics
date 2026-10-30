@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { TownTable } from '../components/TownTable.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
-import { boardRows, filterStats, nameRows, MIN_VALID, nationalShares, RANK_COLUMN, sortRows, townRows, type Board, type SortKey, type TownFilters } from '../lib/derive.ts'
+import { boardRows, filterStats, MIN_VALID, nationalShares, RANK_COLUMN, sortRows, townRows, type Board, type SortKey, type TownFilters } from '../lib/derive.ts'
 import { divergences } from '../lib/mapLogic.ts'
 import { useDataset } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
@@ -28,7 +28,7 @@ export function LeaderboardsPage() {
   const shown = useMemo(() => {
     const need = board === 'high' || board === 'low' || board === 'divergence' ? MIN_VALID : 0
     const kept = all.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need))
-    return sortRows(filterStats(nameRows(kept, lang), f), sort, dir, locale)
+    return sortRows(filterStats(kept, f), sort, dir, locale)
   }, [all, board, f, sort, dir, locale, lang])
   const set = <K extends keyof TownFilters>(k: K) => (v: TownFilters[K]) => setF((s) => ({ ...s, [k]: v }))
   // A board opens at its top: its own column, big first (closest races and low turnout small first)
