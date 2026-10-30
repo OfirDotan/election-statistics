@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { BoardCharts } from '../components/BoardCharts.tsx'
 import { TownTable } from '../components/TownTable.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
@@ -30,11 +31,12 @@ export function LeaderboardsPage() {
   useTitle(t('boardsTitle'))
 
   const leaders = useMemo(() => [...new Set(all.map((r) => r.stats?.leader).filter((k): k is string => !!k))], [all])
-  const shown = useMemo(() => {
+  // What the board ranks: the same rows the charts above draw and the search below filters
+  const kept = useMemo(() => {
     const need = board === 'high' || board === 'low' || board === 'divergence' ? MIN_VALID : 0
-    const kept = withBallots.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need))
-    return sortRows(filterStats(kept, { ...f, infoOnly }), sort, dir, locale)
-  }, [withBallots, all, board, f, infoOnly, sort, dir, locale, lang])
+    return withBallots.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need))
+  }, [withBallots, board])
+  const shown = useMemo(() => sortRows(filterStats(kept, { ...f, infoOnly }), sort, dir, locale), [kept, f, infoOnly, sort, dir, locale])
   const set = <K extends keyof TownFilters>(k: K) => (v: TownFilters[K]) => setF((s) => ({ ...s, [k]: v }))
   // A board opens at its top: its own column, big first (closest races and low turnout small first)
   const open = (b: Board) => {
@@ -62,6 +64,13 @@ export function LeaderboardsPage() {
       {!towns && !error && <Loading />}
       {towns && (
         <>
+          <BoardCharts
+            rows={kept}
+            board={board}
+            party={party}
+            lang={lang}
+            titles={{ boardsTowns: t('boardsTowns'), bMargins: t('bMargins'), bTurnoutHigh: board === 'low' ? t('bTurnoutLow') : t('bTurnoutHigh'), bClosest: t('bClosest'), bDivergence: t('bDivergence') }}
+          />
           <div className="towns-bar">
             <input className="towns-search" type="search" value={f.query} onChange={(e) => set('query')(e.target.value)} placeholder={t('search')} aria-label={t('search')} />
             <select value={f.leader} onChange={(e) => set('leader')(e.target.value)} aria-label={t('leaderParty')}>

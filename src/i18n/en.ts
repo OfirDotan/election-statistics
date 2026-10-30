@@ -170,6 +170,7 @@ export const en: Record<keyof typeof he, string> = {
   mapScaleNote: 'Darker means a higher value. Towns without data are gray.',
   boardsTitle: 'Leaderboards',
   boardsIntro: 'Who leads where, and where voting departs from the country.',
+  boardsTowns: 'Towns by their leading party',
   bMargins: 'Biggest margins',
   bMarginsNote: 'Largest gap between the top two parties.',
   bTurnoutHigh: 'Highest turnout',
