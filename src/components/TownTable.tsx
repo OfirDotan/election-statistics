@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n/useI18n.ts'
-import type { SortKey, TownRow } from '../lib/derive.ts'
+import type { Board, SortKey, TownRow } from '../lib/derive.ts'
 import type { PartyLookup } from '../lib/useData.ts'
 import { PartyChip, SortTh } from './ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
+
+const RANK_LABEL = { sweep: 'bSweep', majority: 'bMajority', margins: 'bMargins', high: 'bTurnoutHigh', low: 'bTurnoutLow', closest: 'bClosest', divergence: 'bDivergence' } as const
+const RANKED = Object.keys(RANK_LABEL) as Exclude<Board, 'all'>[]
 
 export function TownTable({
   rows,
@@ -12,6 +15,7 @@ export function TownTable({
   dir,
   onSort,
   showTurnout = true,
+  board,
 }: {
   rows: TownRow[]
   party: PartyLookup
@@ -20,14 +24,17 @@ export function TownTable({
   onSort: (k: string) => void
   /** Towns without ballots still have a turnout figure; the detail page hides it */
   showTurnout?: boolean
+  /** Leaderboards: every board's rank at the end of the row, and a header to open each board from its column */
+  board?: Board
 }) {
   const { t } = useI18n()
+  const ranked = board !== undefined
   const th = (k: SortKey, label: string, numeric = true) => (
     <SortTh label={label} k={k} sort={sort} dir={dir} onSort={onSort} numeric={numeric} />
   )
   return (
     <div className="table-wrap">
-      <table className="towns">
+      <table className={`towns${ranked ? ' towns-ranked' : ''}`}>
         <thead>
           <tr>
             {th('name', t('colTown'), false)}
@@ -36,6 +43,7 @@ export function TownTable({
             {th('margin', t('colMargin'))}
             {showTurnout && th('turnout', t('colTurnout'))}
             {th('valid', t('colValid'))}
+            {ranked && RANKED.map((b) => <th key={b} scope="col" className="num board-rank">{t(RANK_LABEL[b])}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -52,6 +60,7 @@ export function TownTable({
                 <td className="num">{p ? fmtPct(s!.margin) : '—'}</td>
                 {showTurnout && <td className="num">{r.turnout ? fmtPct(r.turnout) : '—'}</td>}
                 <td className="num">{r.source === 'kaplan' ? fmtInt(r.valid) : '—'}</td>
+                {ranked && RANKED.map((b) => <td key={b} className="num board-rank">{r.ranks?.[b] ?? '—'}</td>)}
               </tr>
             )
           })}

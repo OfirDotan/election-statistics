@@ -53,16 +53,21 @@ describe('filterStats', () => {
   })
 })
 
-describe('boardRows', () => {
-  it('names ballot-less towns by their kalpi name, fires divergence on the outlier party', () => {
-    const out = boardRows(rows, [...towns, { ...towns[0], code: 4, name: 'קיבוץ' }], [{ code: 1, party: 'ג', share: 90, national: 10, diff: 80 }])
-    expect(out.find((r) => r.code === 4)?.name).toBe('קיבוץ')
-    expect(out.find((r) => r.code === 1)).toMatchObject({ party: 'ג', value: 80 })
-    expect(out.find((r) => r.code === 2)).toMatchObject({ party: 'ב', value: 75 })
-    expect(out.find((r) => r.code === 4)?.board).toBe(false)
-  })
-})
-
+describe('boardRows', () => {
+  it('names ballot-less towns by their kalpi name, ranks them and reads a diverging share as its gap', () => {
+    const nat = new Map([['א', 60], ['ב', 10]])
+    const out = boardRows(rows, [...towns, { ...towns[0], code: 4, name: 'קיבוץ' }], nat, [{ code: 1, party: 'ג', share: 90, national: 10, diff: 80 }])
+    const get = (code: number) => out.find((r) => r.code === code)!
+    expect(get(4).name).toBe('קיבוץ')
+    // Bet leads 75% against a 10% national share; Alpha leads 80% but is only 15 over its 60% national share
+    expect(get(2)).toMatchObject({ over: 65, ranks: { sweep: 4, closest: 2, high: 1 } })
+    expect(get(1)).toMatchObject({ over: 15, ranks: { sweep: 6, closest: 1, low: 1 } })
+    // divergences() ranks every town by its least nationally-typical party, so none is outside the divergence board
+    expect(get(1)).toMatchObject({ stats: { leaderShare: 80 } })
+    expect(new Set(out.map((r) => r.ranks?.divergence)).size).toBe(out.length)
+  })
+})
+
 describe('sortRows', () => {
   it('sorts by turnout, unmeasured rows last in both directions', () => {
     const noKalpi = townRows([...towns, govmap], {})

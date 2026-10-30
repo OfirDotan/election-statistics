@@ -1,16 +1,12 @@
-import type { Divergence } from './mapLogic.ts'
+import type { Divergence } from './mapLogic.ts'
 import { townStats, type TownStats, type TownVoteInput } from './stats.ts'
 import type { Kalpi, Town } from './types.ts'
 
-export type BoardRow = TownRow & {
-  /** Clears the minimum valid votes, so the turnout and divergence boards may list it */
-  board: boolean
-  /** The party the board ranks by: the diverging party on the divergence board, else the leader */
-  party: string | null
-  /** leaderShare, or the divergence gap when the town diverges */
-  value: number
-}
-
+export type Board = 'all' | 'sweep' | 'majority' | 'margins' | 'high' | 'low' | 'closest' | 'divergence'
+
+/** Per-town ranks, 1 = top of that board; `null` where the board doesn't rank the town (no ballots, or under its floor) */
+export type BoardRanks = Record<Exclude<Board, 'all'>, number | null>
+
 export interface TownRow {
   code: number
   name: string
@@ -18,6 +14,10 @@ export interface TownRow {
   source: 'kaplan' | 'govmap' | null
   valid: number
   turnout: number
+  /** Present on rows from boardRows */
+  ranks?: BoardRanks
+  /** The town's share of valid votes over its leader's national share; negative where the leader trails nationally */
+  over?: number
 }
 
 /** Town voting figures; a town with no vote data gets empty ones. */
@@ -73,15 +73,6 @@ export function filterStats(rows: TownRow[], f: TownFilters): TownRow[] {
   return rows.filter((r) => matches(r, q, f))
 }
 
-/** A diverging town fires on its outlier party; the share column stays its leader's (§3, like the rest of the boards) */
-export function boardRows(rows: TownRow[], towns: Town[], diverge: Divergence[], minValid = 50): BoardRow[] {
-  const outlier = new Map(diverge.map((d) => [d.code, d]))
-  return rows.filter((r) => r.stats || outlier.has(r.code)).map((r) => {
-    const d = outlier.get(r.code)
-    return { ...r, name: towns.find((t) => t.code === r.code)?.name ?? r.name, board: r.valid >= minValid, party: d ? d.party : (r.stats?.leader ?? null), value: d ? d.diff : (r.stats?.leaderShare ?? 0) }
-  })
-}
-
 function matches(r: TownRow, q: string, f: TownFilters): boolean {
   const s = r.stats
   // Unmeasured rows never match (the same result the bounded/s null rule gives)
@@ -97,6 +88,56 @@ function matches(r: TownRow, q: string, f: TownFilters): boolean {
 }
 
 export type SortKey = 'name' | 'leader' | 'share' | 'margin' | 'turnout' | 'valid'
+
+/** The column a board's ranks follow: same ranking, different column. Sweeps, majority and margins all rank by share */
+export const RANK_COLUMN: Record<Exclude<Board, 'all'>, SortKey> = {
+  sweep: 'share',
+  majority: 'share',
+  margins: 'share',
+  divergence: 'share',
+  closest: 'margin',
+  high: 'turnout',
+  low: 'turnout',
+}
+
+/** Turnout and divergence need real vote counts before shares mean anything */
+export const MIN_VALID = 50
+
+/** What each board ranks by, and whether big is best */
+const TOP: Record<Exclude<Board, 'all'>, { top: (r: TownRow) => number | null; desc: boolean }> = {
+  sweep: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
+  majority: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
+  margins: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
+  // Reads the gap, not the share: boardRows rewrites a diverging town's share to that same gap before ranking
+  divergence: { top: (r) => r.stats?.leaderShare ?? null, desc: true },
+  closest: { top: (r) => r.stats?.margin ?? null, desc: false },
+  high: { top: (r) => r.turnout || null, desc: true },
+  low: { top: (r) => r.turnout || null, desc: false },
+}
+
+/** Names ballot-less towns by their kalpi record and gives every row a rank for each board */
+export function boardRows(rows: TownRow[], towns: Town[], national: Map<string, number>, diverge: Divergence[]): TownRow[] {
+  const gap = new Map(diverge.map((d) => [d.code, d.diff]))
+  const base = rows.map((r) => {
+    const s = r.stats
+    return {
+      ...r,
+      name: towns.find((t) => t.code === r.code)?.name ?? r.name,
+      over: s ? s.leaderShare - (national.get(s.leader ?? '') ?? 0) : undefined,
+      // A diverging town's share column reads its gap from national: that is what the divergence board ranks
+      stats: s && gap.has(r.code) ? { ...s, leaderShare: gap.get(r.code)! } : s,
+    }
+  })
+  const ranks: Record<number, Record<string, number>> = {}
+  for (const b of Object.keys(TOP) as Exclude<Board, 'all'>[]) {
+    const { top, desc } = TOP[b]
+    base
+      .filter((r) => top(r) !== null)
+      .sort((a, c) => Number(desc) * ((top(a) ?? 0) - (top(c) ?? 0)) || a.code - c.code)
+      .forEach((r, i) => (ranks[r.code] ??= {})[b] = i + 1)
+  }
+  return base.map((r) => ({ ...r, ranks: Object.fromEntries(Object.keys(TOP).map((b) => [b, ranks[r.code]?.[b] ?? null])) as unknown as BoardRanks }))
+}
 
 /** Stable sort on one column; rows without data sort last in either direction. */
 export function sortRows(rows: TownRow[], key: SortKey, dir: 1 | -1, locale: string): TownRow[] {

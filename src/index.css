@@ -847,6 +847,15 @@ input[type='range'] {
   margin-block: 0.5rem 0.75rem;
 }
 
+/* Leaderboards: a board's note, with the way back to every town */
+.board-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 0.25rem 0.75rem;
+}
+
 /* ---------- tables ---------- */
 
 .table-wrap {
@@ -1764,6 +1773,18 @@ details.section > summary {
 }
 .map-page .map-note {
   padding-block-end: 0;
+}
+/* Phones: a page worth of the party list would squeeze out the map, so the list scrolls inside its row */
+@media (max-width: 600px) {
+  .map-page .map-frame {
+    flex: none;
+    block-size: 50svh;
+  }
+  .map-page .map-leaders {
+    flex: 1;
+    min-block-size: 0;
+    overflow-y: auto;
+  }
 }
 .map .map-legend:last-child {
   padding-block-end: 0;
