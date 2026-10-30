@@ -894,16 +894,20 @@ input[type='range'] {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
   }
-  .towns-bar .towns-search {
-    grid-column: 1 / -1;
+  /* Each item asks for none of its own width: the search's intrinsic one is its placeholder, which the column can't shrink below */
+  .towns-bar > * {
     min-inline-size: 0;
     inline-size: 100%;
   }
-  .towns-bar > select,
-  .towns-bar .towns-more {
-    inline-size: 100%;
-    min-inline-size: 0;
+  /* The count rides along in the line, and its column waits for a select that has nothing to list */
+  .towns-bar .muted {
+    display: none;
   }
+}
+/* Its contents sit in its grid; while folded the box itself must not take a row */
+.towns-more:not([open]) {
+  display: none;
+  flex-basis: auto;
 }
 .towns-more {
   flex-basis: 100%;
@@ -1244,6 +1248,8 @@ details.section > summary {
     border-radius: 0;
     box-shadow: none;
     padding: 0;
+    /* A wrapper as wide as its swiping table drops into the page's column from the other side */
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
   /* Column widths plus the gutters, so every column keeps its width while the wrapper scrolls */

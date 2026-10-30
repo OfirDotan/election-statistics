@@ -21,7 +21,7 @@ export interface TownRow {
   /** The town's share of valid votes over its leader's national share; negative where the leader trails nationally */
   over?: number
   /** Every party's name the town voted for, for the maximum-info search */
-  all?: Record<string, string[]>
+  all?: Record<string, string>
 }
 
 /** Town voting figures; a town with no vote data gets empty ones. */
@@ -75,12 +75,12 @@ export interface TownFilters {
   infoOnly: boolean
 }
 
-/** Each town's ballot breakdown as party name lists, so the search can read past the leader under maximum info */
-export function allBallots(towns: Town[], nameOf: (key: string) => string): Map<number, Record<string, string[]>> {
-  const out = new Map<number, Record<string, string[]>>()
+/** Each town's parties by key and name, so the search can read past the leader under maximum info */
+export function allBallots(towns: Town[], nameOf: (key: string) => string): Map<number, Record<string, string>> {
+  const out = new Map<number, Record<string, string>>()
   for (const t of towns) {
     const byParty = t.votes?.byParty ?? {}
-    if (Object.keys(byParty).length) out.set(t.code, Object.fromEntries(Object.keys(byParty).map((k) => [k, [nameOf(k).toLowerCase()]])))
+    if (Object.keys(byParty).length) out.set(t.code, Object.fromEntries(Object.keys(byParty).map((k) => [k, nameOf(k)])))
   }
   return out
 }
@@ -89,24 +89,29 @@ export function allBallots(towns: Town[], nameOf: (key: string) => string): Map<
 export const townName = (name: string, nameEn: string | undefined, lang: string) => (lang === 'en' ? (nameEn ?? name) : name)
 
 export function filterStats(rows: TownRow[], f: TownFilters): TownRow[] {
-  const q = f.query.trim()
-  return rows.filter((r) => matches(r, q, f))
+  // The searched form: lower case, with ' and - read as spaces, so aylut finds 'Aylut
+  const q = f.query.toLowerCase().replace(/['’-]+/g, ' ').replace(/\s+/g, ' ').trim()
+  // The first letter rules out nearly every town before any name is joined
+  const first = q.slice(0, 1)
+  return rows.filter((r) => matches(r, q, first, f))
 }
 
-/** The names in one searched form: lower case, and ' and - read as spaces, so aylut finds 'Aylut */
-const searchable = (...names: ((string | undefined) | Record<string, string[]>)[]) =>
-  names
-    .flatMap((n) => (typeof n === 'string' ? [n] : n ? Object.entries(n).flat() : []))
-    .join(' ')
-    .toLowerCase().replace(/['’-]+/g, ' ').replace(/\s+/g, ' ').trim()
+/**
+ * The searched form of the town's names joined into one string. The query's words must appear in it in order, which is
+ * the old one-string rule; joining per name was the cost, so it happens once per row.
+ */
+function searchable(names: string[], q: string, first: string): boolean {
+  if (first && !names.some((n) => n.toLowerCase().includes(first))) return false
+  return names.join(' ').toLowerCase().replace(/['’-]+/g, ' ').replace(/\s+/g, ' ').trim().includes(q)
+}
 
-function matches(r: TownRow, q: string, f: TownFilters): boolean {
+function matches(r: TownRow, q: string, first: string, f: TownFilters): boolean {
   const s = r.stats
   // Unmeasured rows never match (the same result the bounded/s null rule gives)
   if (s === null) return false
+  const names = f.infoOnly && r.all ? [r.name, r.nameEn ?? '', ...Object.entries(r.all).flat()] : [r.name, r.nameEn ?? '']
   return (
-    (q === '' ||
-      (f.infoOnly && r.all ? searchable(r.name, r.nameEn, r.all) : searchable(r.name, r.nameEn)).includes(searchable(q))) &&
+    (q === '' || searchable(names, q, first)) &&
     (f.leader === '' || (f.infoOnly ? Object.hasOwn(r.all ?? {}, f.leader) : s.leader === f.leader)) &&
     (!f.majorityOnly || s.majority) &&
     (!f.pluralityOnly || (s.margin > 0 && s.leaderShare <= 50)) &&

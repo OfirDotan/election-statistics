@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { BoardCharts } from '../components/BoardCharts.tsx'
 import { TownTable } from '../components/TownTable.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
@@ -34,7 +34,10 @@ export function LeaderboardsPage() {
     const need = board === 'high' || board === 'low' || board === 'divergence' ? MIN_VALID : 0
     return withBallots.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need))
   }, [withBallots, board])
-  const shown = useMemo(() => sortRows(filterStats(kept, { ...f, infoOnly }), sort, dir, locale), [kept, f, infoOnly, sort, dir, locale])
+  // The input keeps every keystroke; the charts and the table trail behind it, so typing never waits on sorting 1200 towns
+  const q = useDeferredValue(f.query)
+  const searched = useMemo(() => filterStats(kept, { ...f, query: q, infoOnly }), [kept, f, q, infoOnly])
+  const shown = useMemo(() => sortRows(searched, sort, dir, locale), [searched, sort, dir, locale])
   const set = <K extends keyof TownFilters>(k: K) => (v: TownFilters[K]) => setF((s) => ({ ...s, [k]: v }))
   // A board opens at its top: its own column, big first (closest races and low turnout small first)
   const open = (b: Board) => {
@@ -63,7 +66,7 @@ export function LeaderboardsPage() {
       {towns && (
         <>
           <BoardCharts
-            rows={kept}
+            rows={searched}
             party={party}
             titles={{
               boardsTowns: t('boardsTowns'),
