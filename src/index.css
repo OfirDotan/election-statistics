@@ -961,6 +961,47 @@ th.num .sort {
   font-size: 0.625rem;
   inline-size: 0.7em;
 }
+/* A column's "?": the text sits under the header row, so the table widens instead of the row growing */
+.col-help {
+  display: inline-block;
+  margin-inline-start: 0.3rem;
+  vertical-align: middle;
+}
+.col-help summary {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.6875rem;
+  cursor: pointer;
+  list-style: none;
+}
+.col-help summary::-webkit-details-marker {
+  display: none;
+}
+.col-help[open] summary {
+  background: var(--track);
+}
+.col-help p {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-start: 0;
+  z-index: 5;
+  inline-size: min(18rem, 80vw);
+  margin: 0.25rem 0 0;
+  padding: 0.6rem 0.7rem;
+  white-space: normal;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--surface-2);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+th:has(.col-help[open]) {
+  position: relative;
+}
 th[scope='row'] {
   font-weight: 500;
 }

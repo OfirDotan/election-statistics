@@ -145,7 +145,7 @@ export function MapView({
     m.touchZoomRotate.disableRotation()
     m.keyboard.disableRotation()
     // Without a gl context the map throws on construction, before its first resize observer callback
-    const ro = new ResizeObserver(() => m.resize())
+    const ro = new ResizeObserver(() => { console.log('DBG resize', box.current?.clientWidth, box.current?.clientHeight, m.getContainer().clientWidth, m.getContainer().clientHeight, m.getCanvas().width, m.getCanvas().height); m.resize(); console.log('DBG after', m.getCanvas().width, m.getCanvas().height) })
     ro.observe(box.current)
     let watch: MutationObserver | undefined
     let dark: (() => void) | undefined
@@ -173,10 +173,10 @@ export function MapView({
         // now, this threw on the first run and left the names MapLibre's default black in dark
         if (m.getLayer('labels')) {
           m.setPaintProperty('labels', 'text-color', dark ? '#f4f4f5' : '#000')
-          m.setPaintProperty('labels', 'text-halo-color', dark ? '#141416' : '#fff')
+          m.setPaintProperty('labels', 'text-halo-color', dark ? '#1c1c1f' : '#fff')
           // On dark fills the towns are small and their edge is the fill colour too, so a 2px halo
           // swallowed "Tel Aviv" into the Likud fill; a wider one reads on both
-          m.setPaintProperty('labels', 'text-halo-width', dark ? 1.4 : 2)
+          m.setPaintProperty('labels', 'text-halo-width', dark ? 1.1 : 1.6)
         }
       }
       live = m

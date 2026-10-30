@@ -2,11 +2,13 @@ import { Link } from 'react-router-dom'
 import { useI18n } from '../i18n/useI18n.ts'
 import { townName, type Board, type SortKey, type TownRow } from '../lib/derive.ts'
 import type { PartyLookup } from '../lib/useData.ts'
-import { PartyChip, SortTh } from './ui.tsx'
+import { ColHelp, PartyChip } from './ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
 
 const RANK_LABEL = { margins: 'bMargins', high: 'bTurnoutHigh', low: 'bTurnoutLow', closest: 'bClosest', divergence: 'bDivergence' } as const
 const RANKED = Object.keys(RANK_LABEL) as Exclude<Board, 'all'>[]
+/** What each rank column ranks by, in words that don't need the board's name */
+const RANK_HELP = { margins: 'rankMargins', high: 'rankHigh', low: 'rankLow', closest: 'rankClosest', divergence: 'rankDivergence' } as const
 
 export function TownTable({
   rows,
@@ -31,8 +33,14 @@ export function TownTable({
 }) {
   const { t, lang } = useI18n()
   const ranked = board !== undefined
-  const th = (k: SortKey, label: string, numeric = true) => (
-    <SortTh label={label} k={k} sort={sort} dir={dir} onSort={onSort} numeric={numeric} />
+  const th = (k: SortKey, label: string, numeric = true, help?: string) => (
+    <th scope="col" className={numeric ? 'num' : undefined} aria-sort={sort === k ? (dir === 1 ? 'ascending' : 'descending') : 'none'}>
+      <button type="button" className="sort" onClick={() => onSort(k)}>
+        {label}
+        <span className="sort-arrow" aria-hidden="true">{sort === k ? (dir === 1 ? '▲' : '▼') : ''}</span>
+      </button>
+      {help && <ColHelp text={help} />}
+    </th>
   )
   return (
     <div className="table-wrap">
@@ -41,13 +49,14 @@ export function TownTable({
           <tr>
             {th('name', t('colTown'), false)}
             {th('leader', t('colLeader'), false)}
-            {th('share', t('colShare'))}
-            {th('margin', t('colMargin'))}
-            {showTurnout && th('turnout', t('colTurnout'))}
-            {th('valid', t('colValid'))}
+            {th('share', t('colShare'), true, t('colShareHelp'))}
+            {th('margin', t('colMargin'), true, t('colMarginHelp'))}
+            {showTurnout && th('turnout', t('colTurnout'), true, t('colTurnoutHelp'))}
+            {th('valid', t('colValid'), true, t('colValidHelp'))}
             {ranked && RANKED.map((b) => (
               <th key={b} scope="col" className="num board-rank">
                 <button type="button" className="sort" onClick={() => onOpen?.(b)}>{t(RANK_LABEL[b])}</button>
+                <ColHelp text={t(RANK_HELP[b])} />
               </th>
             ))}
           </tr>

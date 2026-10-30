@@ -52,6 +52,16 @@ export function SortTh({ label, k, sort, dir, onSort, numeric }: { label: string
   )
 }
 
+/** A column's definition behind a small "?"; text, not a popup, so the browser's own tooltip can't be clipped by the table's scroll box */
+export function ColHelp({ text }: { text: string }) {
+  return (
+    <details className="col-help">
+      <summary aria-label={text}>?</summary>
+      <p>{text}</p>
+    </details>
+  )
+}
+
 export function Title({ children, sub, h2 }: { children: ReactNode; sub?: ReactNode; h2?: boolean }) {
   return (
     <header className="page-head">
