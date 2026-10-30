@@ -50,6 +50,8 @@ describe('filterStats', () => {
     expect(names(filterStats(rows, { ...none(), minShare: 70 }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
     expect(names(filterStats(rows, { ...none(), query: ' שבע ' }))).toEqual([])
     expect(names(filterStats(rows, { ...none(), query: 'lph' }))).toEqual(['Alpha'])
+    // Whole first words, in the order the names are joined; words the blob never holds in sequence miss
+    expect(names(filterStats(rows, { ...none(), query: 'L F' }))).toEqual([])
   })
   it('maximum info finds a town by any party that won a vote there, not only its leader', () => {
     const r = townRows([{ ...town(1, 'Omer', 80, { א: 60, ב: 20 }) }]).map((x) => ({ ...x, all: { א: 'Alpha', ב: 'Bet' } }))
@@ -66,6 +68,7 @@ describe('filterStats', () => {
     expect(names('AYLUT')).toEqual([1])
     expect(names("'Aylut")).toEqual([1])
     expect(names('umm AL')).toEqual([2])
+    expect(names('AL UM')).toEqual([])
     expect(names('פחם')).toEqual([2])
     // the ballot-less town has no stats, so even its own name cannot reach it
     expect(names('קיבוץ')).toEqual([])

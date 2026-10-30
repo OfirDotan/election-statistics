@@ -130,7 +130,8 @@ export function MapView({
         version: 8,
         // OSM's terms forbid bulk or app use of these tiles; upgrade to a self-hosted or paid tile provider if traffic grows
         sources: { osm: { type: 'raster', tiles: [TILES], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' } },
-        layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+        // Washed out so the towns' colours, not OSM's roads and greens, are what the eye reads; dark dims it further
+        layers: [{ id: 'osm', type: 'raster', source: 'osm', paint: { 'raster-opacity': 0.4, 'raster-saturation': -1 } }],
       },
       center: { lng: NATIONAL.lng, lat: NATIONAL.lat },
       zoom: NATIONAL.zoom,
