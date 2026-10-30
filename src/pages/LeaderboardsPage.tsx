@@ -23,10 +23,8 @@ export function LeaderboardsPage() {
   const [dir, setDir] = useState<1 | -1>(-1)
   const infoOnly = info === 'max'
   const ballots = useMemo(() => allBallots(towns ?? [], (k) => party(k).name), [towns, party])
-  const all = useMemo(() => {
-    const national = nationalShares(towns ?? [])
-    return boardRows(townRows(towns ?? []), towns ?? [], national, divergences(towns ?? [], Object.fromEntries(national)))
-  }, [towns])
+  const national = useMemo(() => nationalShares(towns ?? []), [towns])
+  const all = useMemo(() => boardRows(townRows(towns ?? []), towns ?? [], national, divergences(towns ?? [], Object.fromEntries(national))), [towns, national])
   const withBallots = useMemo(() => all.map((r) => ({ ...r, all: ballots.get(r.code) })), [all, ballots])
   useTitle(t('boardsTitle'))
 

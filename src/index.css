@@ -609,8 +609,13 @@ a:hover {
   cursor: pointer;
   transition: opacity 0.15s var(--ease);
 }
+/* Hovering a slice or its legend row: that one stays lit, the rest dim */
 .pie path:not(:focus):hover {
   opacity: 0.85;
+}
+.pie .is-dim,
+.pie-legend .is-dim {
+  opacity: 0.35;
 }
 .pie {
   inline-size: min(220px, 60%);
@@ -959,6 +964,11 @@ input[type='range'] {
 }
 .chart-card .pie-legend {
   flex: none;
+}
+.chart-card .pie-legend .party-logo,
+.chart-card .pie-legend .dot {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
 }
 /* One bar per town, in its leader's colour; the bar's own width is the value */
 .bar-chart {

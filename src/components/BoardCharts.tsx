@@ -12,8 +12,7 @@ const TITLES: Record<Board, 'boardsTowns' | 'bMargins' | 'bTurnoutHigh' | 'bClos
 }
 
 /**
- * The cards above the leaderboards search: towns by leader as a donut, then the board's top towns as bars, so
- * switching board changes what is below the table's search as well as the table.
+ * The cards above the leaderboards search: towns by their leading party as a donut, then the board's top towns as bars, so switching board changes what is below the table's search as well as the table.
  */
 export function BoardCharts({ rows, board, party, lang, titles }: { rows: TownRow[]; board: Board; party: PartyLookup; lang: string; titles: Record<'boardsTowns' | 'bMargins' | 'bTurnoutHigh' | 'bClosest' | 'bDivergence', string> }) {
   const measured = rows.filter((r) => r.stats)
@@ -30,7 +29,7 @@ export function BoardCharts({ rows, board, party, lang, titles }: { rows: TownRo
     <div className="board-charts">
       <section className="card chart-card" aria-labelledby="chart-leaders">
         <h2 id="chart-leaders">{titles.boardsTowns}</h2>
-        <SharePie slices={leaders} party={party} centre={String(leaders.reduce((s, p) => s + p.value, 0))} unit={String} interactive />
+        <SharePie slices={leaders} party={party} centre={String(leaders.reduce((s, l) => s + l.value, 0))} unit={String} interactive />
       </section>
       <section className="card chart-card" aria-labelledby="chart-top">
         <h2 id="chart-top">{titles[TITLES[board]]}</h2>
