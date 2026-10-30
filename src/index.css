@@ -931,6 +931,18 @@ input[type='range'] {
 .table-wrap .state {
   padding: 2rem;
 }
+/* Leaderboards: the columns run past the card in both languages, so pin the sideways scrollbar to the top of the list */
+.table-wrap:has(.board-scroll) {
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+.table-wrap > .board-scroll {
+  flex: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
 
 table {
   inline-size: 100%;

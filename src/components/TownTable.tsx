@@ -44,7 +44,8 @@ export function TownTable({
   )
   return (
     <div className="table-wrap">
-      <table className={`towns${ranked ? ' towns-ranked' : ''}`}>
+      {/* The class names make the first list outside the wide table, so the scrollbar paints above the rows, not at their end */}
+      <table className={`towns${ranked ? ' towns-ranked board-scroll' : ''}`}>
         <thead>
           <tr>
             {th('name', t('colTown'), false)}
