@@ -8,4 +8,3 @@ export const BLOCS = [
   { id: 'raam', color: '#EAB308', keys: ['עם'] },
 ] as const
 
-export type BlocId = (typeof BLOCS)[number]['id']

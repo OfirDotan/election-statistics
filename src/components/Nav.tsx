@@ -10,8 +10,6 @@ const routes = [
   { to: '/coalition', key: 'navCoalition' },
 ] as const
 
-export type RouteKey = (typeof routes)[number]['key']
-
 export function Nav() {
   const { t, lang, toggle } = useI18n()
   return (

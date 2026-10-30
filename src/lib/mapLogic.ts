@@ -1,4 +1,4 @@
-import type { Party, Town, TownVotes } from './mapData.ts'
+import type { Town, TownVotes } from './mapData.ts'
 import { share, townStats } from './stats.ts'
 
 export interface Divergence {
@@ -65,10 +65,6 @@ export function topParty(t: Town): { party: string; share: number } | null {
   if (!t.votes || t.votes.valid <= 0) return null
   const s = townStats(t.votes)
   return s.leader ? { party: s.leader, share: s.leaderShare } : null
-}
-
-export function partyMap(parties: Party[]): Map<string, Party> {
-  return new Map(parties.map((p) => [p.key, p]))
 }
 
 /** Text color for a party chip on its ballot color: whichever of black/white contrasts most */

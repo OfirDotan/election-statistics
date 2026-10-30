@@ -39,19 +39,6 @@ export function LoadError() {
   )
 }
 
-/** Th/Td helpers: sortable header button reports order to assistive tech. */
-export function SortTh({ label, k, sort, dir, onSort, numeric }: { label: string; k: string; sort: string; dir: 1 | -1; onSort: (k: string) => void; numeric?: boolean }) {
-  const active = sort === k
-  return (
-    <th scope="col" className={numeric ? 'num' : undefined} aria-sort={active ? (dir === 1 ? 'ascending' : 'descending') : 'none'}>
-      <button type="button" className="sort" onClick={() => onSort(k)}>
-        {label}
-        <span className="sort-arrow" aria-hidden="true">{active ? (dir === 1 ? '▲' : '▼') : ''}</span>
-      </button>
-    </th>
-  )
-}
-
 /** A column's definition behind a small "?"; text, not a popup, so the browser's own tooltip can't be clipped by the table's scroll box */
 export function ColHelp({ text }: { text: string }) {
   return (

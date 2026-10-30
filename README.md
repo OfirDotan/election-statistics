@@ -95,3 +95,7 @@ Routes: `/` home, `/towns` table and filters, `/town/:code` detail, `/parties`, 
 `.github/workflows/ci.yml` runs typecheck, lint, tests, the data pipeline and a build on every push
 and pull request. `.github/workflows/deploy.yml` does the same on `main` and publishes to GitHub
 Pages.
+
+## Contributing
+
+[CONVENTIONS.md](CONVENTIONS.md) is how the code is laid out and written: see it before a change.
