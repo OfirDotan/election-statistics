@@ -7,6 +7,7 @@ import { loadParties } from '../lib/data.ts'
 import { allocate, DEFAULT_THRESHOLD } from '../lib/mandates.ts'
 import { BLOCS } from '../lib/blocs.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
+import { useInfo } from '../lib/useInfo.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 type Metric = 'seats' | 'votes' | 'pct'
@@ -17,6 +18,9 @@ const ZERO_SEAT = new Set(['ך', 'די'])
 export function Parties() {
   const { t, ln } = useI18n()
   const { towns, party, parties, official, error } = useDataset()
+  const infoOnly = useInfo() === 'max'
+  // The lists the per-town data keeps apart: their places are only known in total
+  const perTown = new Set(towns?.flatMap((x) => Object.keys(x.votes?.byParty ?? {})))
   const ballot = useLoad('parties', loadParties)
   const [metric, setMetric] = useState<Metric>('seats')
   useTitle(t('partiesTitle'))
@@ -26,8 +30,12 @@ export function Parties() {
   const seatOf = Object.fromEntries((result?.seats ?? []).map((s) => [s.key, s.seats]))
   const ranked = towns
     ? parties
-        .map((p) => ({ ...party(p.key), pct: p.nationalShare ?? 0, votes: p.nationalVotes ?? 0, seats: seatOf[p.key] ?? 0 }))
-        .filter((p) => p.votes > 0)
+        .map((p) => {
+          // A town total, or null where the source counts the list only nationally
+          const town = perTown.has(p.key) ? ((p as { townVotes?: number }).townVotes ?? null) : null
+          return { ...party(p.key), pct: p.nationalShare ?? 0, votes: p.nationalVotes ?? 0, seats: seatOf[p.key] ?? 0, town }
+        })
+        .filter((p) => (infoOnly ? p.votes > 0 || (p.town ?? 0) > 0 : p.votes > 0))
         .sort((a, b) => b.votes - a.votes)
     : []
   // Ranked by votes; seats reorder the list, so sort on the shown value
@@ -40,7 +48,15 @@ export function Parties() {
   const gap = metric === 'pct' ? shown.filter((p) => p.seats > 0).length : -1
   // Each bar is drawn against the leader, so the biggest party fills the track in every mode
   const max = Math.max(1, ...shown.map((p) => p[metric]))
-  const value = (p: (typeof ranked)[number]) => (metric === 'seats' ? `${p.seats}` : metric === 'votes' ? fmtInt(p.votes) : fmtPct(p.pct))
+  // A dashed line above a bare 0: the list was only counted nationally, so its towns hold no part of the vote
+  const value = (p: (typeof ranked)[number]) =>
+    metric === 'seats'
+      ? `${p.seats}`
+      : metric === 'votes'
+        ? p.town === null
+          ? ln('— (רק ארצי)', '— (national only)')
+          : (p.votes > 0 && p.town === 0 ? ln('⋯ (לא פורט)', '⋯ (not itemised)') : '') + (p.town === 0 ? '0' : fmtInt(p.votes))
+        : fmtPct(p.pct)
 
   // Lists with no votes and no seats, still on the ballot: named in the note rather than given empty bars
   const counted = new Set(ranked.map((p) => p.key))
