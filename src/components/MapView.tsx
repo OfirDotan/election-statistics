@@ -144,8 +144,9 @@ export function MapView({
     // A photo can be rotated, an outline cannot: north stays up
     m.touchZoomRotate.disableRotation()
     m.keyboard.disableRotation()
-    // Without a gl context the map throws on construction, before its first resize observer callback
-    const ro = new ResizeObserver(() => { console.log('DBG resize', box.current?.clientWidth, box.current?.clientHeight, m.getContainer().clientWidth, m.getContainer().clientHeight, m.getCanvas().width, m.getCanvas().height); m.resize(); console.log('DBG after', m.getCanvas().width, m.getCanvas().height) })
+    // The frame's height settles only once the page has laid out, so maplibre's one resize at
+    // construction stamps the canvas with a first, shorter height; this observer measures again
+    const ro = new ResizeObserver(() => m.resize())
     ro.observe(box.current)
     let watch: MutationObserver | undefined
     let dark: (() => void) | undefined

@@ -33,7 +33,7 @@ export function Settings() {
 
   return (
     <div className="settings-wrap" ref={panel}>
-      <button type="button" className="lang" aria-haspopup="dialog" aria-expanded={open} aria-controls="settings-panel" onClick={() => setOpen(!open)}>
+      <button type="button" className="lang settings-trigger" aria-haspopup="dialog" aria-expanded={open} aria-controls="settings-panel" onClick={() => setOpen(!open)}>
         {t('settings')}
       </button>
       {open && (

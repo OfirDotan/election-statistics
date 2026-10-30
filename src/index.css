@@ -261,9 +261,15 @@ a:hover {
   padding: 0 1.25rem 5rem;
 }
 
+/* A grid cell's automatic minimum is its widest item (the leaderboards' 1800px table), which widened the page
+   instead of scrolling the table; the table itself keeps its intrinsic width, so it does scroll */
 .page {
   display: grid;
   gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+.page-head > * {
+  min-inline-size: 0;
 }
 
 .hero {
@@ -874,8 +880,10 @@ input[type='range'] {
   align-items: center;
   gap: 0.5rem 0.75rem;
 }
+/* 0 basis: the 16rem basis spent the line before shrinking, so a phone search stayed half-width */
 .towns-bar .towns-search {
-  flex: 1 1 16rem;
+  flex: 1 1 0;
+  min-inline-size: 8rem;
   inline-size: auto;
 }
 .towns-more {
@@ -886,9 +894,11 @@ input[type='range'] {
 .towns-ranked .chip {
   white-space: normal;
 }
+/* Above the neighbouring cells, which would otherwise paint over it as they scroll underneath */
 .towns-ranked th:first-child {
   position: sticky;
   inset-inline-start: 0;
+  z-index: 1;
   background: var(--surface);
 }
 
@@ -896,6 +906,8 @@ input[type='range'] {
 
 .table-wrap {
   overflow-x: auto;
+  /* A swipe that reaches the table's end stops there instead of scrolling the page */
+  overscroll-behavior-x: contain;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -1080,24 +1092,42 @@ details.section > summary {
 
 /* ---------- responsive ---------- */
 
+/* One column of phones and tablets: a grid item's automatic minimum is its content's, which widens the page */
+.masthead-inner > *,
+.board-pair > *,
+.row-head > * {
+  min-inline-size: 0;
+}
+
 @media (max-width: 900px) {
   .masthead-inner {
-    flex-wrap: wrap;
+    display: grid;
+    /* The links clip themselves when scrolled, and a flex or grid minimum would otherwise widen the page */
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     gap: 0.5rem;
     padding-block: 0.5rem;
+    padding-inline: 0.75rem;
   }
+  /* One row: the links share the width beside the mark instead of taking a row of their own, which left a third of a phone screen on the masthead */
   .segmented {
-    order: 3;
-    inline-size: 100%;
-    max-inline-size: none;
+    overflow-x: auto;
+    min-inline-size: 0;
     margin-inline: 0;
+    scrollbar-width: none;
   }
   .segment {
     min-block-size: 44px;
+    font-size: 0.8125rem;
   }
   .lang {
-    margin-inline-start: auto;
     min-block-size: 44px;
+  }
+}
+
+/* The links already swipe sideways here; the settings word would cost them the last of their width */
+@media (max-width: 420px) {
+  .settings-trigger {
+    display: none;
   }
 }
 
@@ -1109,9 +1139,6 @@ details.section > summary {
     padding-block-start: 2rem;
   }
   .main {
-    padding-inline: 1rem;
-  }
-  .masthead-inner {
     padding-inline: 1rem;
   }
   .card {
@@ -1127,12 +1154,18 @@ details.section > summary {
   .pb-value {
     min-inline-size: 0;
   }
-  /* Narrow tables keep every column: the wrapper scrolls sideways instead of the page */
+  /* Narrow tables keep every column: the wrapper swipes sideways instead of the page */
   .table-wrap {
     margin-inline: -1rem;
-    padding-inline: 1rem;
     border-radius: 0;
     box-shadow: none;
+    padding: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Column widths plus the gutters, so every column keeps its width while the wrapper scrolls */
+  .table-wrap > table {
+    inline-size: max-content;
+    margin-inline: 1rem;
   }
   th,
   td {
@@ -1823,6 +1856,10 @@ details.section > summary {
 }
 .map-page .page-head {
   padding-block-start: 0.75rem;
+}
+/* Trimmed so the map and its leader list still fit under a taller phone masthead */
+.map-page .lead {
+  margin-block: 0.25rem 0;
 }
 .map-page .map {
   /* none of these may be a grid: the 1fr header rows land on implicit rows of `auto`, which `align-content: start` squeezes */
