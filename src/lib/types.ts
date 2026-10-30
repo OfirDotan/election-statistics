@@ -84,8 +84,7 @@ export type MkProfile = {
   /** Hebrew; English in professionEn */
   profession?: string
   professionEn?: string
-  /** Knesset terms served before the 26th */
-  /** English; Hebrew in priorTermsHe */
+  /** Knesset terms served before the 26th. English; Hebrew in priorTermsHe */
   priorTerms?: string
   priorTermsHe?: string
   /** English; Hebrew in priorRolesHe */
@@ -93,5 +92,11 @@ export type MkProfile = {
   priorRolesHe?: string[]
   backgroundHe?: string
   backgroundEn?: string
+  /** Party or list in English; Hebrew in factionHe */
+  faction?: string
+  factionHe?: string
+  /** Publicly reported religious affiliation, e.g. Ultra-Orthodox (Haredi); Hebrew in religionHe */
+  religion?: string
+  religionHe?: string
   sources: string[]
 }

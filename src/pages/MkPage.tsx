@@ -5,6 +5,7 @@ import { useI18n } from '../i18n/useI18n.ts'
 import { loadCandidates, loadMks } from '../lib/data.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
+import type { MkProfile } from '../lib/types.ts'
 
 export function MkPage() {
   const { id = '' } = useParams()
@@ -22,87 +23,147 @@ export function MkPage() {
   const p = party(candidate.party)
   const mk = mks.data?.find((m) => m.id === id)
   const name = lang === 'en' ? candidate.nameEn || candidate.nameHe : candidate.nameHe
-  const other = lang === 'he' ? candidate.nameEn : candidate.nameHe
-  const background = (lang === 'en' ? mk?.backgroundEn : mk?.backgroundHe) ?? mk?.backgroundHe ?? mk?.backgroundEn
-  const age = mk?.birthYear && new Date().getFullYear() - mk.birthYear
-
-  // Only what is known: an unknown fact is left out rather than shown as a dash
-  const facts: [string, string | string[] | undefined][] = [
-    [t('mkParty'), p.name],
-    [t('mkPosition'), `#${candidate.position}`],
-    [t('mkBirthYear'), mk?.birthYear?.toString()],
-    [t('mkAge'), age?.toString()],
-    [t('mkBirthPlace'), lang === 'en' ? mk?.birthPlace : mk?.birthPlaceHe ?? mk?.birthPlace],
-    [t('mkEducation'), lang === 'en' ? mk?.education : mk?.educationHe ?? mk?.education],
-    [t('mkProfession'), lang === 'en' ? mk?.professionEn ?? mk?.profession : mk?.profession],
-    [t('mkPriorTerms'), lang === 'en' ? mk?.priorTerms : mk?.priorTermsHe ?? mk?.priorTerms],
-    [t('mkPriorRoles'), lang === 'en' ? mk?.priorRoles : mk?.priorRolesHe ?? mk?.priorRoles],
-  ]
-  const known = facts.filter(([, v]) => (Array.isArray(v) ? v.length > 0 : v))
+  const other = lang === 'en' ? candidate.nameHe : candidate.nameEn
 
   return (
-    <section className="page">
+    <section className="page mk-page">
       <nav className="crumb" aria-label={p.name}>
         <Link to={partyUrl(p)}>← {t('mkBack')}</Link>
       </nav>
-      <header className="party-head">
-        <Portrait mk={mk} name={name} initial={candidate.nameHe.slice(0, 1)} />
-        <div>
-          <h1>
-            {name}
-            {candidate.incumbent && <span className="badge">{t('incumbent')}</span>}
-          </h1>
-          <p className="lead">
-            {other} · <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={candidate.party} slug={p.slug} /> #{candidate.position}
-          </p>
-        </div>
-      </header>
-      <section className="card" aria-labelledby="mk-facts">
-        <h2 id="mk-facts">{t('mkBackground')}</h2>
-        {mk ? (
-          <dl className="party-facts">
-            {known.map(([k, v]) => (
-              <div key={k}>
-                <dt>{k}</dt>
-                <dd>{Array.isArray(v) ? v.join(' · ') : v}</dd>
-              </div>
-            ))}
-          </dl>
-        ) : (
-          <p className="note">{t('mkNoProfile')}</p>
-        )}
-        {background && <p>{background}</p>}
-        {mk && (
-          <>
-            <p className="note">{t('mkNote')}</p>
-            <ul className="note">
-              {mk.sources.map((s) => (
-                <li key={s}>
-                  <a href={s} target="_blank" rel="noreferrer">
-                    {new URL(s).hostname.replace('www.', '')}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {mk.photo && mk.photoCredit && (
-              <p className="note">
-                {t('mkPhotoCredit')}: {mk.photoCredit}
+      <article className="card mk-card">
+        <header className="mk-head">
+          <Portrait mk={mk} name={name} initials={initials(name)} />
+          <div className="mk-head-text">
+            <h1 className="mk-name">{name}</h1>
+            {other && (
+              <p className="mk-name-alt" lang={lang === 'he' ? 'en' : 'he'} dir={lang === 'he' ? 'ltr' : 'rtl'}>
+                {other}
               </p>
             )}
-          </>
-        )}
-      </section>
+            <div className="mk-tags">
+              <PartyChip name={p.name} color={p.color} logo={p.logo} partyKey={candidate.party} slug={p.slug} />
+              <span className="mk-tag">#{candidate.position}</span>
+              {candidate.incumbent && <span className="mk-tag">{t('incumbent')}</span>}
+            </div>
+          </div>
+        </header>
+        {mk ? <Profile mk={mk} /> : <p className="mk-note">{t('mkNoProfile')}</p>}
+      </article>
     </section>
   )
 }
 
-/** Commons photo when one exists; otherwise an initials disc, never a stand-in face */
-function Portrait({ mk, name, initial }: { mk?: { photo?: string }; name: string; initial: string }) {
-  const src = mkPhoto(mk, 400)
-  if (src) return <img className="mk-photo" src={src} alt={name} width={120} height={150} />
+function Profile({ mk }: { mk: MkProfile }) {
+  const { t, lang } = useI18n()
+  const pick = (a?: string[], b?: string[]) => (lang === 'en' ? (a?.length ? a : b) : (b?.length ? b : a)) ?? []
+  const one = (a?: string, b?: string) => (lang === 'en' ? a || b : b || a)
+  const age = mk.birthYear ? new Date().getFullYear() - mk.birthYear : undefined
+  const education = pick(mk.education, mk.educationHe)
+  const roles = pick(mk.priorRoles, mk.priorRolesHe)
+  const bio = lang === 'en' ? mk.backgroundEn || mk.backgroundHe : mk.backgroundHe || mk.backgroundEn
+
+  // Only what is known: an unknown fact is left out rather than shown as a dash
+  const facts: [string, string | undefined][] = [
+    [t('mkBirthYear'), mk.birthYear?.toString()],
+    [t('mkAge'), age?.toString()],
+    [t('mkBirthPlace'), one(mk.birthPlace, mk.birthPlaceHe)],
+    [t('mkProfession'), one(mk.professionEn, mk.profession)],
+    [t('mkReligion'), one(mk.religion, mk.religionHe)],
+    [t('mkPriorTerms'), one(mk.priorTerms, mk.priorTermsHe)],
+  ]
+  const known = facts.filter(([, v]) => v).map(([k, v]): [string, string] => [k, v as string])
+
   return (
-    <span className="mk-avatar" aria-hidden="true">
-      {initial}
+    <>
+      {known.length > 0 && <FactGrid title={t('mkFacts')} facts={known} />}
+      {education.length > 0 && <Rows title={t('mkEducation')} rows={education.map((r) => ({ text: r.split('|')[0] }))} />}
+      {roles.length > 0 && <Rows title={t('mkPriorRoles')} rows={roles.map((r) => splitDate(r, lang))} />}
+      {bio && (
+        <section className="mk-sec" aria-labelledby="mk-about">
+          <h2 id="mk-about">{t('mkAbout')}</h2>
+          <p className="mk-prose">{bio}</p>
+        </section>
+      )}
+      <section className="mk-sec" aria-labelledby="mk-sources">
+        <h2 id="mk-sources">{t('mkSources')}</h2>
+        <ul className="mk-rows mk-sources">
+          {mk.sources.map((s) => {
+            const url = new URL(s)
+            const he = url.hostname.endsWith('wikipedia.org')
+            return (
+              <li key={s}>
+                <a href={s} target="_blank" rel="noreferrer" lang={he ? 'he' : 'en'} dir={he ? 'rtl' : 'ltr'}>
+                  {url.hostname.replace(/^www\./, '')}
+                  {decodeURIComponent(url.pathname)}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+      {(mk.photo || bio) && (
+        <p className="mk-note mk-foot">
+          {bio && t('mkNote')}
+          {mk.photo && mk.photoCredit && `${bio ? ' ' : ''}${t('mkPhotoCredit')}: ${mk.photoCredit}`}
+        </p>
+      )}
+    </>
+  )
+}
+
+function FactGrid({ title, facts }: { title: string; facts: [string, string][] }) {
+  return (
+    <section className="mk-sec" aria-label={title}>
+      <h2>{title}</h2>
+      <dl className="mk-facts">
+        {facts.map(([k, v]) => (
+          <div key={k}>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+/** One entry per row: the text, with its years in an aligned column on the other side */
+function Rows({ title, rows }: { title: string; rows: { text: string; date?: string }[] }) {
+  return (
+    <section className="mk-sec" aria-label={title}>
+      <h2>{title}</h2>
+      <ul className="mk-rows">
+        {rows.map((r, i) => (
+          <li key={i}>
+            <span>{r.text}</span>
+            {r.date && <span className="mk-date">{r.date}</span>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+/** "Chair of the Finance Committee (2014–2017)" -> text + date; a Knesset term stays inside the text */
+function splitDate(s: string, lang: string) {
+  const m = s.match(/^(.*?)\s*\(([^()]*\d{4}[^()]*)\)\s*$/)
+  if (!m) return { text: s }
+  // The date column is RTL: a Hebrew "from" must lead, and a bare year there would read wrong in any language
+  return { text: m[1], date: lang === 'he' ? m[2].replace(/^from (\d{4})$/, 'משנת $1') : m[2] }
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return (parts[0]?.[0] ?? '') + (parts.length > 1 ? (parts.at(-1)?.[0] ?? '') : '')
+}
+
+/** Commons photo when one exists; otherwise an initials block, never a stand-in face */
+function Portrait({ mk, name, initials }: { mk?: { photo?: string }; name: string; initials: string }) {
+  const src = mkPhoto(mk, 480)
+  if (src) return <img className="mk-photo" src={src} alt={name} width={200} height={250} />
+  return (
+    <span className="mk-avatar" role="img" aria-label={name}>
+      <span aria-hidden="true">{initials}</span>
     </span>
   )
 }
