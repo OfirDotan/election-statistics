@@ -14,7 +14,7 @@ const NOTE = { margins: 'bMarginsNote', high: 'bTurnoutNote', low: 'bTurnoutNote
 const NONE_FILTERS: TownFilters = { query: '', leader: '', minShare: 0, minTurnout: 0, majorityOnly: false, pluralityOnly: false, infoOnly: false }
 
 export function LeaderboardsPage() {
-  const { t, lang, locale } = useI18n()
+  const { t, locale } = useI18n()
   const { towns, parties, party, error } = useDataset()
   const info = useInfo()
   const [board, setBoard] = useState<Board>('all')
@@ -64,22 +64,16 @@ export function LeaderboardsPage() {
         <>
           <BoardCharts
             rows={kept}
-            board={board}
             party={party}
-            lang={lang}
             titles={{
               boardsTowns: t('boardsTowns'),
-              boardsShare: t('boardsShare'),
+              boardsOther: t('boardsOther'),
+              boardsLead: t('boardsLead'),
               boardsTurnout: t('boardsTurnout'),
-              boardsHold: t('boardsHold'),
-              boardsNarrow: t('boardsNarrow'),
-              bLow: t('bLow'),
-              bMid: t('bMid'),
-              bHighBand: t('bHighBand'),
-              bMargins: t('bMargins'),
-              bTurnoutHigh: board === 'low' ? t('bTurnoutLow') : t('bTurnoutHigh'),
-              bClosest: t('bClosest'),
-              bDivergence: t('bDivergence'),
+              bUnder50: t('bUnder50'),
+              b50to60: t('b50to60'),
+              b60to75: t('b60to75'),
+              bOver75: t('bOver75'),
             }}
           />
           <div className="towns-bar">

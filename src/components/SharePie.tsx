@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { partyUrl } from '../lib/links.ts'
-import { PartyLogo } from './PartyLogo.tsx'
 import type { PartyLookup } from '../lib/useData.ts'
 
 export interface ShareItem {
@@ -62,7 +61,6 @@ export function SharePie({ items, party, centre, unit, interactive = false }: { 
         {items.map((p) => (
           <li key={p.key} className={hot(p.key)} onMouseEnter={() => setActive(p.key)} onMouseLeave={() => setActive(null)}>
             <span className="swatch" style={{ background: party(p.key).color }} aria-hidden="true" />
-            <PartyLogo logo={party(p.key).logo} />
             {interactive ? <Link to={partyUrl(p.key)}>{party(p.key).name}</Link> : <span>{party(p.key).name}</span>}
             <span className="num">{unit(p.share ?? p.value)}</span>
           </li>
