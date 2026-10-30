@@ -35,8 +35,10 @@ export function Settings() {
 
   return (
     <div className="settings-wrap" ref={panel}>
-      <button type="button" className="lang settings-trigger" aria-haspopup="dialog" aria-expanded={open} aria-controls="settings-panel" onClick={() => setOpen(!open)}>
-        {t('settings')}
+      <button type="button" className="lang settings-trigger" aria-haspopup="dialog" aria-expanded={open} aria-controls="settings-panel" aria-label={t('settings')} title={t('settings')} onClick={() => setOpen(!open)}>
+        {/* A gear on phones, where the word would cost the links their width */}
+        <span className="settings-gear" aria-hidden="true">⚙</span>
+        <span className="settings-word">{t('settings')}</span>
       </button>
       {open && (
         <div id="settings-panel" className="settings" role="dialog" aria-labelledby="settings-title">

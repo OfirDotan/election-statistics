@@ -1196,9 +1196,20 @@ details.section > summary {
   }
 }
 
-/* The links already swipe sideways here; the settings word would cost them the last of their width */
+/* The links already swipe sideways here; the settings word would cost them the last of their width, so it turns
+   into a gear that keeps the button there */
 @media (max-width: 420px) {
   .settings-trigger {
+    padding-inline: 0;
+    min-inline-size: 44px;
+    font-size: 1.125rem;
+  }
+  .settings-trigger .settings-word {
+    display: none;
+  }
+}
+@media (min-width: 421px) {
+  .settings-gear {
     display: none;
   }
 }
