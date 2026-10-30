@@ -202,7 +202,8 @@ export function MapView({
         paint: { 'line-color': '#fff', 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0] },
       })
       // Town names, a place's own where the town has one, so no name is drawn twice
-      m.addSource('labels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })      m.addLayer({
+      m.addSource('labels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })
+      m.addLayer({
         id: 'labels',
         type: 'symbol',
         source: 'labels',
