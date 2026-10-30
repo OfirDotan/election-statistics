@@ -67,7 +67,20 @@ export function LeaderboardsPage() {
             board={board}
             party={party}
             lang={lang}
-            titles={{ boardsTowns: t('boardsTowns'), bMargins: t('bMargins'), bTurnoutHigh: board === 'low' ? t('bTurnoutLow') : t('bTurnoutHigh'), bClosest: t('bClosest'), bDivergence: t('bDivergence') }}
+            titles={{
+              boardsTowns: t('boardsTowns'),
+              boardsShare: t('boardsShare'),
+              boardsTurnout: t('boardsTurnout'),
+              boardsHold: t('boardsHold'),
+              boardsNarrow: t('boardsNarrow'),
+              bLow: t('bLow'),
+              bMid: t('bMid'),
+              bHighBand: t('bHighBand'),
+              bMargins: t('bMargins'),
+              bTurnoutHigh: board === 'low' ? t('bTurnoutLow') : t('bTurnoutHigh'),
+              bClosest: t('bClosest'),
+              bDivergence: t('bDivergence'),
+            }}
           />
           <div className="towns-bar">
             <input className="towns-search" type="search" value={f.query} onChange={(e) => set('query')(e.target.value)} placeholder={t('search')} aria-label={t('search')} />

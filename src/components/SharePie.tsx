@@ -4,9 +4,11 @@ import { partyUrl } from '../lib/links.ts'
 import { PartyLogo } from './PartyLogo.tsx'
 import type { PartyLookup } from '../lib/useData.ts'
 
-export interface ShareSlice {
+export interface ShareItem {
   key: string
   value: number
+  /** The share the row shows beside the name, when it differs from the value drawn */
+  share?: number
 }
 
 const point = (a: number) => `${Math.cos(a).toFixed(4)} ${Math.sin(a).toFixed(4)}`
@@ -24,19 +26,19 @@ function slices(values: number[]): string[] {
 }
 
 /**
- * A donut of shares with its legend; `interactive` links the names to their party pages.
+ * A donut of shares with its legend: the party's colour, its logo, its name; `interactive` links the names.
  * SeatsPie is its seat-shaped sibling with its own focus styling.
  */
-export function SharePie({ slices: data, party, centre, unit, interactive = false }: { slices: ShareSlice[]; party: PartyLookup; centre: string; unit: (v: number) => string; interactive?: boolean }) {
+export function SharePie({ items, party, centre, unit, interactive = false }: { items: ShareItem[]; party: PartyLookup; centre: string; unit: (v: number) => string; interactive?: boolean }) {
   // The slice under the pointer or keys, or the one whose legend row is hovered: both light it up
   const [active, setActive] = useState<string | null>(null)
-  const paths = slices(data.map((p) => p.value))
-  const label = (p: ShareSlice) => `${party(p.key).name}: ${unit(p.value)}`
+  const paths = slices(items.map((p) => p.value))
+  const label = (p: ShareItem) => `${party(p.key).name}: ${unit(p.value)}`
   const hot = (key: string) => (active === null || active === key ? undefined : 'is-dim')
   return (
     <div className="pie-wrap">
-      <svg className="pie" viewBox="-1.1 -1.1 2.2 2.2" role="img" aria-label={data.map(label).join(', ')}>
-        {data.map((p, i) => (
+      <svg className="pie" viewBox="-1.1 -1.1 2.2 2.2" role="img" aria-label={items.map(label).join(', ')}>
+        {items.map((p, i) => (
           <path
             key={p.key}
             className={hot(p.key)}
@@ -57,11 +59,12 @@ export function SharePie({ slices: data, party, centre, unit, interactive = fals
         <text y="0.08" textAnchor="middle" className="pie-num">{centre}</text>
       </svg>
       <ul className="pie-legend">
-        {data.map((p) => (
+        {items.map((p) => (
           <li key={p.key} className={hot(p.key)} onMouseEnter={() => setActive(p.key)} onMouseLeave={() => setActive(null)}>
+            <span className="swatch" style={{ background: party(p.key).color }} aria-hidden="true" />
             <PartyLogo logo={party(p.key).logo} />
             {interactive ? <Link to={partyUrl(p.key)}>{party(p.key).name}</Link> : <span>{party(p.key).name}</span>}
-            <span className="num">{unit(p.value)}</span>
+            <span className="num">{unit(p.share ?? p.value)}</span>
           </li>
         ))}
       </ul>
