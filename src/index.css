@@ -1767,11 +1767,6 @@ details.section > summary {
 .map .map-legend:last-child {
   padding-block-end: 0;
 }
-@media (max-width: 600px) {
-  .map-page .map-frame {
-    block-size: auto;
-  }
-}
 /* MK page portrait: a 4:5 Commons photo, or the same box filled by an initials disc */
 .mk-photo,
 .mk-avatar {
