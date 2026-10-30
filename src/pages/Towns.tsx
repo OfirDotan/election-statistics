@@ -2,16 +2,21 @@ import { useMemo, useState } from 'react'
 import { TownTable } from '../components/TownTable.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
-import { filterStats, sortRows, townRows, type SortKey, type TownFilters } from '../lib/derive.ts'
+import { allBallots, filterStats, sortRows, townRows, type SortKey, type TownFilters } from '../lib/derive.ts'
 import { useDataset } from '../lib/useData.ts'
+import { useInfo } from '../lib/useInfo.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
-const initial: TownFilters = { query: '', leader: '', minShare: 0, minTurnout: 0, majorityOnly: false, pluralityOnly: false }
+const initial: TownFilters = { query: '', leader: '', minShare: 0, minTurnout: 0, majorityOnly: false, pluralityOnly: false, infoOnly: false }
 
 export function Towns() {
   const { t, locale } = useI18n()
-  const { towns, party, error } = useDataset()
+  const { towns, parties, party, error } = useDataset()
+  const info = useInfo()
   const rowsAll = townRows(towns ?? [])
+  // Maximum info: every party's name joins the search, and the party list offers every list, not only the winners
+  const infoOnly = info === 'max'
+  const all = useMemo(() => allBallots(towns ?? [], (k) => party(k).name), [towns, party])
   useTitle(t('townsTitle'))
   const [f, setF] = useState<TownFilters>(initial)
   const [sort, setSort] = useState<SortKey>('name')
@@ -19,7 +24,10 @@ export function Towns() {
 
   // Leader keys aren't sorted (they're ballot letters); the <option>s render party names, which browsers order by script
   const leaders = useMemo(() => [...new Set(rowsAll.map((r) => r.stats?.leader).filter((k): k is string => !!k))], [rowsAll])
-  const rows = useMemo(() => sortRows(filterStats(rowsAll, f), sort, dir, locale), [rowsAll, f, sort, dir, locale])
+  const rows = useMemo(
+    () => sortRows(filterStats(rowsAll.map((r) => ({ ...r, all: all.get(r.code) })), { ...f, infoOnly }), sort, dir, locale),
+    [rowsAll, all, f, infoOnly, sort, dir, locale],
+  )
   const set = <K extends keyof TownFilters>(k: K) => (v: TownFilters[K]) => setF((s) => ({ ...s, [k]: v }))
   const onSort = (k: string) => {
     const key = k as SortKey
@@ -52,7 +60,7 @@ export function Towns() {
             />
             <select value={f.leader} onChange={(e) => set('leader')(e.target.value)} aria-label={t('leaderParty')}>
               <option value="">{t('allParties')}</option>
-              {leaders.map((k) => (
+              {(infoOnly ? parties.map((p) => p.key) : leaders).map((k) => (
                 <option key={k} value={k}>
                   {party(k).name}
                 </option>

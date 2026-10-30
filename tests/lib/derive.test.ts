@@ -51,6 +51,14 @@ describe('filterStats', () => {
     expect(names(filterStats(rows, { ...none(), query: ' שבע ' }))).toEqual([])
     expect(names(filterStats(rows, { ...none(), query: 'lph' }))).toEqual(['Alpha'])
   })
+  it('maximum info finds a town by any party that won a vote there, not only its leader', () => {
+    const r = townRows([{ ...town(1, 'Omer', 80, { א: 60, ב: 20 }) }]).map((x) => ({ ...x, all: { א: ['Alpha'], ב: ['Bet'] } }))
+    const f = { ...none(), infoOnly: true }
+    expect(filterStats(r, { ...f, query: 'bet' }).map((x) => x.code)).toEqual([1])
+    expect(filterStats(r, { ...none(), query: 'bet' })).toEqual([])
+    expect(filterStats(r, { ...f, leader: 'ב' })).toHaveLength(1)
+    expect(filterStats(r, { ...none(), leader: 'ב' })).toEqual([])
+  })
   it('matches a town by either language, ignoring quotes and case and skipping unmeasured rows', () => {
     const mixed = townRows([{ ...town(1, 'עילוט', 80, { א: 60 }), nameEn: "'Aylut" }, { ...town(2, 'אום אל-פחם', 50, { א: 50 }), nameEn: 'Umm al-Fahm' }, govmap])
     const names = (q: string) => filterStats(mixed, { ...none(), query: q }).map((r) => r.code)

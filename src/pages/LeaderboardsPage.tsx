@@ -2,34 +2,39 @@ import { useMemo, useState } from 'react'
 import { TownTable } from '../components/TownTable.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
-import { boardRows, filterStats, MIN_VALID, nationalShares, RANK_COLUMN, sortRows, townRows, type Board, type SortKey, type TownFilters } from '../lib/derive.ts'
+import { allBallots, boardRows, filterStats, MIN_VALID, nationalShares, RANK_COLUMN, sortRows, townRows, type Board, type SortKey, type TownFilters } from '../lib/derive.ts'
 import { divergences } from '../lib/mapLogic.ts'
 import { useDataset } from '../lib/useData.ts'
+import { useInfo } from '../lib/useInfo.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 const LABEL = { margins: 'bMargins', high: 'bTurnoutHigh', low: 'bTurnoutLow', closest: 'bClosest', divergence: 'bDivergence' } as const
 const NOTE = { margins: 'bMarginsNote', high: 'bTurnoutNote', low: 'bTurnoutNote', closest: 'bClosestNote', divergence: 'bDivergenceNote' } as const
-const NONE_FILTERS: TownFilters = { query: '', leader: '', minShare: 0, minTurnout: 0, majorityOnly: false, pluralityOnly: false }
+const NONE_FILTERS: TownFilters = { query: '', leader: '', minShare: 0, minTurnout: 0, majorityOnly: false, pluralityOnly: false, infoOnly: false }
 
 export function LeaderboardsPage() {
   const { t, lang, locale } = useI18n()
-  const { towns, party, error } = useDataset()
+  const { towns, parties, party, error } = useDataset()
+  const info = useInfo()
   const [board, setBoard] = useState<Board>('all')
   const [f, setF] = useState<TownFilters>(NONE_FILTERS)
   const [sort, setSort] = useState<SortKey>('share')
   const [dir, setDir] = useState<1 | -1>(-1)
+  const infoOnly = info === 'max'
+  const ballots = useMemo(() => allBallots(towns ?? [], (k) => party(k).name), [towns, party])
   const all = useMemo(() => {
     const national = nationalShares(towns ?? [])
     return boardRows(townRows(towns ?? []), towns ?? [], national, divergences(towns ?? [], Object.fromEntries(national)))
   }, [towns])
+  const withBallots = useMemo(() => all.map((r) => ({ ...r, all: ballots.get(r.code) })), [all, ballots])
   useTitle(t('boardsTitle'))
 
   const leaders = useMemo(() => [...new Set(all.map((r) => r.stats?.leader).filter((k): k is string => !!k))], [all])
   const shown = useMemo(() => {
     const need = board === 'high' || board === 'low' || board === 'divergence' ? MIN_VALID : 0
-    const kept = all.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need))
-    return sortRows(filterStats(kept, f), sort, dir, locale)
-  }, [all, board, f, sort, dir, locale, lang])
+    const kept = withBallots.filter((r) => board === 'all' || (r.ranks![board] !== null && r.valid >= need))
+    return sortRows(filterStats(kept, { ...f, infoOnly }), sort, dir, locale)
+  }, [withBallots, all, board, f, infoOnly, sort, dir, locale, lang])
   const set = <K extends keyof TownFilters>(k: K) => (v: TownFilters[K]) => setF((s) => ({ ...s, [k]: v }))
   // A board opens at its top: its own column, big first (closest races and low turnout small first)
   const open = (b: Board) => {
@@ -61,7 +66,7 @@ export function LeaderboardsPage() {
             <input className="towns-search" type="search" value={f.query} onChange={(e) => set('query')(e.target.value)} placeholder={t('search')} aria-label={t('search')} />
             <select value={f.leader} onChange={(e) => set('leader')(e.target.value)} aria-label={t('leaderParty')}>
               <option value="">{t('allParties')}</option>
-              {leaders.map((k) => (
+              {(infoOnly ? parties.map((p) => p.key) : leaders).map((k) => (
                 <option key={k} value={k}>
                   {party(k).name}
                 </option>

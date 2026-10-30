@@ -42,10 +42,6 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
 }
-/* Compact is one notch of reading size down, chosen in Settings */
-:root[data-density='compact'] {
-  --text-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1.0625rem);
-}
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --bg: #000000;
@@ -267,8 +263,12 @@ a:hover {
   display: grid;
   gap: 1.5rem;
   grid-template-columns: minmax(0, 1fr);
+  /* Anchors scrollIntoView to the page, not to a sideways-scrolling table */
+  overflow-x: clip;
 }
-.page-head > * {
+/* On phones the inner margin lets a percent-width table shrink below its columns and push the page wide instead */
+.page-head > *,
+.table-wrap > table {
   min-inline-size: 0;
 }
 
@@ -873,18 +873,34 @@ input[type='range'] {
   margin-block: 0.25rem 0.75rem;
 }
 
-/* Towns and leaderboards: one search line, then the filters folded away until wanted */
+/* Towns and leaderboards: one search line, then the filters folded away until wanted
+   (the count rides along in that line; it is not a control) */
 .towns-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 0.75rem;
 }
-/* 0 basis: the 16rem basis spent the line before shrinking, so a phone search stayed half-width */
 .towns-bar .towns-search {
-  flex: 1 1 0;
-  min-inline-size: 8rem;
+  flex: 1 1 16rem;
   inline-size: auto;
+}
+/* Phones: the search takes a line of its own, so the party select and the filter button share the next one */
+@media (max-width: 600px) {
+  .towns-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .towns-bar .towns-search {
+    grid-column: 1 / -1;
+    min-inline-size: 0;
+    inline-size: 100%;
+  }
+  .towns-bar > select,
+  .towns-bar .towns-more {
+    inline-size: 100%;
+    min-inline-size: 0;
+  }
 }
 .towns-more {
   flex-basis: 100%;
@@ -904,7 +920,9 @@ input[type='range'] {
 
 /* ---------- tables ---------- */
 
+/* also the page: a scrolling box whose own width depends on the content wraps the whole page in scrollable sideways */
 .table-wrap {
+  min-inline-size: 0;
   overflow-x: auto;
   /* A swipe that reaches the table's end stops there instead of scrolling the page */
   overscroll-behavior-x: contain;
@@ -1150,6 +1168,7 @@ details.section > summary {
   /* Long party names wrap inside the row instead of pushing the value off-screen */
   .chip {
     white-space: normal;
+    overflow-wrap: normal;
   }
   .pb-value {
     min-inline-size: 0;
@@ -1165,6 +1184,7 @@ details.section > summary {
   /* Column widths plus the gutters, so every column keeps its width while the wrapper scrolls */
   .table-wrap > table {
     inline-size: max-content;
+    min-inline-size: 100%;
     margin-inline: 1rem;
   }
   th,
@@ -1790,7 +1810,9 @@ details.section > summary {
     grid-column: auto;
     justify-self: center;
   }
+  /* Fixed 1.75rem cells overflow a phone card: columns shrink to fit it instead */
   .seat-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 0.2rem;
   }
 }

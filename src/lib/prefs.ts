@@ -1,5 +1,6 @@
 export type Theme = 'system' | 'light' | 'dark'
-export type Density = 'comfortable' | 'compact'
+/** "Maximum info" keeps a party that won no vote in a town in that town's breakdown, instead of dropping the close fight */
+export type Info = 'default' | 'max'
 
 const read = (key: string) => {
   try {
@@ -28,15 +29,13 @@ export const setTheme = (theme: Theme) => {
   write('theme', theme)
 }
 
-export const getDensity = (): Density => (read('density') === 'compact' ? 'compact' : 'comfortable')
-export const setDensity = (density: Density) => {
-  if (density === 'compact') document.documentElement.dataset.density = density
-  else document.documentElement.removeAttribute('data-density')
-  write('density', density)
-}
+export const getInfo = (): Info => (read('info') === 'max' ? 'max' : 'default')
+export const setInfo = (info: Info) => write('info', info)
+
+/** Fired on <window> after a settings change, so the open page re-reads it without a reload */
+export const PREFS_EVENT = 'prefs'
 
 /** Called once before render so the stored theme never flashes the system one */
 export function applyStoredPrefs() {
   setTheme(getTheme())
-  setDensity(getDensity())
 }

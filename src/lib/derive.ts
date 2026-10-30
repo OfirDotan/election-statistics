@@ -20,6 +20,8 @@ export interface TownRow {
   ranks?: BoardRanks
   /** The town's share of valid votes over its leader's national share; negative where the leader trails nationally */
   over?: number
+  /** Every party's name the town voted for, for the maximum-info search */
+  all?: Record<string, string[]>
 }
 
 /** Town voting figures; a town with no vote data gets empty ones. */
@@ -69,6 +71,18 @@ export interface TownFilters {
   minTurnout: number
   majorityOnly: boolean
   pluralityOnly: boolean
+  /** Maximum info: every party's town figure counts, not only the leader's */
+  infoOnly: boolean
+}
+
+/** Each town's ballot breakdown as party name lists, so the search can read past the leader under maximum info */
+export function allBallots(towns: Town[], nameOf: (key: string) => string): Map<number, Record<string, string[]>> {
+  const out = new Map<number, Record<string, string[]>>()
+  for (const t of towns) {
+    const byParty = t.votes?.byParty ?? {}
+    if (Object.keys(byParty).length) out.set(t.code, Object.fromEntries(Object.keys(byParty).map((k) => [k, [nameOf(k).toLowerCase()]])))
+  }
+  return out
 }
 
 /** A town's name in the page's language */
@@ -80,15 +94,20 @@ export function filterStats(rows: TownRow[], f: TownFilters): TownRow[] {
 }
 
 /** The names in one searched form: lower case, and ' and - read as spaces, so aylut finds 'Aylut */
-const searchable = (...names: (string | undefined)[]) => names.join(' ').toLowerCase().replace(/['’-]+/g, ' ').replace(/\s+/g, ' ').trim()
+const searchable = (...names: ((string | undefined) | Record<string, string[]>)[]) =>
+  names
+    .flatMap((n) => (typeof n === 'string' ? [n] : n ? Object.entries(n).flat() : []))
+    .join(' ')
+    .toLowerCase().replace(/['’-]+/g, ' ').replace(/\s+/g, ' ').trim()
 
 function matches(r: TownRow, q: string, f: TownFilters): boolean {
   const s = r.stats
   // Unmeasured rows never match (the same result the bounded/s null rule gives)
   if (s === null) return false
   return (
-    (q === '' || searchable(r.name, r.nameEn).includes(searchable(q))) &&
-    (f.leader === '' || s.leader === f.leader) &&
+    (q === '' ||
+      (f.infoOnly && r.all ? searchable(r.name, r.nameEn, r.all) : searchable(r.name, r.nameEn)).includes(searchable(q))) &&
+    (f.leader === '' || (f.infoOnly ? Object.hasOwn(r.all ?? {}, f.leader) : s.leader === f.leader)) &&
     (!f.majorityOnly || s.majority) &&
     (!f.pluralityOnly || (s.margin > 0 && s.leaderShare <= 50)) &&
     s.leaderShare >= f.minShare &&

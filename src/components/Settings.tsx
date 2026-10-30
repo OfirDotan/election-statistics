@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/useI18n.ts'
-import { getDensity, getTheme, setDensity, setTheme, type Density, type Theme } from '../lib/prefs.ts'
+import { getInfo, getTheme, PREFS_EVENT, setInfo, setTheme, type Info, type Theme } from '../lib/prefs.ts'
 
 /** Settings panel: renders nothing at all until the gear is clicked, so it can never be "stuck open" */
 export function Settings() {
   const { t, lang } = useI18n()
   const [open, setOpen] = useState(false)
   const [theme, setThemeState] = useState<Theme>(getTheme)
-  const [density, setDensityState] = useState<Density>(getDensity)
+  const [info, setInfoState] = useState<Info>(getInfo)
   const panel = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -27,9 +27,11 @@ export function Settings() {
   const pick = <T extends string>(set: (v: T) => void, keep: (v: T) => void) => (v: T) => {
     set(v)
     keep(v)
+    // Open pages re-read the choice they show, rather than waiting for a reload
+    window.dispatchEvent(new Event(PREFS_EVENT))
   }
   const themeOption = pick<Theme>(setTheme, setThemeState)
-  const densityOption = pick<Density>(setDensity, setDensityState)
+  const infoOption = pick<Info>(setInfo, setInfoState)
 
   return (
     <div className="settings-wrap" ref={panel}>
@@ -50,14 +52,15 @@ export function Settings() {
             </div>
           </fieldset>
           <fieldset>
-            <legend>{t('size')}</legend>
+            <legend>{t('info')}</legend>
             <div className="seg" role="group">
-              {(['comfortable', 'compact'] as const).map((v) => (
-                <button key={v} type="button" className={density === v ? 'on' : undefined} aria-pressed={density === v} onClick={() => densityOption(v)}>
-                  {t(v)}
+              {(['default', 'max'] as const).map((v) => (
+                <button key={v} type="button" className={info === v ? 'on' : undefined} aria-pressed={info === v} onClick={() => infoOption(v)}>
+                  {t(v === 'max' ? 'maxInfo' : 'defaultInfo')}
                 </button>
               ))}
             </div>
+            <p className="note">{t('infoHint')}</p>
           </fieldset>
           <p className="note">
             {t('language')}: {lang === 'he' ? 'עברית' : 'English'} — {t('languageHint')}
