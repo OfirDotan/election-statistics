@@ -60,9 +60,6 @@ export function Parties() {
         <h1>{t('partiesTitle')}</h1>
         <p className="lead">{t('partiesIntro')}</p>
       </header>
-      <p className="banner" role="status">
-        {t('unverified')}
-      </p>
       {error && <LoadError />}
       {(!towns || !ballot.data) && !error && <Loading />}
       {towns && ballot.data && (

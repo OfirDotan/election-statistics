@@ -49,11 +49,6 @@ export function Home() {
         </div>
       </header>
 
-      <p className="banner" role="status">
-        <span className="pulse" aria-hidden="true" />
-        {t('unverified')}
-      </p>
-
       {error && <LoadError />}
       {!towns && !error && <Loading />}
 

@@ -1,6 +1,16 @@
+import type { Divergence } from './mapLogic.ts'
 import { townStats, type TownStats, type TownVoteInput } from './stats.ts'
 import type { Kalpi, Town } from './types.ts'
 
+export type BoardRow = TownRow & {
+  /** Clears the minimum valid votes, so the turnout and divergence boards may list it */
+  board: boolean
+  /** The party the board ranks by: the diverging party on the divergence board, else the leader */
+  party: string | null
+  /** leaderShare, or the divergence gap when the town diverges */
+  value: number
+}
+
 export interface TownRow {
   code: number
   name: string
@@ -58,11 +68,20 @@ export interface TownFilters {
   pluralityOnly: boolean
 }
 
-export function filterTowns(rows: TownRow[], f: TownFilters): TownRow[] {
+export function filterStats(rows: TownRow[], f: TownFilters): TownRow[] {
   const q = f.query.trim()
   return rows.filter((r) => matches(r, q, f))
 }
 
+/** A diverging town fires on its outlier party; the share column stays its leader's (§3, like the rest of the boards) */
+export function boardRows(rows: TownRow[], towns: Town[], diverge: Divergence[], minValid = 50): BoardRow[] {
+  const outlier = new Map(diverge.map((d) => [d.code, d]))
+  return rows.filter((r) => r.stats || outlier.has(r.code)).map((r) => {
+    const d = outlier.get(r.code)
+    return { ...r, name: towns.find((t) => t.code === r.code)?.name ?? r.name, board: r.valid >= minValid, party: d ? d.party : (r.stats?.leader ?? null), value: d ? d.diff : (r.stats?.leaderShare ?? 0) }
+  })
+}
+
 function matches(r: TownRow, q: string, f: TownFilters): boolean {
   const s = r.stats
   // Unmeasured rows never match (the same result the bounded/s null rule gives)

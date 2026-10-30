@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filterTowns, nationalShares, sortRows, townRows, type TownFilters } from '../../src/lib/derive.ts'
+import { boardRows, filterStats, nationalShares, sortRows, townRows, type TownFilters } from '../../src/lib/derive.ts'
 import type { Town } from '../../src/lib/types.ts'
 
 const town = (code: number, name: string, voters: number, byParty: Record<string, number>): Town => ({
@@ -31,28 +31,38 @@ describe('townRows', () => {
   })
 })
 
-describe('filterTowns', () => {
+describe('filterStats', () => {
   it('plurality only keeps winners short of a majority', () => {
     // Epsilon leads 70-30 (majority); Gamma's 50-50 tie has no clear winner
-    expect(names(filterTowns(rows, { ...none(), pluralityOnly: true }))).toEqual([])
+    expect(names(filterStats(rows, { ...none(), pluralityOnly: true }))).toEqual([])
   })
   it('majority only keeps winners above 50%', () => {
     // Epsilon leads 70-30, which is also a majority; Gamma's 50-50 tie is neither
-    expect(names(filterTowns(rows, { ...none(), majorityOnly: true }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
+    expect(names(filterStats(rows, { ...none(), majorityOnly: true }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
   })
   it('leader narrows to that party', () => {
-    expect(names(filterTowns(rows, { ...none(), leader: 'ב' }))).toEqual(['Bet', 'Epsilon'])
+    expect(names(filterStats(rows, { ...none(), leader: 'ב' }))).toEqual(['Bet', 'Epsilon'])
   })
   it('turnout bound drops low-turnout towns, keeps kalpi-measured ones', () => {
-    expect(names(filterTowns(rows, { ...none(), minTurnout: 60 }))).toEqual(['Alpha', 'Delta', 'Epsilon'])
+    expect(names(filterStats(rows, { ...none(), minTurnout: 60 }))).toEqual(['Alpha', 'Delta', 'Epsilon'])
   })
   it('share bound and trimmed name search', () => {
-    expect(names(filterTowns(rows, { ...none(), minShare: 70 }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
-    expect(names(filterTowns(rows, { ...none(), query: ' שבע ' }))).toEqual([])
-    expect(names(filterTowns(rows, { ...none(), query: 'lph' }))).toEqual(['Alpha'])
+    expect(names(filterStats(rows, { ...none(), minShare: 70 }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
+    expect(names(filterStats(rows, { ...none(), query: ' שבע ' }))).toEqual([])
+    expect(names(filterStats(rows, { ...none(), query: 'lph' }))).toEqual(['Alpha'])
   })
 })
 
+describe('boardRows', () => {
+  it('names ballot-less towns by their kalpi name, fires divergence on the outlier party', () => {
+    const out = boardRows(rows, [...towns, { ...towns[0], code: 4, name: 'קיבוץ' }], [{ code: 1, party: 'ג', share: 90, national: 10, diff: 80 }])
+    expect(out.find((r) => r.code === 4)?.name).toBe('קיבוץ')
+    expect(out.find((r) => r.code === 1)).toMatchObject({ party: 'ג', value: 80 })
+    expect(out.find((r) => r.code === 2)).toMatchObject({ party: 'ב', value: 75 })
+    expect(out.find((r) => r.code === 4)?.board).toBe(false)
+  })
+})
+
 describe('sortRows', () => {
   it('sorts by turnout, unmeasured rows last in both directions', () => {
     const noKalpi = townRows([...towns, govmap], {})

@@ -48,9 +48,6 @@ export function Coalition() {
           {t('navParties')} →
         </Link>
       </div>
-      <p className="banner" role="status">
-        {t('unverified')}
-      </p>
       {error && <LoadError />}
       {!allocation && !error && <Loading />}
       {allocation && (
