@@ -1,18 +1,27 @@
+import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Loading, LoadError, PartyChip } from '../components/ui.tsx'
 import { fmtInt, fmtPct } from '../lib/fmt.ts'
 import { useI18n } from '../i18n/useI18n.ts'
 import { townRows, townVotes } from '../lib/derive.ts'
 import { loadKalpi } from '../lib/data.ts'
-import { rankedShares } from '../lib/stats.ts'
+import { otherKey, rankedShares, splitOther } from '../lib/stats.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
+import { useInfo } from '../lib/useInfo.ts'
 import { useTownName } from '../lib/townNames.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
 export function TownPage() {
   const { code } = useParams()
   const { t } = useI18n()
-  const { towns, party, nationalShare, error } = useDataset()
+  const { towns, parties, party, nationalShare, error } = useDataset()
+  const info = useInfo()
+  const other = otherKey(new Set(towns?.flatMap((x) => Object.keys(x.votes?.byParty ?? {}))))
+  // The lists the source leaves inside a town's `other` key: those no town has by name
+  const others = useMemo(() => {
+    const named = new Set(towns?.flatMap((x) => Object.keys(x.votes?.byParty ?? {})))
+    return parties.filter((p) => !named.has(p.key)).map((p): [string, number] => [p.key, p.nationalShare ?? 0])
+  }, [towns, parties])
   const kalpi = useLoad('kalpi', loadKalpi)
   const town = towns?.find((x) => String(x.code) === code)
   const name = useTownName(town)
@@ -21,7 +30,7 @@ export function TownPage() {
   if (error) return <LoadError />
   if (!towns || !town) return town ? <Loading /> : <p className="state">{t('notFound')}</p>
 
-  const votes = townVotes(town)
+  const votes = info === 'max' ? splitOther(townVotes(town), other, others) : townVotes(town)
   const ranked = rankedShares(votes)
   const stations = [...(kalpi.data?.[String(town.code)] ?? [])].sort((a, b) => a.kalpi.localeCompare(b.kalpi, undefined, { numeric: true }))
   const row = townRows([town], kalpi.data ?? {})[0]

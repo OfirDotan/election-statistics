@@ -8,6 +8,11 @@ const RAW = 'data/raw'
 /** The full official national result; kept outside RAW so a live refresh can never wipe it */
 export const OFFICIAL = 'data/official_national.json'
 const HEBREW_LETTERS = /^[א-ת]{1,4}$/
+/**
+ * The results file's `r_אחר`: per town, the lists the source did not name (the town sum equals
+ * their national votes). Kept under this key, which no ballot uses; the town page splits it apart.
+ */
+export const OTHER = 'אחר'
 
 export interface TownRecord {
   code: number
@@ -85,8 +90,8 @@ export function parseResults(): { towns: TownRecord[]; head: ResultsHead } {
   const towns = geo.features.map(({ properties: p }) => {
     const byParty: Record<string, number> = {}
     for (const [k, v] of Object.entries(p)) {
-      if (k.startsWith('r_') && !['r_בזב', 'r_מצביעים', 'r_פסולים', 'r_כשרים', 'r_אחר'].includes(k)) {
-        byParty[k.slice(2)] = Number(v)
+      if (k.startsWith('r_') && !['r_בזב', 'r_מצביעים', 'r_פסולים', 'r_כשרים'].includes(k)) {
+        byParty[k === `r_${OTHER}` ? OTHER : k.slice(2)] = Number(v)
       }
     }
     return {

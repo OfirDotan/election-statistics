@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { rankedShares, share, sweepTowns, townStats } from '../../src/lib/stats.ts'
+import { OTHER, otherKey, rankedShares, share, splitOther, sweepTowns, townStats } from '../../src/lib/stats.ts'
 
 const vote = (eligible: number, voters: number, valid: number, byParty: Record<string, number>) => ({
   eligible,
@@ -45,5 +45,34 @@ describe('sweepTowns', () => {
   const t = (leaderShare: number) => ({ stats: { leaderShare } as never })
   it('includes towns exactly at the threshold', () => {
     expect(sweepTowns([t(90), t(89.99), t(100)], 90)).toHaveLength(2)
+  })
+})
+
+describe('otherKey', () => {
+  it('takes the אחר key when the dataset carries it', () => {
+    expect(otherKey(new Set(['א', OTHER]))).toBe(OTHER)
+  })
+
+  it('finds it in old data by the one key no ballot has', () => {
+    expect(otherKey(new Set(['מחל', 'אמת', 'ס']))).toBe('ס')
+  })
+})
+
+describe('splitOther', () => {
+  it('spreads the other-votes over the lists missing from the town by their national shares', () => {
+    const v = splitOther(vote(100, 100, 100, { א: 60, [OTHER]: 6 }), OTHER, [['א', 50], ['ב', 30], ['ג', 12]])
+    expect(Object.fromEntries(Object.entries(v.byParty).sort())).toEqual({ א: 60, ב: 4, ג: 2 })
+    expect(Object.values(v.byParty).reduce((a, b) => a + b, 0)).toBe(66)
+  })
+
+  it('drops a list too small for a vote and keeps the town total', () => {
+    const v = splitOther(vote(100, 100, 100, { א: 60, [OTHER]: 6 }), OTHER, [['ב', 50], ['ג', 0.01]])
+    expect(Object.fromEntries(Object.entries(v.byParty).sort())).toEqual({ א: 60, ב: 6 })
+    expect(Object.values(v.byParty).reduce((a, b) => a + b, 0)).toBe(66)
+  })
+
+  it('leaves a town without other-votes alone', () => {
+    const v = vote(100, 100, 100, { א: 100 })
+    expect(splitOther(v, OTHER, [['ב', 1]])).toBe(v)
   })
 })
