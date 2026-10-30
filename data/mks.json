@@ -35,8 +35,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/יאיר_גולן"
     ],
-    "photo": "File:Yair Golan (SHL 9404) (3x4 cropped).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Yair Golan (SHL 9404) (3x4 cropped).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/yair-golan.jpg"
   },
   {
     "id": "naama-lazimi",
@@ -72,8 +73,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/נעמה_לזימי"
     ],
-    "photo": "File:Naama lazimi (cropped).jpg",
-    "photoCredit": "Mayan Tarabish (מעיין טרביש), CC BY-SA 4.0"
+    "photoFile": "File:Naama lazimi (cropped).jpg",
+    "photoCredit": "Mayan Tarabish (מעיין טרביש), CC BY-SA 4.0",
+    "photo": "mks/naama-lazimi.jpg"
   },
   {
     "id": "gilad-kariv",
@@ -111,8 +113,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/גלעד_קריב"
     ],
-    "photo": "File:Gilad Kariv (SHL 9093).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Gilad Kariv (SHL 9093).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/gilad-kariv.jpg"
   },
   {
     "id": "efrat-rayten",
@@ -146,8 +149,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/אפרת_רייטן"
     ],
-    "photo": "File:Efrat Rayten.jpg",
-    "photoCredit": "Shai Franco, CC BY-SA 4.0"
+    "photoFile": "File:Efrat Rayten.jpg",
+    "photoCredit": "Shai Franco, CC BY-SA 4.0",
+    "photo": "mks/efrat-rayten.jpg"
   },
   {
     "id": "yaya-fink",
@@ -185,8 +189,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/יאיר_פינק"
     ],
-    "photo": "File:Yaya Fink (cropped).jpg",
-    "photoCredit": "Roby Yahav (רובי יהב), CC BY-SA 3.0"
+    "photoFile": "File:Yaya Fink (cropped).jpg",
+    "photoCredit": "Roby Yahav (רובי יהב), CC BY-SA 3.0",
+    "photo": "mks/yaya-fink.jpg"
   },
   {
     "id": "gaby-lasky",
@@ -222,8 +227,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/גבי_לסקי"
     ],
-    "photo": "File:Gaby Lasky 180222 023 (cropped).jpg",
-    "photoCredit": "Oren Rozen, CC BY-SA 4.0"
+    "photoFile": "File:Gaby Lasky 180222 023 (cropped).jpg",
+    "photoCredit": "Oren Rozen, CC BY-SA 4.0",
+    "photo": "mks/gaby-lasky.jpg"
   },
   {
     "id": "omri-ronen",
@@ -251,8 +257,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/עמרי_רונן_(פעיל_חברתי)"
     ],
-    "photo": "File:Omri Ronen 2024 (cropped).jpg",
-    "photoCredit": "Asaf Ben Zichri (אסף בן זכרי), CC BY-SA 3.0"
+    "photoFile": "File:Omri Ronen 2024 (cropped).jpg",
+    "photoCredit": "Asaf Ben Zichri (אסף בן זכרי), CC BY-SA 3.0",
+    "photo": "mks/omri-ronen.jpg"
   },
   {
     "id": "michal-rozin",
@@ -288,8 +295,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/מיכל_רוזין"
     ],
-    "photo": "File:מיכל רוזין 2026.jpg",
-    "photoCredit": "Elad Malka, CC BY-SA 3.0"
+    "photoFile": "File:מיכל רוזין 2026.jpg",
+    "photoCredit": "Elad Malka, CC BY-SA 3.0",
+    "photo": "mks/michal-rozin.jpg"
   },
   {
     "id": "itamar-ben-gvir",
@@ -323,8 +331,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/איתמר_בן_גביר"
     ],
-    "photo": "File:Itamar Ben Gvir 3 (cropped).jpg",
-    "photoCredit": "אלון נוריאל, CC BY-SA 3.0"
+    "photoFile": "File:Itamar Ben Gvir 3 (cropped).jpg",
+    "photoCredit": "אלון נוריאל, CC BY-SA 3.0",
+    "photo": "mks/itamar-ben-gvir.jpg"
   },
   {
     "id": "tally-gotliv",
@@ -358,8 +367,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/טלי_גוטליב"
     ],
-    "photo": "File:Tali Gottlieb (cropped).jpg",
-    "photoCredit": "Tali Gottlieb, CC BY 4.0"
+    "photoFile": "File:Tali Gottlieb (cropped).jpg",
+    "photoCredit": "Tali Gottlieb, CC BY 4.0",
+    "photo": "mks/tally-gotliv.jpg"
   },
   {
     "id": "yitzhak-wasserlauf",
@@ -391,8 +401,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/יצחק_וסרלאוף"
     ],
-    "photo": "File:Itshak Waserlauf.jpg",
-    "photoCredit": "יוסי לוגסי פלשמן, CC BY-SA 3.0"
+    "photoFile": "File:Itshak Waserlauf.jpg",
+    "photoCredit": "יוסי לוגסי פלשמן, CC BY-SA 3.0",
+    "photo": "mks/yitzhak-wasserlauf.jpg"
   },
   {
     "id": "amihai-eliyahu",
@@ -420,10 +431,11 @@
     "sources": [
       "https://he.wikipedia.org/wiki/עמיחי_אליהו"
     ],
-    "photo": "File:Amichai Eliyahu (cropped).jpg",
+    "photoFile": "File:Amichai Eliyahu (cropped).jpg",
     "photoCredit": "יוסי לוגסי פלשמן, CC BY-SA 3.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/amihai-eliyahu.jpg"
   },
   {
     "id": "limor-son-har-melech",
@@ -457,8 +469,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/לימור_סון_הר-מלך"
     ],
-    "photo": "File:Limor Son Har-Melech.jpg",
-    "photoCredit": "יוסי לוגסי פלשמן, CC BY-SA 3.0"
+    "photoFile": "File:Limor Son Har-Melech.jpg",
+    "photoCredit": "יוסי לוגסי פלשמן, CC BY-SA 3.0",
+    "photo": "mks/limor-son-har-melech.jpg"
   },
   {
     "id": "yitzhak-kroizer",
@@ -492,8 +505,9 @@
     "sources": [
       "https://he.wikipedia.org/wiki/יצחק_קרויזר"
     ],
-    "photo": "File:חבר הכנסת יצחק קרויזר.jpg",
-    "photoCredit": "Bonydor, CC0"
+    "photoFile": "File:חבר הכנסת יצחק קרויזר.jpg",
+    "photoCredit": "Bonydor, CC0",
+    "photo": "mks/yitzhak-kroizer.jpg"
   },
   {
     "id": "hanamel-dorfman",
@@ -552,10 +566,11 @@
     "sources": [
       "https://he.wikipedia.org/wiki/יעקב_אשר"
     ],
-    "photo": "File:Yaakev asher.jpg",
+    "photoFile": "File:Yaakev asher.jpg",
     "photoCredit": "Yossistinknesset, CC BY-SA 4.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/ya-akov-asher.jpg"
   },
   {
     "id": "yitzhak-goldknopf",
@@ -583,10 +598,11 @@
     "sources": [
       "https://he.wikipedia.org/wiki/יצחק_גולדקנופף"
     ],
-    "photo": "File:Yitzchak Goldknopf 1.jpg",
+    "photoFile": "File:Yitzchak Goldknopf 1.jpg",
     "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/yitzhak-goldknopf.jpg"
   },
   {
     "id": "yitzhak-pindrus",
@@ -614,10 +630,11 @@
     "sources": [
       "https://he.wikipedia.org/wiki/יצחק_פינדרוס"
     ],
-    "photo": "File:יצחק פינדרוס.jpg",
+    "photoFile": "File:יצחק פינדרוס.jpg",
     "photoCredit": "שלומי כהן, CC BY-SA 4.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/yitzhak-pindrus.jpg"
   },
   {
     "id": "meir-porush",
@@ -645,10 +662,11 @@
     "sources": [
       "https://he.wikipedia.org/wiki/מאיר_פרוש"
     ],
-    "photo": "File:מאיר פרוש.jpg",
+    "photoFile": "File:מאיר פרוש.jpg",
     "photoCredit": "zaher abu elnaser, CC BY-SA 4.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/meir-porush.jpg"
   },
   {
     "id": "moshe-rosenthal",
@@ -763,8 +781,9 @@
       "הרמטכ״ל ה-21 (2015–2019)",
       "מפקד פיקוד הצפון (2006–2011)"
     ],
-    "photo": "File:Gadi Eisenkot 2 (cropped).jpg",
-    "photoCredit": "יהב טרודלר (Yahav Trudler - Yahav Studio), CC BY-SA 3.0"
+    "photoFile": "File:Gadi Eisenkot 2 (cropped).jpg",
+    "photoCredit": "יהב טרודלר (Yahav Trudler - Yahav Studio), CC BY-SA 3.0",
+    "photo": "mks/gadi-eisenkot.jpg"
   },
   {
     "id": "yoram-cohen",
@@ -800,8 +819,9 @@
       "ראש שרת הביטחון הכללי (2011–2016)",
       "סגן ראש שרת הביטחון הכללי (2005)"
     ],
-    "photo": "File:Yoram-Cohen-0003.jpg",
-    "photoCredit": "עמוס בן גרשון, CC BY-SA 3.0"
+    "photoFile": "File:Yoram-Cohen-0003.jpg",
+    "photoCredit": "עמוס בן גרשון, CC BY-SA 3.0",
+    "photo": "mks/yoram-cohen.jpg"
   },
   {
     "id": "orit-farkash-hacohen",
@@ -839,8 +859,9 @@
       "השרה לעניינים אסטרטגיים (2020)",
       "יו״ר רשות החשמל (2012–2015)"
     ],
-    "photo": "File:אורית פרקש הכהן- חוסן לישראל.jpg",
-    "photoCredit": "Yanai Yechiel, CC BY-SA 4.0"
+    "photoFile": "File:אורית פרקש הכהן- חוסן לישראל.jpg",
+    "photoCredit": "Yanai Yechiel, CC BY-SA 4.0",
+    "photo": "mks/orit-farkash-hacohen.jpg"
   },
   {
     "id": "adi-altschuler",
@@ -876,8 +897,9 @@
       "הקימה את תנועת הנוער כנפיים של קרמבו (2002)",
       "מייסדת ומנכ״לית אינקלו"
     ],
-    "photo": "File:עדי אלטשולר.jpg",
-    "photoCredit": "עדי אדר, CC BY-SA 4.0"
+    "photoFile": "File:עדי אלטשולר.jpg",
+    "photoCredit": "עדי אדר, CC BY-SA 4.0",
+    "photo": "mks/adi-altschuler.jpg"
   },
   {
     "id": "matan-kahana",
@@ -915,8 +937,9 @@
       "סגן שר שרת הדתות (2022)",
       "אלוף משנה בחיל האוויר (פרש ב-2018)"
     ],
-    "photo": "File:MatanK-DSC 0053a.jpg",
-    "photoCredit": "Arielinson, CC BY-SA 4.0"
+    "photoFile": "File:MatanK-DSC 0053a.jpg",
+    "photoCredit": "Arielinson, CC BY-SA 4.0",
+    "photo": "mks/matan-kahana.jpg"
   },
   {
     "id": "hili-tropper",
@@ -954,8 +977,9 @@
       "שר התרבות והספורט (2020–2022)",
       "שר המדע והטכנולוגיה (2021)"
     ],
-    "photo": "File:חילי טרופר - חוסן לישראל.jpg",
-    "photoCredit": "Yanai Yechiel, CC BY-SA 4.0"
+    "photoFile": "File:חילי טרופר - חוסן לישראל.jpg",
+    "photoCredit": "Yanai Yechiel, CC BY-SA 4.0",
+    "photo": "mks/hili-tropper.jpg"
   },
   {
     "id": "shaul-meridor",
@@ -989,8 +1013,9 @@
       "ראש אגף התקציבים במשרד האוצר (2017–2020)",
       "מנכ״ל משרד האנרגיה (2015–2017)"
     ],
-    "photo": "File:Shaul Meridor.jpeg",
-    "photoCredit": "Family member, CC BY-SA 4.0"
+    "photoFile": "File:Shaul Meridor.jpeg",
+    "photoCredit": "Family member, CC BY-SA 4.0",
+    "photo": "mks/shaul-meridor.jpg"
   },
   {
     "id": "tair-ifergan",
@@ -1024,8 +1049,9 @@
       "מנכ״לית אגף העבודה במשרד העבודה (2022–2023)",
       "ראשת המכון הממשלתי להכשרה טכנולוגית (משנת 2016)"
     ],
-    "photo": "File:תמונת פרופיל תאיר איפרגן.jpeg",
-    "photoCredit": "אור פרבוזניק, CC BY-SA 3.0"
+    "photoFile": "File:תמונת פרופיל תאיר איפרגן.jpeg",
+    "photoCredit": "אור פרבוזניק, CC BY-SA 3.0",
+    "photo": "mks/tair-ifergan.jpg"
   },
   {
     "id": "oshrat-gani-gonen",
@@ -1059,8 +1085,9 @@
       "ראשת המועצה האזורית דרום השרון (משנת 2018)",
       "מנכ״לית עיריית כפר סבא (2015–2018)"
     ],
-    "photo": "File:Oshrat Gani Gonen, March 2022 (cropped).jpg",
-    "photoCredit": "IDF Spokesperson's Unit, CC BY-SA 3.0"
+    "photoFile": "File:Oshrat Gani Gonen, March 2022 (cropped).jpg",
+    "photoCredit": "IDF Spokesperson's Unit, CC BY-SA 3.0",
+    "photo": "mks/oshrat-gani-gonen.jpg"
   },
   {
     "id": "shira-shapira",
@@ -1159,8 +1186,9 @@
       "יו״ר קרן לרווחת נפגעי השואה (2010–2012)",
       "ראש אגף כוח האדם בצה״ל (2004–2008)"
     ],
-    "photo": "File:Elazar Stern (ISH 7619).jpg",
-    "photoCredit": "Itzhak Harari, CC BY-SA 4.0"
+    "photoFile": "File:Elazar Stern (ISH 7619).jpg",
+    "photoCredit": "Itzhak Harari, CC BY-SA 4.0",
+    "photo": "mks/elazar-stern.jpg"
   },
   {
     "id": "kamil-abu-rokon",
@@ -1192,8 +1220,9 @@
       "מתאם פעולות הממשלה בשטחים (2018–2021)",
       "ראש המנהל האזרחי ביהודה ושומרון (2005–2007)"
     ],
-    "photo": "File:כמיל אבו רוקון.jpg",
-    "photoCredit": "נאור אזרזר, CC BY-SA 3.0"
+    "photoFile": "File:כמיל אבו רוקון.jpg",
+    "photoCredit": "נאור אזרזר, CC BY-SA 3.0",
+    "photo": "mks/kamil-abu-rokon.jpg"
   },
   {
     "id": "devorah-sharifian-bachar",
@@ -1264,8 +1293,9 @@
       "הצטרפה לרשימת ישר! (יולי 2026)",
       "מייסדת שותפה של החטיבה לתרבות (2015)"
     ],
-    "photo": "File:תמונה של אלקס ריף.jpg",
-    "photoCredit": "יהב טרודלר, CC BY-SA 4.0"
+    "photoFile": "File:תמונה של אלקס ריף.jpg",
+    "photoCredit": "יהב טרודלר, CC BY-SA 4.0",
+    "photo": "mks/alex-rif.jpg"
   },
   {
     "id": "inbar-yehezkeli",
@@ -1290,10 +1320,11 @@
       "ראש המטה המקצועי של שלושה שרי רווחה",
       "מנכ״לית מרכז הסיוע לנפגעות אונס ותקיפה מינית בירושלים"
     ],
-    "photo": "File:Inbar Yehezkeli Balilius.jpg",
+    "photoFile": "File:Inbar Yehezkeli Balilius.jpg",
     "photoCredit": "Nizzan Cohen, CC BY 4.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/inbar-yehezkeli.jpg"
   },
   {
     "id": "roy-folkman",
@@ -1333,8 +1364,9 @@
       "יו״ר סיעת כולנו בכנסת ה-20 (2015–2019)",
       "יועץ מדיניות לראש עיריית ירושלים ניר ברקת"
     ],
-    "photo": "File:Roy Folkman (AS5V7032).jpg",
-    "photoCredit": "Nati Shohat, CC BY-SA 4.0"
+    "photoFile": "File:Roy Folkman (AS5V7032).jpg",
+    "photoCredit": "Nati Shohat, CC BY-SA 4.0",
+    "photo": "mks/roy-folkman.jpg"
   },
   {
     "id": "israel-zari",
@@ -1402,8 +1434,9 @@
       "https://he.wikipedia.org/wiki/טל_אוחנה",
       "https://elections.handled.team/parties/02-yashar-eisenkot/"
     ],
-    "photo": "File:TalOhana1.jpg",
-    "photoCredit": "Noam Furer, CC0"
+    "photoFile": "File:TalOhana1.jpg",
+    "photoCredit": "Noam Furer, CC0",
+    "photo": "mks/tal-ohana.jpg"
   },
   {
     "id": "elisaf-peretz",
@@ -1504,8 +1537,9 @@
       "https://he.wikipedia.org/wiki/יוסף_ג'בארין",
       "https://elections.handled.team/parties/35-joint-list/"
     ],
-    "photo": "File:Yousef Jabareen 2021.png",
-    "photoCredit": "אמיר דיב - Amir Deeb, CC BY-SA 4.0"
+    "photoFile": "File:Yousef Jabareen 2021.png",
+    "photoCredit": "אמיר דיב - Amir Deeb, CC BY-SA 4.0",
+    "photo": "mks/yousef-jabareen.jpg"
   },
   {
     "id": "ahmad-tibi",
@@ -1546,8 +1580,9 @@
       "https://he.wikipedia.org/wiki/אחמד_טיבי",
       "https://elections.handled.team/parties/35-joint-list/"
     ],
-    "photo": "File:Ahmad Tibi 2021 (cropped).png",
-    "photoCredit": "אמיר דיב - Amir Deeb, CC BY-SA 4.0"
+    "photoFile": "File:Ahmad Tibi 2021 (cropped).png",
+    "photoCredit": "אמיר דיב - Amir Deeb, CC BY-SA 4.0",
+    "photo": "mks/ahmad-tibi.jpg"
   },
   {
     "id": "faten-ghattas",
@@ -1584,8 +1619,9 @@
       "https://he.wikipedia.org/wiki/פאתן_גטאס",
       "https://elections.handled.team/parties/35-joint-list/"
     ],
-    "photo": "File:T7G95eY22Dyag7ELGBklVcvL0.png",
-    "photoCredit": "Hadash - Communist Party of Israel, CC BY-SA 4.0"
+    "photoFile": "File:T7G95eY22Dyag7ELGBklVcvL0.png",
+    "photoCredit": "Hadash - Communist Party of Israel, CC BY-SA 4.0",
+    "photo": "mks/faten-ghattas.jpg"
   },
   {
     "id": "bakhar-awawdeh",
@@ -1653,8 +1689,9 @@
       "https://he.wikipedia.org/wiki/עופר_כסיף",
       "https://elections.handled.team/parties/35-joint-list/"
     ],
-    "photo": "File:Ofer Cassif.png",
-    "photoCredit": "אמיר דיב - Amir Deeb, CC BY-SA 4.0"
+    "photoFile": "File:Ofer Cassif.png",
+    "photoCredit": "אמיר דיב - Amir Deeb, CC BY-SA 4.0",
+    "photo": "mks/ofer-cassif.jpg"
   },
   {
     "id": "youssef-atauna",
@@ -1693,8 +1730,9 @@
       "https://he.wikipedia.org/wiki/יוסף_עטאונה",
       "https://elections.handled.team/parties/35-joint-list/"
     ],
-    "photo": "File:Youssef Atauna (ISH 9163).jpg",
-    "photoCredit": "Itzhak Harari, CC BY-SA 4.0"
+    "photoFile": "File:Youssef Atauna (ISH 9163).jpg",
+    "photoCredit": "Itzhak Harari, CC BY-SA 4.0",
+    "photo": "mks/youssef-atauna.jpg"
   },
   {
     "id": "maha-karkabi",
@@ -1873,8 +1911,9 @@
       "https://he.wikipedia.org/wiki/בצלאל_סמוטריץ'",
       "https://elections.handled.team/parties/35-joint-list/"
     ],
-    "photo": "File:Bezalel_Smotrich.jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Bezalel_Smotrich.jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/bezalel-smotrich.jpg"
   },
   {
     "id": "moshe-feiglin",
@@ -1903,10 +1942,11 @@
       "https://he.wikipedia.org/wiki/משה_פייגלין",
       "https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%A4%D7%95%D7%9C%D7%99%D7%98%D7%99/1231293-0/"
     ],
-    "photo": "File:פייגלין.jpg",
+    "photoFile": "File:פייגלין.jpg",
     "education": [],
     "educationHe": [],
-    "photoCredit": "Ckaelmi, CC BY-SA 4.0"
+    "photoCredit": "Ckaelmi, CC BY-SA 4.0",
+    "photo": "mks/moshe-feiglin.jpg"
   },
   {
     "id": "orit-strook",
@@ -1935,10 +1975,11 @@
       "https://he.wikipedia.org/wiki/אורית_סטרוק",
       "https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%A4%D7%95%D7%9C%D7%99%D7%98%D7%99/1231293-0/"
     ],
-    "photo": "File:Orit_Strook.jpg",
+    "photoFile": "File:Orit_Strook.jpg",
     "photoCredit": "Mark Neyman, CC BY-SA 3.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/orit-strook.jpg"
   },
   {
     "id": "simcha-rothman",
@@ -1975,8 +2016,9 @@
       "https://he.wikipedia.org/wiki/שמחה_רוטמן",
       "https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%A4%D7%95%D7%9C%D7%99%D7%98%D7%99/1231293-0/"
     ],
-    "photo": "File:Simcha_Rothman_(SHL_8150).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Simcha_Rothman_(SHL_8150).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/simcha-rothman.jpg"
   },
   {
     "id": "tzvika-mor",
@@ -2015,8 +2057,9 @@
       "https://he.wikipedia.org/wiki/צבי_מור",
       "https://www.kipa.co.il/%D7%97%D7%93%D7%A9%D7%95%D7%AA/%D7%A4%D7%95%D7%9C%D7%99%D7%98%D7%99/1231293-0/"
     ],
-    "photo": "File:צביקה_מור_(cropped).jpg",
-    "photoCredit": "אפרת מור, CC BY-SA 4.0"
+    "photoFile": "File:צביקה_מור_(cropped).jpg",
+    "photoCredit": "אפרת מור, CC BY-SA 4.0",
+    "photo": "mks/tzvika-mor.jpg"
   },
   {
     "id": "itamar-eitam",
@@ -2098,8 +2141,9 @@
       "תואר ראשון ביחסים בינלאומיים| האוניברסיטה העברית בירושלים"
     ],
     "priorTermsHe": "הכנסת ה-15, ה-17 עד ה-25",
-    "photo": "File:Avigdor Lieberman 2017.jpg",
-    "photoCredit": "Jim Mattis, Public domain"
+    "photoFile": "File:Avigdor Lieberman 2017.jpg",
+    "photoCredit": "Jim Mattis, Public domain",
+    "photo": "mks/avigdor-lieberman.jpg"
   },
   {
     "id": "rafi-ben-shitrit",
@@ -2193,8 +2237,9 @@
       "תואר שני בתקשורת פוליטית"
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
-    "photo": "File:Oded Forer (ISH 0467).jpg",
-    "photoCredit": "Itzhak Harari, CC BY-SA 4.0"
+    "photoFile": "File:Oded Forer (ISH 0467).jpg",
+    "photoCredit": "Itzhak Harari, CC BY-SA 4.0",
+    "photo": "mks/oded-forer.jpg"
   },
   {
     "id": "yulia-malinovsky",
@@ -2224,8 +2269,9 @@
       "תואר במשפטים| האוניברסיטה הלאומית של מזרח אוקראינה (שלוחת לוהנסק)"
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
-    "photo": "File:Julia Malinovsky (ISH 7939).jpg",
-    "photoCredit": "Itzhak Harari, CC BY-SA 4.0"
+    "photoFile": "File:Julia Malinovsky (ISH 7939).jpg",
+    "photoCredit": "Itzhak Harari, CC BY-SA 4.0",
+    "photo": "mks/yulia-malinovsky.jpg"
   },
   {
     "id": "sharon-sharabi",
@@ -2286,8 +2332,9 @@
       "לימודי משפטים| המכללה האקדמית שערי משפט"
     ],
     "priorTermsHe": "הכנסת ה-18 עד ה-20, ה-22",
-    "photo": "File:Hamad Amar (E32J0875).jpg",
-    "photoCredit": "Nati Shohat, CC BY-SA 4.0"
+    "photoFile": "File:Hamad Amar (E32J0875).jpg",
+    "photoCredit": "Nati Shohat, CC BY-SA 4.0",
+    "photo": "mks/hamad-amar.jpg"
   },
   {
     "id": "benjamin-netanyahu",
@@ -2347,8 +2394,9 @@
       "תואר שני במינהל עסקים, בית הספר למינהל עסקים סלואן| MIT"
     ],
     "priorTermsHe": "הכנסת ה-12 עד ה-15, ה-16 עד ה-25",
-    "photo": "File:Benjamin Netanyahu, February 2023.jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Benjamin Netanyahu, February 2023.jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/benjamin-netanyahu.jpg"
   },
   {
     "id": "eli-cohen",
@@ -2388,8 +2436,9 @@
       "תואר שני במנהל עסקים| אוניברסיטת תל אביב"
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
-    "photo": "File:Israeli Foreign Minister Eli Cohen visit to Greece, July 2023 01.jpg",
-    "photoCredit": "Ελληνικό Υπουργείο Εξωτερικών, CC BY-SA 2.0"
+    "photoFile": "File:Israeli Foreign Minister Eli Cohen visit to Greece, July 2023 01.jpg",
+    "photoCredit": "Ελληνικό Υπουργείο Εξωτερικών, CC BY-SA 2.0",
+    "photo": "mks/eli-cohen.jpg"
   },
   {
     "id": "amir-ohana",
@@ -2423,8 +2472,9 @@
       "תואר במשפטים| המכללה למינהל"
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
-    "photo": "File:Amir Ohana - Official.jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Amir Ohana - Official.jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/amir-ohana.jpg"
   },
   {
     "id": "yariv-levin",
@@ -2460,8 +2510,9 @@
       "תואר במשפטים| האוניברסיטה העברית בירושלים"
     ],
     "priorTermsHe": "הכנסת ה-18 עד ה-25",
-    "photo": "File:Yariv Levin 1 (cropped).jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Yariv Levin 1 (cropped).jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/yariv-levin.jpg"
   },
   {
     "id": "miri-regev",
@@ -2501,8 +2552,9 @@
       "תואר שני במימון ושווקי הון| הקריה האקדמית אונו"
     ],
     "priorTermsHe": "הכנסת ה-18 עד ה-25",
-    "photo": "File:Miri Regev 02 (cropped).jpg",
-    "photoCredit": "בן חדד - Ben Haddad, CC BY-SA 4.0"
+    "photoFile": "File:Miri Regev 02 (cropped).jpg",
+    "photoCredit": "בן חדד - Ben Haddad, CC BY-SA 4.0",
+    "photo": "mks/miri-regev.jpg"
   },
   {
     "id": "israel-katz",
@@ -2542,8 +2594,9 @@
       "תואר ראשון במדעי המדינה וביחסים בינלאומיים| האוניברסיטה העברית בירושלים"
     ],
     "priorTermsHe": "הכנסת ה-14 עד ה-25",
-    "photo": "File:Israel Katz on July 3, 2024 (cropped).jpg",
-    "photoCredit": "U.S. Embassy Jerusalem, CC BY 2.0"
+    "photoFile": "File:Israel Katz on July 3, 2024 (cropped).jpg",
+    "photoCredit": "U.S. Embassy Jerusalem, CC BY 2.0",
+    "photo": "mks/israel-katz.jpg"
   },
   {
     "id": "gideon-sa-ar",
@@ -2583,8 +2636,9 @@
       "תואר במשפטים| אוניברסיטת תל אביב"
     ],
     "priorTermsHe": "הכנסת ה-16 עד ה-19, ה-21 עד ה-25",
-    "photo": "File:Gideon Saar new.jpg",
-    "photoCredit": "Sharon Gabay, CC BY-SA 3.0"
+    "photoFile": "File:Gideon Saar new.jpg",
+    "photoCredit": "Sharon Gabay, CC BY-SA 3.0",
+    "photo": "mks/gideon-sa-ar.jpg"
   },
   {
     "id": "ofir-katz",
@@ -2618,8 +2672,9 @@
       "תואר ראשון במדעי המדינה ותקשורת| המכללה האקדמית עמק יזרעאל"
     ],
     "priorTermsHe": "הכנסת ה-21 עד ה-25",
-    "photo": "File:Ofir Katz.jpg",
-    "photoCredit": "Sharon Gabay, CC BY-SA 3.0"
+    "photoFile": "File:Ofir Katz.jpg",
+    "photoCredit": "Sharon Gabay, CC BY-SA 3.0",
+    "photo": "mks/ofir-katz.jpg"
   },
   {
     "id": "talik-gvili",
@@ -2673,8 +2728,9 @@
       "תואר שני במינהל עסקים| INSEAD"
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
-    "photo": "File:Yoav Kish (SHL 9437).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Yoav Kish (SHL 9437).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/yoav-kisch.jpg"
   },
   {
     "id": "yaakov-bardugo",
@@ -2708,8 +2764,9 @@
       "תואר ראשון במדעי המדינה| אוניברסיטת תל אביב",
       "תואר במשפטים| המכללה למשפטים רמות ואוניברסיטת תל אביב"
     ],
-    "photo": "File:Yaakov Bardugo 1.jpg",
-    "photoCredit": "Tomer Shalom (תומר שלום), CC BY-SA 3.0"
+    "photoFile": "File:Yaakov Bardugo 1.jpg",
+    "photoCredit": "Tomer Shalom (תומר שלום), CC BY-SA 3.0",
+    "photo": "mks/yaakov-bardugo.jpg"
   },
   {
     "id": "miki-zohar",
@@ -2745,8 +2802,9 @@
       "תואר שני במשפטים| אוניברסיטת בר-אילן"
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
-    "photo": "File:Miki Zohar2.jpg",
-    "photoCredit": "צלם: אורן כהן, CC BY-SA 4.0"
+    "photoFile": "File:Miki Zohar2.jpg",
+    "photoCredit": "צלם: אורן כהן, CC BY-SA 4.0",
+    "photo": "mks/miki-zohar.jpg"
   },
   {
     "id": "almog-cohen",
@@ -2772,10 +2830,11 @@
       "מייסד קבוצת המתנדבים סיירת ברע״ל (2021)"
     ],
     "priorTermsHe": "הכנסת ה-25",
-    "photo": "File:Almog Cohen (R H 3703).jpg",
+    "photoFile": "File:Almog Cohen (R H 3703).jpg",
     "photoCredit": "Ronen Horesh, CC BY-SA 4.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/almog-cohen.jpg"
   },
   {
     "id": "amichai-chikli",
@@ -2811,8 +2870,9 @@
       "תעודת בית הספר למנהל עסקים| אוניברסיטת תל אביב"
     ],
     "priorTermsHe": "הכנסת ה-24 וה-25",
-    "photo": "File:עמיחי שיקלי צילום ראובן קפוצ׳ינסקי (cropped).jpg",
-    "photoCredit": "ראובן קופיצינסקי, CC BY-SA 4.0"
+    "photoFile": "File:עמיחי שיקלי צילום ראובן קפוצ׳ינסקי (cropped).jpg",
+    "photoCredit": "ראובן קופיצינסקי, CC BY-SA 4.0",
+    "photo": "mks/amichai-chikli.jpg"
   },
   {
     "id": "elisha-medan",
@@ -2909,8 +2969,9 @@
     ],
     "priorTermsHe": "הכנסת ה-25",
     "backgroundHe": "משה סעדה נולד ב-1972 במושב רמות מאיר. הוא עורך דין שעבד כל הקריירה המקצועית שלו במחלקה לחקירות שוטרים, שבה שימש סגן ראש המחלקה וממלא מקום ראש המחלקה ב-2016. פוטר בינואר 2022 ונכנס לכנסת ה-25 מטעם הליכוד בנובמבר 2022.",
-    "photo": "File:Moshe Saada (R H 3588).jpg",
-    "photoCredit": "Ronen Horesh, CC BY-SA 4.0"
+    "photoFile": "File:Moshe Saada (R H 3588).jpg",
+    "photoCredit": "Ronen Horesh, CC BY-SA 4.0",
+    "photo": "mks/moshe-saada.jpg"
   },
   {
     "id": "haim-katz",
@@ -2946,8 +3007,9 @@
     ],
     "priorTermsHe": "הכנסת ה-15 עד ה-25 (עם הפסקות)",
     "backgroundHe": "חיים כץ נולד בגרמניה ב-1947 ועלה לישראל ב-1949. החל דרכו כטכנאי אלקטרוניקה בתעשייה האווירית והפך לראש ארגון העובדים של החברה. היה חבר כנסת מהכנסת ה-15, כיהן כשר העבודה, הרווחה והשירותים החברתיים מ-2015 עד 2019, ומכהן כשר התיירות מ-2022, כשר הבינוי והשיכון החל מ-2025 וכיו״ר מרכז הליכוד מ-2015.",
-    "photo": "File:Haim Katz 2023.jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Haim Katz 2023.jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/haim-katz.jpg"
   },
   {
     "id": "dudi-amsalem",
@@ -2988,8 +3050,9 @@
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
     "backgroundHe": "דודי אמסלם נולד בירושלים ב-1960. עבד שנים רבות בשירות הציבורי, בין היתר כמנהל אגף בעיריית ירושלים, בביטוח לאומי ובמשרד האוצר. חבר הכנסת מהכנסת ה-20, כיהן כיו״ר ועדת הפנים והגנת הסביבה, כיו״ר הקואליציה, כשר התקשורת וכשר לקידום חברתי-כלכלי ולקידום החברה הבדואית, ומכהן כשר לשיתוף פעולה אזורי ושר במשרד המשפטים.",
-    "photo": "File:Dudi Amsalem 2.jpg",
-    "photoCredit": "נתי גולד (Nati Gold), CC BY-SA 3.0"
+    "photoFile": "File:Dudi Amsalem 2.jpg",
+    "photoCredit": "נתי גולד (Nati Gold), CC BY-SA 3.0",
+    "photo": "mks/dudi-amsalem.jpg"
   },
   {
     "id": "eti-atiya",
@@ -3023,8 +3086,9 @@
     ],
     "priorTermsHe": "הכנסת ה-21 עד ה-25",
     "backgroundHe": "חוה אתי עטייה נולדה בלוד ב-1960 למשפחה שעלתה מג׳רבה. למדה משפטים בקריה האקדמית אונו, מדעי החברה והמנהל הציבורי באוניברסיטת בר-אילן וכן תואר שני במדעי המדינה. ניהלה את לשכת שר הרווחה חיים כץ ועבדה במערך העובדים של התעשייה האווירית. חברת כנסת מהכנסת ה-21 מטעם הליכוד, ומכהנת כיושבת ראש הוועדה המיוחדת לעובדים זרים מ-2025.",
-    "photo": "File:Etty Atia (SHL 9530).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Etty Atia (SHL 9530).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/eti-atiya.jpg"
   },
   {
     "id": "boaz-bismuth",
@@ -3064,8 +3128,9 @@
     ],
     "priorTermsHe": "הכנסת ה-25",
     "backgroundHe": "בועז ביסמוט נולד ברחובות ב-1964. עבד כעיתונאי במעריב, בידיעות אחרונות ובישראל היום, שאותו ערך מ-2017 עד 2022, וכיהן כשגריר ישראל במאוריטניה בשנים 2004-2008. למד מדעי המדינה בבר-אילן ושני תארים שניים בסורבון. החל לכהן כחבר כנסת מטעם הליכוד בכנסת ה-25 ומכהן כיו״ר ועדת החוץ והביטחון מאוגוסט 2025.",
-    "photo": "File:Boaz Bismuth (cropped).jpeg",
-    "photoCredit": "Eric Sultan, CC BY-SA 4.0"
+    "photoFile": "File:Boaz Bismuth (cropped).jpeg",
+    "photoCredit": "Eric Sultan, CC BY-SA 4.0",
+    "photo": "mks/boaz-bismuth.jpg"
   },
   {
     "id": "david-bitan",
@@ -3101,8 +3166,9 @@
     ],
     "priorTermsHe": "הכנסת ה-20 עד ה-25",
     "backgroundHe": "דוד ביטן נולד בקניטרה שבמרוקו ב-1960 ועלה לישראל ב-1965. עורך דין, פעיל בליכוד ברישון לציון וכיהן כסגן ראש העיר מ-2004 עד 2015. חבר כנסת מהכנסת ה-20, כיהן כיו״ר ועדת הכנסת, כיו״ר הקואליציה ובכנסת ה-25 כיו״ר ועדת הכלכלה. מ-2021 מתנהל נגדו משפט באשמת שוחד והפרת אמונים, והוא מכחיש.",
-    "photo": "File:חבר הכנסת דוד ביטן.jpg",
-    "photoCredit": "Mickyalon (מיקי אלון ראשון לציון), CC BY-SA 4.0"
+    "photoFile": "File:חבר הכנסת דוד ביטן.jpg",
+    "photoCredit": "Mickyalon (מיקי אלון ראשון לציון), CC BY-SA 4.0",
+    "photo": "mks/david-bitan.jpg"
   },
   {
     "id": "shlomo-karhi",
@@ -3136,8 +3202,9 @@
     ],
     "priorTermsHe": "הכנסת ה-21 עד ה-25",
     "backgroundHe": "שלמה קרעי נולד ברמת גן ב-1982. הוא רואה חשבון בעל תואר דוקטור בהנדסת תעשייה וניהול מאוניברסיטת בן-גוריון, ולימד באוניברסיטת בר-אילן. חבר כנסת מטעם הליכוד מהכנסת ה-21 ומכהן כשר התקשורת מדצמבר 2022.",
-    "photo": "File:Shlomo Karhi (SHL 8894).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Shlomo Karhi (SHL 8894).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/shlomo-karhi.jpg"
   },
   {
     "id": "nir-barkat",
@@ -3169,8 +3236,9 @@
     ],
     "priorTermsHe": "הכנסת ה-21 עד ה-25",
     "backgroundHe": "ניר ברקת נולד בתל אביב ב-1959 וגדל בירושלים. יזם הייטק, בין היתר מייסד חברת האנטי-וירוס BRM אשר השקיעה בצ׳ק פוינט. למד מדעי המחשב באוניברסיטה העברית. כיהן כראש עיריית ירושלים מ-2008 עד 2018, חבר כנסת מהכנסת ה-21 מטעם הליכוד וכשר הכלכלה והתעשייה מדצמבר 2022.",
-    "photo": "File:Nir Barkat.jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Nir Barkat.jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/nir-barkat.jpg"
   },
   {
     "id": "gila-gamliel",
@@ -3214,8 +3282,9 @@
     ],
     "priorTermsHe": "הכנסת ה-16, ה-18 עד ה-25",
     "backgroundHe": "גילה גמליאל נולדה בכפר אוריאל שליד גדרה ב-1974. הייתה האישה הראשונה שעמדה בראש התאחדות הסטודנטים הארצית, ב-2002. למדה באוניברסיטת בן-גוריון, בקריה האקדמית אונו ובאוניברסיטת בר-אילן. חברת כנסת מהכנסת ה-16 ומהכנסת ה-18 מטעם הליכוד, כיהנה כשרה לאזרחים ותיקים ולשוויון חברתי, כשרה להגנת הסביבה וכשרת המודיעין, ומכהנת כשרת החדשנות, המדע והטכנולוגיה.",
-    "photo": "File:Gila Gamliel (ISH 7807).jpg",
-    "photoCredit": "Itzhak Harari, CC BY-SA 4.0"
+    "photoFile": "File:Gila Gamliel (ISH 7807).jpg",
+    "photoCredit": "Itzhak Harari, CC BY-SA 4.0",
+    "photo": "mks/gila-gamliel.jpg"
   },
   {
     "id": "eli-goldschmidt",
@@ -3283,8 +3352,9 @@
       "https://he.wikipedia.org/wiki/ארז_תדמור_(איש_תקשורת)",
       "https://www.inn.co.il/flashes/1127710"
     ],
-    "photo": "File:ErezTadmor.JPG",
-    "photoCredit": "צילום עצמי, CC BY-SA 3.0"
+    "photoFile": "File:ErezTadmor.JPG",
+    "photoCredit": "צילום עצמי, CC BY-SA 3.0",
+    "photo": "mks/erez-tadmor.jpg"
   },
   {
     "id": "mansour-abbas",
@@ -3318,8 +3388,9 @@
     ],
     "priorTermsHe": "הכנסת ה-21 עד ה-25",
     "backgroundHe": "מנסור עבאס נולד במע׳אר ב-1974. רופא שיניים בעל תואר שני במדעי המדינה, היה מזכ״ל רע״ם מ-2007 וראש המפלגה מ-2018. חבר כנסת מהכנסת ה-21, הוביל את רע״ם להצטרפות לממשלת בנט-לפיד ב-2021.",
-    "photo": "File:Mansour Abbas, April 3 2023 (cropped).jpg",
-    "photoCredit": "U.S. Embassy Jerusalem, CC BY 2.0"
+    "photoFile": "File:Mansour Abbas, April 3 2023 (cropped).jpg",
+    "photoCredit": "U.S. Embassy Jerusalem, CC BY 2.0",
+    "photo": "mks/mansour-abbas.jpg"
   },
   {
     "id": "yoav-segalovitz",
@@ -3354,8 +3425,9 @@
       "https://he.wikipedia.org/wiki/יואב_סגלוביץ%27",
       "https://he.wikipedia.org/wiki/%D7%99%D7%95%D7%90%D7%91_%D7%A1%D7%92%D7%9C%D7%95%D7%91%D7%99%D7%A5%27"
     ],
-    "photo": "File:Yoav Segalovich (R H 4069).jpg",
-    "photoCredit": "Ronen Horesh, CC BY-SA 4.0"
+    "photoFile": "File:Yoav Segalovich (R H 4069).jpg",
+    "photoCredit": "Ronen Horesh, CC BY-SA 4.0",
+    "photo": "mks/yoav-segalovitz.jpg"
   },
   {
     "id": "waleed-taha",
@@ -3389,8 +3461,9 @@
     ],
     "priorTermsHe": "הכנסת ה-22 עד ה-25",
     "backgroundHe": "ווליד טאהא נולד בכפר קאסם ב-1968. למד מדעי המדינה בהיסטוריה באוניברסיטה הפתוחה ובאוניברסיטת תל אביב. שימש מורה ומנהל רשת בתי הספר אל-הודא ברמלה, ובא ב-2019 לכנסת ה-22 מטעם רע״ם. כיהן כיו״ר ועדת הפנים והגנת הסביבה מ-2021 עד 2022.",
-    "photo": "File:Walid Taha (SHL 8811).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Walid Taha (SHL 8811).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/waleed-taha.jpg"
   },
   {
     "id": "waleed-alhwashla",
@@ -3428,8 +3501,9 @@
     ],
     "priorTermsHe": "הכנסת ה-25",
     "backgroundHe": "ואליד אלהואשלה נולד ב-1981 בסעווה שבנגב. שימש שופט כדורגל בליגות הבכירות מ-2000 עד 2013 ויועץ לחבר הכנסת סעיד אל-חרומי. למד לימודי המזרח התיכון ומדעי המדינה באוניברסיטת חיפה. נבחר ב-2022 כחבר הכנסת ה-25 מטעם רע״ם ומכהן כיו״ר השדולה לכפרים הבדואים הלא מוכרים.",
-    "photo": "File:Walid Alhawashla 2025.jpg",
-    "photoCredit": "Sharon Gabay, CC BY-SA 3.0"
+    "photoFile": "File:Walid Alhawashla 2025.jpg",
+    "photoCredit": "Sharon Gabay, CC BY-SA 3.0",
+    "photo": "mks/waleed-alhwashla.jpg"
   },
   {
     "id": "iman-khatib-yassin",
@@ -3465,8 +3539,9 @@
     ],
     "priorTermsHe": "הכנסת ה-23 עד ה-25",
     "backgroundHe": "אימאן ח׳טיב יאסין נולדה בעראבה ב-1964. עובדת סוציאלית בעלת תואר שני בלימודי נשים ומגדר מאוניברסיטת תל אביב, שהובילה מרכז לנערות בסיכון בנצרת וניהלה מרכזים קהילתיים. נכנסה לכנסת ה-23 ב-2020, לאחר מותו של סעיד אל-חרומי ב-2021 נכנסה לכנסת ה-24, והיא מכהנת כסגנית יו״ר מועצת השורא של רע״ם.",
-    "photo": "File:Iman Khatib Yassin 1.jpg",
-    "photoCredit": "Sharon Gabay, CC BY-SA 3.0"
+    "photoFile": "File:Iman Khatib Yassin 1.jpg",
+    "photoCredit": "Sharon Gabay, CC BY-SA 3.0",
+    "photo": "mks/iman-khatib-yassin.jpg"
   },
   {
     "id": "yasir-hujeirat",
@@ -3508,8 +3583,9 @@
     ],
     "priorTermsHe": "הכנסת ה-25",
     "backgroundHe": "יאסר חוג׳יראת נולד בביר אל-מכסור ב-1965. גנטיקאי בעל תואר שלישי מהאוניברסיטה העברית, הקים מעבדת גנטיקה מולקולרית במרכז הרפואי העמק וכיהן כראש המועצה המקומית ביר אל-מכסור מ-2008 עד 2013. חבר כנסת מטעם רע״ם מהכנסת ה-25 ומכהן כיו״ר ועדת המדע והטכנולוגיה מ-2025.",
-    "photo": "File:Yasir Hujeirat (R H 3858).jpg",
-    "photoCredit": "Ronen Horesh, CC BY-SA 4.0"
+    "photoFile": "File:Yasir Hujeirat (R H 3858).jpg",
+    "photoCredit": "Ronen Horesh, CC BY-SA 4.0",
+    "photo": "mks/yasir-hujeirat.jpg"
   },
   {
     "id": "ibrahim-al-turi",
@@ -3599,8 +3675,9 @@
       "י׳ור׳ הבית היהודי (2012–2019)",
       "שר הכלכלה (2013–2015)"
     ],
-    "photo": "File:Naftali Bennett official portrait.jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Naftali Bennett official portrait.jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/naftali-bennett.jpg"
   },
   {
     "id": "yair-lapid",
@@ -3632,10 +3709,11 @@
       "שר האוצר (2013–2014)",
       "ראש האופוזיציה (משנת 2012)"
     ],
-    "photo": "File:Yair Lapid (D1237-011).jpg",
+    "photoFile": "File:Yair Lapid (D1237-011).jpg",
     "education": [],
     "educationHe": [],
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/yair-lapid.jpg"
   },
   {
     "id": "keren-terner-eyal",
@@ -3665,8 +3743,9 @@
       "מנכ״לית משרד התחבורה (2016–2020)",
       "מנכ״לית משרד האוצר (2020)"
     ],
-    "photo": "File:קרן טרנר (cropped).jpg",
-    "photoCredit": "Tal Givony, CC BY-SA 3.0"
+    "photoFile": "File:קרן טרנר (cropped).jpg",
+    "photoCredit": "Tal Givony, CC BY-SA 3.0",
+    "photo": "mks/keren-terner-eyal.jpg"
   },
   {
     "id": "meirav-ben-ari",
@@ -3698,8 +3777,9 @@
       "י׳ור׳ ועדת החוץ והביטחון (2021–2022)",
       "חברת מועצת עיריית תל אביב-יפו (2013–2015)"
     ],
-    "photo": "File:מירב בן ארי.jpg",
-    "photoCredit": "Elad Malka, CC BY-SA 4.0"
+    "photoFile": "File:מירב בן ארי.jpg",
+    "photoCredit": "Elad Malka, CC BY-SA 4.0",
+    "photo": "mks/meirav-ben-ari.jpg"
   },
   {
     "id": "liran-avishar-ben-horin",
@@ -3731,8 +3811,9 @@
       "מנכ״לית משרד התקשורת (2020–2023)",
       "מנהלת מסע (2013–2019)"
     ],
-    "photo": "File:לירן אבישר בן־חורין (cropped).jpg",
-    "photoCredit": "Tal Givony, CC BY-SA 3.0"
+    "photoFile": "File:לירן אבישר בן־חורין (cropped).jpg",
+    "photoCredit": "Tal Givony, CC BY-SA 3.0",
+    "photo": "mks/liran-avishar-ben-horin.jpg"
   },
   {
     "id": "noam-tibon",
@@ -3765,8 +3846,9 @@
       "מפקד אוגדת יהודה ושומרון (2007–2009)",
       "מ׳פקד חטיבת הנחל (2002–2004)"
     ],
-    "photo": "File:Noam Tibon Behind Flag.jpg",
-    "photoCredit": "IDF Spokesperson's Unit, CC BY-SA 3.0"
+    "photoFile": "File:Noam Tibon Behind Flag.jpg",
+    "photoCredit": "IDF Spokesperson's Unit, CC BY-SA 3.0",
+    "photo": "mks/noam-tibon.jpg"
   },
   {
     "id": "michal-negri",
@@ -3797,8 +3879,9 @@
       "מנכ״לית עיריית רעננה (2013–2018)",
       "מנהלת אגף החינוך בעיריית רעננה (משנת 2006)"
     ],
-    "photo": "File:Michal Hirsch Negri.jpeg",
-    "photoCredit": "Elad Gutman, CC BY-SA 4.0"
+    "photoFile": "File:Michal Hirsch Negri.jpeg",
+    "photoCredit": "Elad Gutman, CC BY-SA 4.0",
+    "photo": "mks/michal-negri.jpg"
   },
   {
     "id": "eitan-ginzburg",
@@ -3833,8 +3916,9 @@
       "סגן יור׳ הכנסת ויור׳ ועדת הכנסת (2020–2021)",
       "ראש עיריית רעננה (2018)"
     ],
-    "photo": "File:Eitan Ginzburg (ISH 6674).jpg",
-    "photoCredit": "Itzhak Harari, CC BY-SA 4.0"
+    "photoFile": "File:Eitan Ginzburg (ISH 6674).jpg",
+    "photoCredit": "Itzhak Harari, CC BY-SA 4.0",
+    "photo": "mks/eitan-ginzburg.jpg"
   },
   {
     "id": "meirav-cohen",
@@ -3865,8 +3949,9 @@
     "priorRolesHe": [
       "י׳ור׳ הוועדה המיוחדת למען ניצולי השואה (2022–2025)"
     ],
-    "photo": "File:Meirav Cohen (SHL 9279).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Meirav Cohen (SHL 9279).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/meirav-cohen.jpg"
   },
   {
     "id": "yonatan-shalev",
@@ -3888,10 +3973,11 @@
       "ממייסדי תנועת כתף אל כתף (2023)",
       "שירת במגלן בצה״ל"
     ],
-    "photo": "File:יונתן שלו (cropped).JPEG",
+    "photoFile": "File:יונתן שלו (cropped).JPEG",
     "education": [],
     "educationHe": [],
-    "photoCredit": "נועם עטייה, CC BY-SA 3.0"
+    "photoCredit": "נועם עטייה, CC BY-SA 3.0",
+    "photo": "mks/yonatan-shalev.jpg"
   },
   {
     "id": "bruria-naim-arman",
@@ -3957,8 +4043,9 @@
       "סגן ראש המוסד (2009–2011)",
       "ראש אגף קשת במוסד (משנת 2004)"
     ],
-    "photo": "File:Ram Ben-Barak (ISH 6740).jpg",
-    "photoCredit": "Itzhak Harari, CC BY-SA 4.0"
+    "photoFile": "File:Ram Ben-Barak (ISH 6740).jpg",
+    "photoCredit": "Itzhak Harari, CC BY-SA 4.0",
+    "photo": "mks/ram-ben-barak.jpg"
   },
   {
     "id": "aryeh-deri",
@@ -3987,10 +4074,11 @@
       "שר הכלכלה (2015)",
       "יו״ר ש״ס (משנת 2013)"
     ],
-    "photo": "File:Aryeh Deri (E32J1375).jpg",
+    "photoFile": "File:Aryeh Deri (E32J1375).jpg",
     "photoCredit": "Nati Shohat, CC BY-SA 4.0",
     "education": [],
-    "educationHe": []
+    "educationHe": [],
+    "photo": "mks/aryeh-deri.jpg"
   },
   {
     "id": "yinon-azulai",
@@ -4014,10 +4102,11 @@
       "יו״ר ועדת האתיקה של הכנסת (2023–2024)",
       "יו״ר סיעת ש״ס"
     ],
-    "photo": "File:Yinon Azulai (SHL 9064).jpg",
+    "photoFile": "File:Yinon Azulai (SHL 9064).jpg",
     "education": [],
     "educationHe": [],
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/yinon-azulai.jpg"
   },
   {
     "id": "michael-malchieli",
@@ -4052,8 +4141,9 @@
       "יו״ר סיעת ש״ס (2021–2022)",
       "סגן יו״ר הכנסת (משנת 2016)"
     ],
-    "photo": "File:Michael Malchieli 1.jpg",
-    "photoCredit": "Sharon Gabay, CC BY-SA 3.0"
+    "photoFile": "File:Michael Malchieli 1.jpg",
+    "photoCredit": "Sharon Gabay, CC BY-SA 3.0",
+    "photo": "mks/michael-malchieli.jpg"
   },
   {
     "id": "yoav-ben-tzur",
@@ -4089,8 +4179,9 @@
       "סגן שר הפנים (2021)",
       "יו״ר סיעת ש״ס (משנת 2015)"
     ],
-    "photo": "File:Yoav Ben-Tzur 1.jpg",
-    "photoCredit": "Avi Ohayon, CC BY-SA 3.0"
+    "photoFile": "File:Yoav Ben-Tzur 1.jpg",
+    "photoCredit": "Avi Ohayon, CC BY-SA 3.0",
+    "photo": "mks/yoav-ben-tzur.jpg"
   },
   {
     "id": "haim-biton",
@@ -4124,8 +4215,9 @@
       "מ׳נכל׳ רשת בני יוסף (2015–2021)",
       "מ׳נכל׳ תנועת שס"
     ],
-    "photo": "File:Chaim Biton (SHL 9193).jpg",
-    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0"
+    "photoFile": "File:Chaim Biton (SHL 9193).jpg",
+    "photoCredit": "Shlomi Amsalem, CC BY-SA 4.0",
+    "photo": "mks/haim-biton.jpg"
   },
   {
     "id": "dror-amos",
