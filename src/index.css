@@ -856,6 +856,30 @@ input[type='range'] {
   margin-block: 0.25rem 0.75rem;
 }
 
+/* Towns and leaderboards: one search line, then the filters folded away until wanted */
+.towns-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+.towns-bar .towns-search {
+  flex: 1 1 16rem;
+  inline-size: auto;
+}
+.towns-more {
+  flex-basis: 100%;
+}
+
+/* Leaderboards: a board's note, with the way back to every town */
+.board-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 0.25rem 0.75rem;
+}
+
 /* ---------- tables ---------- */
 
 .table-wrap {
