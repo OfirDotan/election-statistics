@@ -25,9 +25,7 @@ export function MapPage() {
       {error && <LoadError />}
       {geo.error && <LoadError />}
       {(!towns || !geo.data) && !error && !geo.error && <Loading />}
-      {towns && geo.data && labels.data && (
-        <MapView topo={geo.data} labels={labels.data} country={country.data} towns={towns} party={party} onSelectTown={(code) => navigate(`/town/${code}`)} />
-      )}
+      {towns && geo.data && labels.data && <MapView topo={geo.data} labels={labels.data} country={country.data} towns={towns} party={party} onSelectTown={(code) => navigate(`/town/${code}`)} />}
     </section>
   )
 }

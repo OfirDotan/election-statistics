@@ -1,7 +1,7 @@
 import type { FeatureCollection, Geometry, Point } from 'geojson'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 // maplibre-gl 6 ships its worker next to itself and only looks for it when import.meta.url is blank
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
@@ -12,8 +12,13 @@ import { toWgs84, type MunicipalTopology } from '../lib/mapData.ts'
 import { readableOn, scaleColor, topParty } from '../lib/mapLogic.ts'
 import { share } from '../lib/stats.ts'
 import type { Town } from '../lib/types.ts'
+import { useLoad } from '../lib/useLoad.ts'
 
 maplibregl.config.WORKER_URL = workerUrl
+
+// Every town's English name, Kaplan's transliteration, keyed by its code
+const loadEnNames = async () =>
+  (await fetch(`${import.meta.env.BASE_URL}data/locality-names.json`)).json() as Promise<Record<number, string>>
 
 // The mounted map lives in a module value, not React state: setState from the mount effect re-runs it
 export let live: maplibregl.Map | null = null
@@ -22,78 +27,55 @@ export type MapMode = 'leader' | 'turnout' | 'share'
 
 const NO_DATA = '#d4d4d9'
 const NATIONAL = { lng: 34.99, lat: 31.2 }
-// Town names are set in the page's own font and word-wrap around the point, as Kaplan's labels do
-const LABEL = '400 13px Heebo, Rubik, system-ui, sans-serif'
-// Over the towns' fill, the sea and the neighbouring countries: names on their centres, largest first
-const PLACES: { name: string; lonlat: [number, number]; size: number }[] = [
-  { name: 'ירושלים', lonlat: [35.2137, 31.7683], size: 13.4 },
-  { name: 'תל אביב -יפו', lonlat: [34.7818, 32.0853], size: 13.4 },
-  { name: 'חיפה', lonlat: [34.9896, 32.794], size: 12.2 },
-  { name: 'באר שבע', lonlat: [34.7913, 31.2518], size: 12.2 },
-  { name: 'ראשון לציון', lonlat: [34.7925, 31.973], size: 11.6 },
-  { name: 'פתח תקווה', lonlat: [34.8878, 32.084], size: 11.6 },
-  { name: 'אשדוד', lonlat: [34.6405, 31.8014], size: 11.6 },
-  { name: 'נתניה', lonlat: [34.8532, 32.3215], size: 11.6 },
-  { name: 'בני ברק', lonlat: [34.8338, 32.0807], size: 11.1 },
-  { name: 'חולון', lonlat: [34.771, 32.011], size: 11.1 },
-  { name: 'רמת גן', lonlat: [34.8146, 32.0684], size: 11.1 },
-  { name: 'אשקלון', lonlat: [34.5715, 31.6688], size: 11.1 },
-  { name: 'רחובות', lonlat: [34.8113, 31.8928], size: 11.1 },
-  { name: 'בת ים', lonlat: [34.7501, 32.017], size: 11.1 },
-  { name: 'בית שמש', lonlat: [34.988, 31.745], size: 11.1 },
-  { name: 'כפר סבא', lonlat: [34.907, 32.175], size: 11.1 },
-  { name: 'הרצליה', lonlat: [34.8434, 32.1663], size: 11.1 },
-  { name: 'חדרה', lonlat: [34.9198, 32.434], size: 11.1 },
-  { name: 'מודיעין-מכבים-רעות', lonlat: [35.013, 31.897], size: 10.6 },
-  { name: 'נצרת', lonlat: [35.3033, 32.7021], size: 10.6 },
-  { name: 'עכו', lonlat: [35.0728, 32.9281], size: 10.6 },
-  { name: 'רמלה', lonlat: [34.8713, 31.9288], size: 10.6 },
-  { name: 'לוד', lonlat: [34.8951, 31.9514], size: 10.6 },
-  { name: 'רהט', lonlat: [34.7556, 31.3925], size: 10.6 },
-  { name: 'אילת', lonlat: [34.9515, 29.5577], size: 10.6 },
-  { name: 'טבריה', lonlat: [35.5312, 32.794], size: 10.2 },
-  { name: 'צפת', lonlat: [35.496, 32.9646], size: 10.2 },
-  { name: 'עפולה', lonlat: [35.289, 32.607], size: 10.2 },
-  { name: 'קריית גת', lonlat: [34.764, 31.61], size: 10.2 },
-  { name: 'דימונה', lonlat: [35.033, 31.069], size: 10.2 },
-  { name: 'ערד', lonlat: [35.215, 31.259], size: 10.2 },
-  { name: 'ירוחם', lonlat: [34.923, 30.987], size: 9.6 },
-  { name: 'מצפה רמון', lonlat: [34.801, 30.609], size: 9.6 },
-  { name: 'קריית שמונה', lonlat: [35.57, 33.207], size: 9.6 },
-  { name: 'נהריה', lonlat: [35.098, 33.006], size: 9.6 },
-  { name: 'כרמיאל', lonlat: [35.304, 32.918], size: 9.6 },
-  { name: 'שדרות', lonlat: [34.595, 31.525], size: 9.6 },
-  { name: 'גני תקווה', lonlat: [34.874, 32.062], size: 9.6 },
-  { name: 'קרית אונו', lonlat: [34.855, 32.058], size: 9.6 },
-  { name: 'גבעת שמואל', lonlat: [34.849, 32.078], size: 9.6 },
-  { name: 'יהוד-מונוסון', lonlat: [34.888, 32.033], size: 9.6 },
-  { name: 'אור יהודה', lonlat: [34.857, 32.03], size: 9.6 },
-  { name: 'שפרעם', lonlat: [35.169, 32.805], size: 9.6 },
-  { name: 'כפר כנא', lonlat: [35.339, 32.747], size: 9.6 },
-  { name: 'טירה', lonlat: [34.95, 32.234], size: 9.6 },
-  { name: 'כפר קאסם', lonlat: [34.976, 32.114], size: 9.6 },
-  { name: 'טייבה', lonlat: [35.005, 32.266], size: 9.6 },
-  { name: 'קלנסווה', lonlat: [34.981, 32.284], size: 9.6 },
-  { name: 'רמאללה', lonlat: [35.206, 31.903], size: 9.6 },
-  { name: 'בית לחם', lonlat: [35.202, 31.706], size: 9.6 },
-  { name: 'חברון', lonlat: [35.099, 31.532], size: 9.6 },
-  { name: 'יריחו', lonlat: [35.444, 31.866], size: 9.6 },
-  { name: 'שכם', lonlat: [35.261, 32.221], size: 9.6 },
-  { name: 'עזה', lonlat: [34.4668, 31.5017], size: 9.6 },
-  { name: "ג'נין", lonlat: [35.296, 32.461], size: 9.6 },
-  { name: 'טולכרם', lonlat: [35.012, 32.31], size: 9.6 },
-  { name: 'קלקיליה', lonlat: [34.97, 32.19], size: 9.6 },
-  { name: 'בריכת רם', lonlat: [35.762, 33.233], size: 9.6 },
-  { name: 'טובא-זנגריה', lonlat: [35.59, 32.966], size: 9.6 },
-  { name: 'מגדל העמק', lonlat: [35.243, 32.678], size: 9.6 },
-  { name: 'נוף הגליל', lonlat: [35.327, 32.722], size: 9.6 },
-  { name: 'יקנעם עילית', lonlat: [35.108, 32.66], size: 9.6 },
-  { name: 'זכרון יעקב', lonlat: [34.947, 32.571], size: 9.6 },
-  { name: 'קריית מוצקין', lonlat: [35.074, 32.836], size: 9.6 },
-  { name: 'נשר', lonlat: [35.121, 32.772], size: 9.6 },
-  { name: 'נס ציונה', lonlat: [34.8, 31.93], size: 9.6 },
-  { name: 'יבנה', lonlat: [34.742, 31.877], size: 9.6 },
-  { name: 'גדרה', lonlat: [34.779, 31.813], size: 9.6 },
+// The towns that get a name before zooming in does; their names are in both i18n files, keyed by Hebrew
+const PLACES: { name: string; lonlat: [number, number] }[] = [
+  { name: `place_'ירושלים'`, lonlat: [35.2137, 31.7683] },
+  { name: `place_'תל אביב -יפו'`, lonlat: [34.7818, 32.0853] },
+  { name: `place_'חיפה'`, lonlat: [34.9896, 32.794] },
+  { name: `place_'באר שבע'`, lonlat: [34.7913, 31.2518] },
+  { name: `place_'ראשון לציון'`, lonlat: [34.7925, 31.973] },
+  { name: `place_'פתח תקווה'`, lonlat: [34.8878, 32.084] },
+  { name: `place_'אשדוד'`, lonlat: [34.6405, 31.8014] },
+  { name: `place_'נתניה'`, lonlat: [34.8532, 32.3215] },
+  { name: `place_'בני ברק'`, lonlat: [34.8338, 32.0807] },
+  { name: `place_'חולון'`, lonlat: [34.771, 32.011] },
+  { name: `place_'רמת גן'`, lonlat: [34.8146, 32.0684] },
+  { name: `place_'אשקלון'`, lonlat: [34.5715, 31.6688] },
+  { name: `place_'רחובות'`, lonlat: [34.8113, 31.8928] },
+  { name: `place_'בת ים'`, lonlat: [34.7501, 32.017] },
+  { name: `place_'בית שמש'`, lonlat: [34.988, 31.745] },
+  { name: `place_'כפר סבא'`, lonlat: [34.907, 32.175] },
+  { name: `place_'הרצליה'`, lonlat: [34.8434, 32.1663] },
+  { name: `place_'חדרה'`, lonlat: [34.9198, 32.434] },
+  { name: `place_'מודיעין-מכבים-רעות'`, lonlat: [35.013, 31.897] },
+  { name: `place_'נצרת'`, lonlat: [35.3033, 32.7021] },
+  { name: `place_'עכו'`, lonlat: [35.0728, 32.9281] },
+  { name: `place_'רמלה'`, lonlat: [34.8713, 31.9288] },
+  { name: `place_'לוד'`, lonlat: [34.8951, 31.9514] },
+  { name: `place_'רהט'`, lonlat: [34.7556, 31.3925] },
+  { name: `place_'אילת'`, lonlat: [34.9515, 29.5577] },
+  { name: `place_'טבריה'`, lonlat: [35.5312, 32.794] },
+  { name: `place_'צפת'`, lonlat: [35.496, 32.9646] },
+  { name: `place_'עפולה'`, lonlat: [35.289, 32.607] },
+  { name: `place_'קריית גת'`, lonlat: [34.764, 31.61] },
+  { name: `place_'דימונה'`, lonlat: [35.033, 31.069] },
+  { name: `place_'ערד'`, lonlat: [35.215, 31.259] },
+  { name: `place_'ירוחם'`, lonlat: [34.923, 30.987] },
+  { name: `place_'מצפה רמון'`, lonlat: [34.801, 30.609] },
+  { name: `place_'קריית שמונה'`, lonlat: [35.57, 33.207] },
+  { name: `place_'נהריה'`, lonlat: [35.098, 33.006] },
+  { name: `place_'כרמיאל'`, lonlat: [35.304, 32.918] },
+  { name: `place_'שדרות'`, lonlat: [34.595, 31.525] },
+  { name: `place_'שפרעם'`, lonlat: [35.169, 32.805] },
+  { name: `place_'רמאללה'`, lonlat: [35.206, 31.903] },
+  { name: `place_'בית לחם'`, lonlat: [35.202, 31.706] },
+  { name: `place_'חברון'`, lonlat: [35.099, 31.532] },
+  { name: `place_'יריחו'`, lonlat: [35.444, 31.866] },
+  { name: `place_'שכם'`, lonlat: [35.261, 32.221] },
+  { name: `place_'עזה'`, lonlat: [34.4668, 31.5017] },
+  { name: `place_'ג'נין'`, lonlat: [35.296, 32.461] },
+  { name: `place_'טולכרם'`, lonlat: [35.012, 32.31] },
+  { name: `place_'קלקיליה'`, lonlat: [34.97, 32.19] },
 ]
 type Row = { name: string; leader: string | null; leaderShare: number | null; turnout: number }
 
@@ -113,6 +95,7 @@ export function MapView({
   onSelectTown: (code: number) => void
 }) {
   const { t, lang } = useI18n()
+  const { data: enNames } = useLoad('enNames', loadEnNames)
   const [mode, setMode] = useState<MapMode>('leader')
   const [tip, setTip] = useState<{ code: number; x: number; y: number } | null>(null)
   const box = useRef<HTMLDivElement>(null)
@@ -129,6 +112,14 @@ export function MapView({
     }
     return { geo, rows }
   }, [topo, towns])
+  // A town's name in the page's language, its English one where Kaplan has a name for its code
+  const nameOf = useCallback((code: number, he: string) => (lang === 'en' ? (enNames ?? {})[code] ?? he : he), [lang, enNames])
+  // A place's own name where the town has one, as Kaplan shows Yafo as Tel Aviv, else the town's
+  const labelOf = useCallback((code: number) => {
+    const he = rows.get(code)?.name
+    if (!he) return null
+    return PLACES.some((p) => p.name === `place_'${he}'`) ? nameOf(code, he) : lang === 'he' ? he : null
+  }, [rows, nameOf, lang])
 
   useEffect(() => {
     if (!box.current) return
@@ -164,45 +155,6 @@ export function MapView({
       m.addSource('land', { type: 'geojson', data: country ?? { type: 'FeatureCollection', features: [] } })
       m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
       m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
-      // Town names, hidden while the hover card is up so it is not read twice
-      m.addSource('labels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-      m.addSource('places', { type: 'geojson', data: { type: 'FeatureCollection', features: PLACES.map((p) => ({ type: 'Feature', properties: { name: p.name, size: -p.size }, geometry: { type: 'Point', coordinates: p.lonlat } })) } })
-      m.addLayer({
-        id: 'places',
-        type: 'symbol',
-        source: 'places',
-        layout: {
-          'symbol-sort-key': ['get', 'size'],
-          'text-field': ['get', 'name'],
-          'text-font': ['Noto Sans Regular'],
-          'text-letter-spacing': 0.01,
-          'text-size': ['interpolate', ['linear'], ['zoom'], 7, 12, 11, 18],
-          'text-max-width': 6,
-          'text-padding': 4,
-          'text-allow-overlap': false,
-          'text-ignore-placement': false,
-        },
-        paint: { 'text-halo-width': 2 },
-      })
-      m.addLayer({
-        id: 'labels',
-        type: 'symbol',
-        source: 'labels',
-        minzoom: 7.5,
-        layout: {
-          // Nearest first, so at any zoom the names of the places in view are the ones kept
-          'symbol-sort-key': ['get', 'size'],
-          'text-field': ['get', 'name'],
-          'text-font': ['Noto Sans Regular'],
-          'text-letter-spacing': 0.01,
-          'text-size': ['interpolate', ['linear'], ['zoom'], 7.5, 15, 11, 20],
-          'text-max-width': 6,
-          'text-padding': 4,
-          'text-allow-overlap': false,
-          'text-ignore-placement': false,
-        },
-        paint: { 'text-halo-width': 2 },
-      })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
@@ -211,13 +163,11 @@ export function MapView({
         m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
         // Town borders, Kaplan's scheme: a 1px grey line over the fill. Dark flips it, since #d3d3d3
         // vanishes on dark fills and would only trace the grey towns
-        if (m.getLayer('towns-line')) m.setPaintProperty('towns-line', 'line-color', dark ? '#2a2a2e' : '#d3d3d3')
-        // Names are black with a white halo, as Kaplan's are, which the towns' grey and muted fills
-        // carry; dark text on a party's colour would not. The dark theme inverts both
-        m.setPaintProperty('labels', 'text-color', dark ? '#e5e5ea' : '#1f2937')
+        const lines = [['towns-line', '#d3d3d3'], ['towns-hover', '#fff']] as const
+        for (const [id, light] of lines) if (m.getLayer(id)) m.setPaintProperty(id, 'line-color', dark ? '#141416' : light)
+        // Names are black with a white halo, as Kaplan's are; the dark theme inverts both
+        m.setPaintProperty('labels', 'text-color', dark ? '#fff' : '#000')
         m.setPaintProperty('labels', 'text-halo-color', dark ? '#141416' : '#fff')
-        m.setPaintProperty('places', 'text-color', dark ? '#e5e5ea' : '#1f2937')
-        m.setPaintProperty('places', 'text-halo-color', dark ? '#141416' : '#fff')
       }
       live = m
       bg()
@@ -245,13 +195,27 @@ export function MapView({
         // feature-state belongs in paint or layout only: `filter` rejects it
         paint: { 'line-color': '#fff', 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0] },
       })
-      // 'load' means the style's sources and layers are in and the worker is up, so the towns effect below applies
-      // A canvas font loads after the first symbols are drawn, and they would keep the fallback metrics
-      // The layout differs, so each of these reloads that font without re-arranging any label
-      void document.fonts?.load(LABEL).then(() => {
-        m.setLayoutProperty('labels', 'text-font', ['Noto Sans Regular'])
-        m.setLayoutProperty('places', 'text-font', ['Noto Sans Regular'])
+      // Town names, a place's own where the town has one, so no name is drawn twice
+      m.addSource('labels', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })
+      m.addLayer({
+        id: 'labels',
+        type: 'symbol',
+        source: 'labels',
+        minzoom: 7.5,
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['Noto Sans Regular'],
+          'text-letter-spacing': 0.01,
+          // A step, not a case: maplibre only allows zoom inside a top-level interpolate/step
+          'text-size': ['step', ['zoom'], 15, 8.5, 17, 11, 20],
+          'text-max-width': 6,
+          'text-padding': 4,
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
+        },
+        paint: { 'text-halo-width': 2 },
       })
+      // 'load' means the style's sources and layers are in and the worker is up, so the towns effect below applies
       m.once('load', () => setMap(m))
     })
     return () => {
@@ -280,21 +244,22 @@ export function MapView({
     map?.on('render', () => (window as unknown as { __m: unknown }).__m = map)
     if (map) (window as unknown as { __m: unknown }).__m = map
   }, [map])
+  // Town names, hidden while the hover card is up so it is not read twice
   useEffect(() => {
     if (!map) return
-    const names = new Map(towns.map((tw) => [tw.code, tw.name]))
-    const data = { ...labels, features: labels.features.flatMap((f) => (names.has(f.properties.SETL_CODE) ? [{ ...f, properties: { ...f.properties, name: names.get(f.properties.SETL_CODE) } }] : [])) }
-    ;(map.getSource('labels') as maplibregl.GeoJSONSource).setData(data)
-  }, [map, labels, towns, lang])
-  // The labels layer is the newest and on top, so it would take the clicks meant for the towns
-  const hideLabel = () => {
-    map?.setLayoutProperty('labels', 'visibility', 'none')
-    map?.setLayoutProperty('places', 'visibility', 'none')
-  }
-  const showLabels = () => {
-    map?.setLayoutProperty('labels', 'visibility', 'visible')
-    map?.setLayoutProperty('places', 'visibility', 'visible')
-  }
+    const features = labels.features.flatMap((f) => {
+      const name = labelOf(f.properties.SETL_CODE)
+      return name ? [{ ...f, properties: { ...f.properties, name } }] : []
+    })
+    ;(map.getSource('labels') as maplibregl.GeoJSONSource).setData({ ...labels, features })
+  }, [map, labels, labelOf])
+  // The town under the cursor says whose name it is, its own or the place's
+  useEffect(() => {
+    for (const f of labels.features) if (labelOf(f.properties.SETL_CODE)) map?.setFeatureState({ source: 'labels', id: f.properties.SETL_CODE }, { on: tip?.code === f.properties.SETL_CODE })
+  }, [map, labels, labelOf, tip])
+  // The names are the newest layer and on top, so they would take the clicks meant for the towns
+  const hideLabel = () => map?.setLayoutProperty('labels', 'visibility', 'none')
+  const showLabels = () => map?.setLayoutProperty('labels', 'visibility', 'visible')
   useEffect(() => {
     if (!map) return
     const codeOf = (e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) =>
@@ -368,7 +333,9 @@ export function MapView({
         <div className="maplibregl-map" ref={box} role="group" aria-label={`${t('mapMap')}: ${t(`map_${mode}`)}`} />
         {tip && active && (
           <div className="map-tip" style={{ left: tip.x, top: tip.y }} role="status">
-            <strong>{active.name}</strong>
+            <strong>
+              <Link to={`/town/${tip.code}`}>{nameOf(tip.code, active.name)}</Link>
+            </strong>
             <span>{active.leader ? <Link to={partyUrl(party(active.leader))}>{party(active.leader).name}</Link> : t('mapNoData')}</span>
             {active.leaderShare != null && (
               <span>
