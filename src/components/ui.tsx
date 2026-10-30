@@ -15,11 +15,12 @@ export function PartyChip({ name, color, logo, partyKey, slug }: { name: string;
   )
 }
 
+/** The language-switch overlay's spinner, in the page: same look, same words to assistive tech */
 export function Loading() {
   const { t } = useI18n()
   return (
-    <div className="state state-loading" role="status">
-      <Spinner /> {t('loading')}
+    <div className="state state-loading" role="status" aria-label={t('loading')}>
+      <Spinner />
     </div>
   )
 }

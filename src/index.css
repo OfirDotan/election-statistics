@@ -337,7 +337,7 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  min-block-size: 40vh;
 }
 
 /* ---------- loading spinner ---------- */
@@ -350,7 +350,8 @@ a:hover {
   cursor: progress;
   background: color-mix(in srgb, var(--bg) 55%, transparent);
 }
-.lang-overlay .spinner {
+.lang-overlay .spinner,
+.state-loading .spinner {
   inline-size: 2.5rem;
   block-size: 2.5rem;
   border-width: 3px;

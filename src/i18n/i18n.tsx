@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom'
 import { useMemo, useState, type ReactNode } from 'react'
 import { en } from './en.ts'
 import { he } from './he.ts'
@@ -19,15 +20,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(stored)
   const [switching, setSwitching] = useState(false)
   const choose = (l: Lang) => {
-    // Re-rendering every page in the other language takes a beat: hold the spinner long enough to be seen
     if (l === lang) return
-    setSwitching(true)
-    setLang(l)
-    requestAnimationFrame(() =>
-      setTimeout(() => {
-        setSwitching(false)
-        ;(document.activeElement as HTMLElement | null)?.blur()
-      }, 450),
+    // React batches both renders into one frame, so the browser would never paint the spinner between them:
+    // commit the spinner now, and the slow language render after a frame (plus a little), where the spinner has shown
+    flushSync(() => setSwitching(true))
+    setTimeout(() =>
+      requestAnimationFrame(() =>
+        setTimeout(() => {
+          flushSync(() => setLang(l))
+          setSwitching(false)
+          ;(document.activeElement as HTMLElement | null)?.blur()
+        }, 150),
+      ),
     )
     try {
       localStorage.setItem(KEY, l)
