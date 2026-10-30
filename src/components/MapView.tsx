@@ -156,15 +156,19 @@ export function MapView({
     const onScheme = () => dark?.()
     // Fires as the map is constructed for the empty inline style, so it cannot be missed here
     m.once('style.load', () => {
-      // Land and country outline are OSM's; a translucent white hides its busy fill where no town covers it
+      // Land and country outline are OSM's; bg() tones the land mask
       m.addSource('land', { type: 'geojson', data: country ?? { type: 'FeatureCollection', features: [] } })
-      m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff', 'fill-opacity': 0.8 } })
+      m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
       m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
+      // The camera first goes on the whole country while the page is still narrow; settled here, where the frame is its final size
+      const bounds = m.getMaxBounds()
+      if (bounds && !bounds.contains(m.getCenter())) m.fitBounds(bounds, { animate: false })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
-        // OSM tiles stay light in dark mode, so the land mask is dark instead of white
+        // OSM's land is nearly white already; dark mode mutes it toward the page's dark ground
         m.setPaintProperty('land', 'fill-color', dark ? '#2a2a2e' : '#fff')
+        m.setPaintProperty('land', 'fill-opacity', dark ? 0.6 : 0.3)
         m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
         // Town borders, Kaplan's scheme: a 1px grey line over the fill. Dark flips it, since #d3d3d3
         // vanishes on dark fills and would only trace the grey towns
