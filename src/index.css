@@ -266,9 +266,7 @@ a:hover {
   /* Anchors scrollIntoView to the page, not to a sideways-scrolling table */
   overflow-x: clip;
 }
-/* On phones the inner margin lets a percent-width table shrink below its columns and push the page wide instead */
-.page-head > *,
-.table-wrap > table {
+.page-head > * {
   min-inline-size: 0;
 }
 
