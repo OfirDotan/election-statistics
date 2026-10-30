@@ -20,8 +20,10 @@ export let live: maplibregl.Map | null = null
 
 export type MapMode = 'leader' | 'turnout' | 'share'
 
+// OSM's own link to the country, and the plain OSM tiles under the towns
+const NATIONAL = { lng: 35.074, lat: 31.438, zoom: 8 }
+const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const NO_DATA = '#d4d4d9'
-const NATIONAL = { lng: 34.99, lat: 31.2 }
 // Where names start and where every town has one, and the big towns that also have one zoomed out
 const LABEL_FROM = 6.9
 const LABEL_ALL_FROM = 8.2
@@ -126,20 +128,19 @@ export function MapView({
       container: box.current,
       style: {
         version: 8,
-        sources: {},
-        // First colour the canvas ever gets: a background layer added later leaves the cleared buffer black
-        layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#cfd3d8' } }],
+        // OSM's terms forbid bulk or app use of these tiles; upgrade to a self-hosted or paid tile provider if traffic grows
+        sources: { osm: { type: 'raster', tiles: [TILES], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' } },
+        layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
       },
-      center: NATIONAL,
+      center: { lng: NATIONAL.lng, lat: NATIONAL.lat },
+      zoom: NATIONAL.zoom,
+      attributionControl: { compact: true },
       // North stays up: a bearing left out starts MapLibre at -0.01°, which skews the outline
       bearing: 0,
       pitch: 0,
-      zoom: 6.4,
-      // Far out enough that the whole country is a small shape in open sea
       minZoom: 0,
       maxZoom: 13,
       maxPitch: 0,
-      attributionControl: false,
     })
     // A photo can be rotated, an outline cannot: north stays up
     m.touchZoomRotate.disableRotation()
@@ -154,14 +155,14 @@ export function MapView({
     const onScheme = () => dark?.()
     // Fires as the map is constructed for the empty inline style, so it cannot be missed here
     m.once('style.load', () => {
-      // Land and country outline under the towns; the stroke is the country edge, not town borders
+      // Land and country outline are OSM's; a translucent white hides its busy fill where no town covers it
       m.addSource('land', { type: 'geojson', data: country ?? { type: 'FeatureCollection', features: [] } })
-      m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff' } })
+      m.addLayer({ id: 'land', type: 'fill', source: 'land', paint: { 'fill-color': '#fff', 'fill-opacity': 0.8 } })
       m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
-        m.setPaintProperty('sea', 'background-color', dark ? '#141416' : '#cfd3d8')
+        // OSM tiles stay light in dark mode, so the land mask is dark instead of white
         m.setPaintProperty('land', 'fill-color', dark ? '#2a2a2e' : '#fff')
         m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
         // Town borders, Kaplan's scheme: a 1px grey line over the fill. Dark flips it, since #d3d3d3
