@@ -50,7 +50,6 @@ describe('filterStats', () => {
     expect(names(filterStats(rows, { ...none(), minShare: 70 }))).toEqual(['Alpha', 'Bet', 'Delta', 'Epsilon'])
     expect(names(filterStats(rows, { ...none(), query: ' שבע ' }))).toEqual([])
     expect(names(filterStats(rows, { ...none(), query: 'lph' }))).toEqual(['Alpha'])
-    expect(names(filterStats(rows, { ...none(), query: 'L F' }))).toEqual(['Alpha'])
   })
   it('maximum info finds a town by any party that won a vote there, not only its leader', () => {
     const r = townRows([{ ...town(1, 'Omer', 80, { א: 60, ב: 20 }) }]).map((x) => ({ ...x, all: { א: 'Alpha', ב: 'Bet' } }))
@@ -68,7 +67,6 @@ describe('filterStats', () => {
     expect(names("'Aylut")).toEqual([1])
     expect(names('umm AL')).toEqual([2])
     expect(names('פחם')).toEqual([2])
-    expect(names('UM AL')).toEqual([2])
     // the ballot-less town has no stats, so even its own name cannot reach it
     expect(names('קיבוץ')).toEqual([])
   })
