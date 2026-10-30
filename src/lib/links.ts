@@ -2,8 +2,8 @@
 export const partyUrl = (p: { key: string; slug?: string } | string) =>
   `/party/${typeof p === 'string' ? encodeURIComponent(p) : p.slug ?? encodeURIComponent(p.key)}`
 
-/** Wikimedia Commons file name at a width; undefined when the MK has no photo, so callers fall back to initials */
-export const mkPhoto = (mk: { photo?: string } | undefined, width: number) =>
-  mk?.photo ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(mk.photo)}?width=${width}` : undefined
+/** The MK's own photo under public/assets/; undefined when there is none, so callers fall back to initials */
+export const mkPhoto = (mk: { photo?: string } | undefined) =>
+  mk?.photo ? `${import.meta.env.BASE_URL}assets/${mk.photo}` : undefined
 
 export const mkUrl = (id: string) => `/mk/${encodeURIComponent(id)}`

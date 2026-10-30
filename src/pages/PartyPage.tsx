@@ -40,7 +40,7 @@ export function PartyPage() {
   const elected = candidates.data
     ?.filter((c) => c.party === id && c.position <= seats)
     .sort((a, b) => a.position - b.position)
-    .map((c) => ({ key: c.position, id: c.id, name: lang === 'en' ? c.nameEn ?? c.nameHe : c.nameHe, incumbent: c.incumbent, photo: mkPhoto(mks.data?.find((m) => m.id === c.id), 80) }))
+    .map((c) => ({ key: c.position, id: c.id, name: lang === 'en' ? c.nameEn ?? c.nameHe : c.nameHe, incumbent: c.incumbent, photo: mkPhoto(mks.data?.find((m) => m.id === c.id)) }))
   const bloc = BLOCS.find((b) => (b.keys as readonly string[]).includes(id))
   const name = lang === 'en' ? party.nameEn || party.name : party.name
   // The name in the other language, when the list has one that differs

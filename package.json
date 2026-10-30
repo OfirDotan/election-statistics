@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "data": "node --experimental-strip-types scripts/data.ts"
+    "data": "node --experimental-strip-types scripts/data.ts",
+    "mks": "node --experimental-strip-types scripts/mkData.ts"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",
@@ -37,6 +38,7 @@
     "globals": "^17.13.0",
     "papaparse": "^5.7.0",
     "pbf": "^5.1.2",
+    "sharp": "^0.35.5",
     "topojson-client": "^3.1.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.72.0",

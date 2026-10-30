@@ -71,8 +71,10 @@ export type MkProfile = {
   id: string
   nameHe: string
   nameEn?: string
-  /** Wikimedia Commons file name; rendered as a /thumb/ URL at the width the page needs */
+  /** The photo in public/assets/, e.g. `mks/<id>.jpg`; absent when Commons had no usable image */
   photo?: string
+  /** Wikimedia Commons file name it was copied from (scripts/mkData.ts) */
+  photoFile?: string
   photoCredit?: string
   birthYear?: number
   /** English; Hebrew in birthPlaceHe */

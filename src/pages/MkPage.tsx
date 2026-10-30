@@ -157,9 +157,9 @@ function initials(name: string) {
   return (parts[0]?.[0] ?? '') + (parts.length > 1 ? (parts.at(-1)?.[0] ?? '') : '')
 }
 
-/** Commons photo when one exists; otherwise an initials block, never a stand-in face */
+/** Local photo when one exists; otherwise an initials block, never a stand-in face */
 function Portrait({ mk, name, initials }: { mk?: { photo?: string }; name: string; initials: string }) {
-  const src = mkPhoto(mk, 480)
+  const src = mkPhoto(mk)
   if (src) return <img className="mk-photo" src={src} alt={name} width={200} height={250} />
   return (
     <span className="mk-avatar" role="img" aria-label={name}>

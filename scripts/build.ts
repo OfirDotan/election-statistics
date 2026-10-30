@@ -141,6 +141,8 @@ export async function write(out: string) {
   await json('kalpi.json', data.townKalpi)
   await json('meta.json', data.asOf)
   await json('geo.topo.json', data.geo)
+  // Hand-written source of truth whose photos point into public/assets/mks; the swap below would drop it
+  await fs.copyFile('data/mks.json', path.join(staging, 'mks.json'))
   // The manifest is written last: its presence marks a complete dataset
   await json('index.json', {
     towns: data.towns.length,

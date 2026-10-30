@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { personId } from '../../src/lib/mkId.ts'
 import type { Candidate, MkProfile } from '../../src/lib/types.ts'
@@ -23,7 +23,8 @@ describe('personId', () => {
 })
 
 describe('mks.json', () => {
-  const mks: MkProfile[] = read('mks.json')
+  // Hand-written and committed, unlike the generated public/data
+  const mks: MkProfile[] = JSON.parse(readFileSync(new URL('../../data/mks.json', import.meta.url), 'utf8'))
   const HE = /[֐-׿]/
   const ordinal = (n: number) => {
     const suffix = ['th', 'st', 'nd', 'rd'][(n % 100 - 20) % 10] || ['th', 'st', 'nd', 'rd'][n % 100] || 'th'
@@ -49,11 +50,15 @@ describe('mks.json', () => {
     }
   })
 
-  it('gives most MKs a Commons photo with a credit, and a credit only with a photo', () => {
+  it('gives most MKs a local photo with a credit, and a credit only with a photo', () => {
     expect(mks.filter((m) => m.photo).length).toBeGreaterThanOrEqual(90)
     for (const m of mks) {
       expect(!!m.photoCredit, m.id).toBe(!!m.photo)
-      if (m.photo) expect(m.photo, m.id).toMatch(/^File:.+\.(jpe?g|png)$/i)
+      if (m.photo) {
+        expect(m.photo, m.id).toBe(`mks/${m.id}.jpg`)
+        expect(existsSync(new URL(`../../public/assets/${m.photo}`, import.meta.url)), m.id).toBe(true)
+        expect(m.photoFile, m.id).toMatch(/^File:.+\.(jpe?g|png|webp|heic|heif)$/i)
+      }
     }
   })
 
