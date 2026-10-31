@@ -23,7 +23,7 @@ change both together if a rule stops fitting.
 | `src/i18n/` | Strings (`en.ts`, `he.ts`, `ctx.ts`), the provider, and `useI18n` |
 | `scripts/` | Build-time data pipeline (`npm run data`, `npm run mks`). Node only, never bundled |
 | `tests/` | Vitest, mirroring the source path it tests (`tests/lib/derive.test.ts`) |
-| `public/` | Files served at the site root: `data/`, `geo/`, `assets/`, the favicon |
+| `public/` | Files served at the site root: `data/`, `assets/`, the two favicons |
 
 ## TypeScript
 
