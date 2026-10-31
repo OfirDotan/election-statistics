@@ -1,14 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <!-- Knesset dome over the chamber's floor: the site's own mark, for a light tab strip: the dark tile -->
+  <!-- Knesset dome over the chamber's floor: the site's own mark, for a dark tab strip: the dark tile -->
   <style>
-    .bg { fill: #1c1c1e }
+    .bg { fill: #232323 }
     .ink { fill: #6c9bf0 }
     .cut { fill: #6c9bf0 }
   </style>
   <rect class="bg" width="48" height="48" rx="11"/>
-  <rect class="ink" x="22.3" y="9" width="3.4" height="7" rx="1.7"/>
-  <path class="ink" d="M10.5 31a13.5 13.5 0 0 1 27 0z"/>
-  <path class="cut" d="M15 31a9 9 0 0 1 18 0z"/>
+  <rect class="ink" x="22.6" y="9" width="4" height="9" rx="2"/>
+  <path class="ink" fill-rule="evenodd" d="M11 31a13 13 0 0 1 26 0zM15.5 31a8.5 8.5 0 0 1 17 0z"/>
   <circle class="ink" cx="24" cy="31" r="3.2"/>
-  <rect class="ink" x="7" y="34" width="34" height="3.5" rx="1.75"/>
+  <rect class="ink" x="8" y="35" width="32" height="5" rx="2.5"/>
 </svg>
