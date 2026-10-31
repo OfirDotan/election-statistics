@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { labelPoints, mainland, shoreline, toWgs84, type MunicipalTopology } from '../../src/lib/mapData.ts'
-import type { FeatureCollection, Geometry, MultiLineString, Polygon } from 'geojson'
+import { labelPoints, shoreline, toWgs84, type MunicipalTopology } from '../../src/lib/mapData.ts'
+import type { FeatureCollection, Geometry, Polygon } from 'geojson'
 
 const topo: MunicipalTopology = JSON.parse(readFileSync(new URL('../../public/data/geo.topo.json', import.meta.url), 'utf8'))
 
@@ -30,18 +30,6 @@ describe('labelPoints', () => {
       return !polys.some((poly) => inside(x, y, poly as number[][][]))
     })
     expect(out.map((f) => f.properties.SETL_CODE)).toEqual([])
-  })
-})
-
-describe('mainland', () => {
-  const country: FeatureCollection<Geometry> = JSON.parse(readFileSync(new URL('../../public/geo/israel.geojson', import.meta.url), 'utf8'))
-  const [ours, bank] = mainland(toWgs84(topo), country).features.map((f) => (f.geometry as MultiLineString).coordinates[0])
-  it('walks the towns of each side of the line as one line', () => {
-    expect(ours.length).toBeGreaterThan(bank.length)
-    // From the western Negev to the Galilee: the towns a ballot reaches
-    expect(ours.some(([x, y]) => x > 35 && y > 33)).toBe(true)
-    expect(bank.some(([x]) => x > 35)).toBe(true)
-    for (const l of [ours, bank]) expect(Math.min(...l.map((p) => p[0]))).toBeGreaterThan(34.2)
   })
 })
 

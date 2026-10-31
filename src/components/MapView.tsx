@@ -8,7 +8,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { useI18n } from '../i18n/useI18n.ts'
 import { partyUrl } from '../lib/links.ts'
 import { fmtPct } from '../lib/fmt.ts'
-import { mainland, toWgs84, type MunicipalTopology } from '../lib/mapData.ts'
+import { toWgs84, type MunicipalTopology } from '../lib/mapData.ts'
 import { readableOn, scaleColor, topParty } from '../lib/mapLogic.ts'
 import { share } from '../lib/stats.ts'
 import type { Town } from '../lib/types.ts'
@@ -104,7 +104,7 @@ export function MapView({
   const box = useRef<HTMLDivElement>(null)
   // Set once the style has loaded and every source and layer is added, so the effects below are ordered after it
   const [map, setMap] = useState<maplibregl.Map | null>(null)
-  const { geo, rows, gone, land } = useMemo(() => {
+  const { geo, rows, gone } = useMemo(() => {
     const geo = toWgs84(topo)
     const rows = new Map<number, Row>()
     const gone = new Set<number>()
@@ -123,7 +123,7 @@ export function MapView({
       if (gaza.has(tw.code)) gone.add(tw.code)
     }
 
-    return { geo, rows, gone, land: country ? mainland(geo, country) : null }
+    return { geo, rows, gone }
   }, [topo, towns, country])
   const names = useMemo(() => new Map(towns.map((tw) => [tw.code, { he: tw.name, en: tw.nameEn }])), [towns])
   // A town's name in the page's language, its English one where Kaplan has a name for its code;
@@ -140,8 +140,7 @@ export function MapView({
 
   useEffect(() => {
     if (!box.current) return
-    // The country's map that the tiles show: there are no tiles to show it without one
-    if (!country || !land) return
+    if (!country) return
     const m = new maplibregl.Map({
       container: box.current,
       style: {
@@ -173,29 +172,18 @@ export function MapView({
     const onScheme = () => dark?.()
     // Fires as the map is constructed for the empty inline style, so it cannot be missed here
     m.once('style.load', () => {
-      m.addSource('land', { type: 'geojson', data: land })
       m.addSource('tiles', { type: 'raster', tiles: [TILES], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' })
-      // Bottom up: the tiles, our washed land, the outline. Outside is the plate under the faded tiles
-      m.addLayer({ id: 'basemap', type: 'raster', source: 'tiles', paint: { 'raster-saturation': -1, 'raster-opacity': 0.85, 'raster-brightness-max': 0.6 } })
-      // A wide line on the land's own edges fills the land and stops at its holes: the sea stays the sea
-      m.addLayer({ id: 'mine', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#f2f2f0', 'line-opacity': 0.6, 'line-width': 20 } })
-      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
-      // The West Bank's outer border, drawn clear of the land's own faint edge
-      m.addLayer({ id: 'edge', type: 'line', source: 'land', filter: ['==', ['get', 'westBank'], true], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#3f3f46', 'line-width': 2 } })
+      // The tiles under everything, the towns over them
+      m.addLayer({ id: 'basemap', type: 'raster', source: 'tiles' })
       // The camera first goes on the whole country while the page is still narrow; settled here, where the frame is its final size
       const bounds = m.getMaxBounds()
       if (bounds && !bounds.contains(m.getCenter())) m.fitBounds(bounds, { animate: false })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
-        // Our land at a wash, so OSM's coast and country show through; dark sinks it toward the ground
-        m.setPaintProperty('mine', 'line-color', dark ? '#141416' : '#f2f2f0')
-        m.setPaintProperty('mine', 'line-opacity', dark ? 0.85 : 0.6)
+        // Dark sinks the tiles toward the ground
+        m.setPaintProperty('basemap', 'raster-brightness-max', dark ? 0.6 : 1)
         m.setPaintProperty('plate', 'background-color', dark ? '#141416' : '#f2f2f0')
-        m.setPaintProperty('basemap', 'raster-opacity', 0.85)
-        m.setPaintProperty('basemap', 'raster-brightness-max', dark ? 0.25 : 0.6)
-        m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
-        m.setPaintProperty('edge', 'line-color', dark ? '#c8c8d0' : '#3f3f46')
         // Town borders, Kaplan's scheme: a 1px grey line over the fill. Dark flips it, since #d3d3d3
         // vanishes on dark fills and would only trace the grey towns
         // Guarded like the names below: bg() runs from style.load, before these layers are added
@@ -275,7 +263,7 @@ export function MapView({
       live = null
       m.remove()
     }
-  }, [geo, land])
+  }, [geo])
 
   // The fill colour is a feature property, so a mode change only re-sends the data
   useEffect(() => {
