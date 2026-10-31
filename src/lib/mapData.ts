@@ -1,4 +1,4 @@
-import type { FeatureCollection, Geometry, Point } from 'geojson'
+import type { FeatureCollection, Geometry, MultiLineString, Point, Polygon } from 'geojson'
 
 export interface TownVotes {
   eligible: number
@@ -229,4 +229,107 @@ export function shoreline(country: FeatureCollection<Geometry>, geo: MunicipalCo
   // New points, never the caller's own: so the outline as loaded stays as it was
   const coordinates = ring.coordinates.map((r: number[][]) => r.map((p) => (sea(p) ? nearest(p) : p))) as unknown as typeof ring.coordinates
   return { ...country, features: [{ ...country.features[0], geometry: { type: 'Polygon', coordinates } }] }
+}
+
+/**
+ * The area the towns cover, as the lines round it: ours, and the West Bank's, whose villages no ballot
+ * reaches. A country alone has the villages that are no shape at all sitting outside it, so every 5 km
+ * square of the map that holds a town's corner is taken, minus the squares with a square's width of their
+ * own free around them; a square is ours or theirs, whichever side of the West Bank's border its middle
+ * falls. Lines, not shapes: the land is drawn as a wide stroke on them, which fills round the holes instead
+ * of across them, so the sea and the gaps in the towns show the tiles under them.
+ */
+export function mainland(geo: MunicipalCollection, country: FeatureCollection<Geometry>): FeatureCollection<MultiLineString, { westBank: boolean }> {
+  const polys = (f: MunicipalCollection['features'][number]) =>
+    (f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : []) as unknown as number[][][][]
+  // 1 km² at least: a few dozen shapes are car parks, farmland and rigs, not towns
+  const area = (r: number[][]) => Math.abs(r.reduce((s, p, i) => s + (r[i + 1] ?? r[0])[0] * p[1] - p[0] * (r[i + 1] ?? r[0])[1], 0)) / 2
+  // Mercator metres, which is what the map draws in: a square on the map is a cell
+  const mx = (lon: number) => (lon * Math.PI * 6_378_137) / 180
+  const my = (lat: number) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) * 6_378_137
+  const CELL = 5_000
+  const cell = new Set<number>()
+  for (const f of geo.features.filter((f) => polys(f).some((p) => area(p[0]) * 89 * 111 >= 1)))
+    for (const p of polys(f).flatMap((r) => r.flat())) cell.add(Math.floor(mx(p[0]) / CELL) * 100_000 + Math.floor(my(p[1]) / CELL))
+  // A square with a square's width of its own free on any side is left out: a corner of one off a cell
+  // that stays goes too, so the outline is the edge of the squares left
+  for (const k of [...cell]) {
+    const i = Math.floor(k / 100_000)
+    const j = k % 100_000
+    if ([-2, 2].some((d) => [[i + d, j], [i, j + d], [i + d, j + d], [i + d, j - d]].every(([a, b]) => !cell.has(a * 100_000 + b)))) cell.delete(k)
+  }
+  const ll = (p: number[]) => [((p[0] / 6_378_137) * 180) / Math.PI, (Math.atan(Math.sinh(p[1] / 6_378_137)) * 180) / Math.PI]
+  const line = bankLine(country)
+  // The edge of the squares: the sides that face a square left out, walked as one line round them. At each
+  // corner the walk takes the side that keeps the squares left, so it circles the outside of every hole and
+  // never crosses back along itself; a stroke on it fills the squares' area and runs out at no corner
+  type Dir = 0 | 1 | 2 | 3
+  type Side = { s: string; e: string; d: Dir }
+  const edge = (cells: Set<number>) => {
+    const key = (x: number, y: number) => `${x},${y}`
+    // A side goes east, north, west or south from its start, a cell corner: direction and end
+    const side = (a: number[], b: number[]) => ({ s: key(a[0], a[1]), e: key(b[0], b[1]), d: (b[0] > a[0] ? 0 : b[1] < a[1] ? 1 : b[0] < a[0] ? 2 : 3) as Dir })
+    const sides: Side[] = []
+    for (const k of cells) {
+      const [x, y] = [Math.floor(k / 100_000), k % 100_000]
+      // A square's left, right, top and bottom sides, each only where the square next to it is left out; each
+      // runs so that this square is on its left
+      for (const [dx, dy, a, b] of [
+        [-1, 0, [x, y], [x, y + 1]],
+        [1, 0, [x + 1, y + 1], [x + 1, y]],
+        [0, -1, [x + 1, y], [x, y]],
+        [0, 1, [x, y + 1], [x + 1, y + 1]],
+      ] as [number, number, number[], number[]][])
+        if (!cells.has((x + dx) * 100_000 + y + dy)) sides.push(side(a, b))
+    }
+    // The sides leaving each point
+    const sidesAt = new Map<string, Side[]>()
+    for (const s of sides) sidesAt.set(s.s, [...(sidesAt.get(s.s) ?? []), s])
+    const pts: number[][] = []
+    const done = new Set<string>()
+    let ends = 0
+    for (const { s, d } of sides) {
+      if (done.has(`${s}|${d}`)) continue
+      let [p, dir]: [string, Dir] = [s, d]
+      while (!done.has(`${p}|${dir}`) && ends++ < 5_000) {
+        done.add(`${p}|${dir}`)
+        const [x, y] = p.split(',').map(Number)
+        pts.push(ll([x * CELL, y * CELL]))
+        // The side that keeps the squares left: the first leaving here clockwise past the one came in by, or
+        // when there is none, the first of all of them, since the squares on it are left by its other side
+        const here = sidesAt.get(p) ?? []
+        const back = ((dir + 2) % 4) as Dir
+        const turn = [...Array(4)].map((_, i) => (back + 1 + i) % 4).flatMap((dd) => here.filter((h) => h.d === dd))
+        const on = turn[0] ?? here[0]
+        if (!on) break
+        p = on.e
+        dir = on.d
+      }
+    }
+    // Back to where it started, so the last side of a loop is drawn too
+    return [pts]
+  }
+  // Ours first, the West Bank's after
+  const side = [new Set<number>(), new Set<number>()]
+  for (const k of cell) side[eastOf(line, ll([Math.floor(k / 100_000) * CELL + CELL / 2, (k % 100_000) * CELL + CELL / 2])) ? 1 : 0].add(k)
+  return {
+    type: 'FeatureCollection',
+    features: side.map((s, i) => ({ type: 'Feature', properties: { westBank: i === 1 }, geometry: { type: 'MultiLineString', coordinates: edge(s) } })),
+  }
+}
+export function eastOf(bank: number[][], [x, y]: number[]): boolean {
+  // The point of the line at the point's height
+  const k = bank.findIndex((p) => p[1] >= y)
+  if (k < 0) return false
+  const [a, b] = [bank[Math.max(k - 1, 0)], bank[k]]
+  return x > a[0] + ((y - a[1]) * (b[0] - a[0])) / (b[1] - a[1] || 1)
+}
+/**
+ * The country's line over the West Bank, south to north: from the border's middle at the sea, up the
+ * Jordan, to Jordan's mouth at Lubia. Its last stretch to the sea at Netanya is left off.
+ */
+export function bankLine(country: FeatureCollection<Geometry>): number[][] {
+  const line = ((country.features[0]?.geometry as Polygon | undefined)?.coordinates[0] ?? []) as number[][]
+  const east = line.findIndex((p) => p[1] < 29.6 && p[0] < 34.96)
+  return line.slice(east, line.findLastIndex((p) => p[1] > 31.55 && p[0] < 35.0) + 1).reverse()
 }

@@ -8,7 +8,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { useI18n } from '../i18n/useI18n.ts'
 import { partyUrl } from '../lib/links.ts'
 import { fmtPct } from '../lib/fmt.ts'
-import { toWgs84, type MunicipalTopology } from '../lib/mapData.ts'
+import { mainland, toWgs84, type MunicipalTopology } from '../lib/mapData.ts'
 import { readableOn, scaleColor, topParty } from '../lib/mapLogic.ts'
 import { share } from '../lib/stats.ts'
 import type { Town } from '../lib/types.ts'
@@ -25,59 +25,61 @@ const NATIONAL = { lng: 35.074, lat: 31.438, zoom: 8 }
 // OSM's own tiles, with their names only inside the country
 const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const NO_DATA = '#d4d4d9'
+// Gaza's towns can't vote here: their towns and names stay off the map
+const KEEP: maplibregl.FilterSpecification = ['has', 'keep']
 // Where names start and where every town has one, and the big towns that also have one zoomed out
 const LABEL_FROM = 6.9
 const LABEL_ALL_FROM = 8.2
 const MAJOR_CODES = [3000, 5000, 4000, 8300, 7900, 7400, 70, 9000]
 // Every place gets a name once zoomed in; their names are in both i18n files, keyed by Hebrew
-const PLACES: { name: string; lonlat: [number, number] }[] = [
-  { name: `place_'ירושלים'`, lonlat: [35.2137, 31.7683] },
-  { name: `place_'תל אביב -יפו'`, lonlat: [34.7818, 32.0853] },
-  { name: `place_'חיפה'`, lonlat: [34.9896, 32.794] },
-  { name: `place_'באר שבע'`, lonlat: [34.7913, 31.2518] },
-  { name: `place_'ראשון לציון'`, lonlat: [34.7925, 31.973] },
-  { name: `place_'פתח תקווה'`, lonlat: [34.8878, 32.084] },
-  { name: `place_'אשדוד'`, lonlat: [34.6405, 31.8014] },
-  { name: `place_'נתניה'`, lonlat: [34.8532, 32.3215] },
-  { name: `place_'בני ברק'`, lonlat: [34.8338, 32.0807] },
-  { name: `place_'חולון'`, lonlat: [34.771, 32.011] },
-  { name: `place_'רמת גן'`, lonlat: [34.8146, 32.0684] },
-  { name: `place_'אשקלון'`, lonlat: [34.5715, 31.6688] },
-  { name: `place_'רחובות'`, lonlat: [34.8113, 31.8928] },
-  { name: `place_'בת ים'`, lonlat: [34.7501, 32.017] },
-  { name: `place_'בית שמש'`, lonlat: [34.988, 31.745] },
-  { name: `place_'כפר סבא'`, lonlat: [34.907, 32.175] },
-  { name: `place_'הרצליה'`, lonlat: [34.8434, 32.1663] },
-  { name: `place_'חדרה'`, lonlat: [34.9198, 32.434] },
-  { name: `place_'מודיעין-מכבים-רעות'`, lonlat: [35.013, 31.897] },
-  { name: `place_'נצרת'`, lonlat: [35.3033, 32.7021] },
-  { name: `place_'עכו'`, lonlat: [35.0728, 32.9281] },
-  { name: `place_'רמלה'`, lonlat: [34.8713, 31.9288] },
-  { name: `place_'לוד'`, lonlat: [34.8951, 31.9514] },
-  { name: `place_'רהט'`, lonlat: [34.7556, 31.3925] },
-  { name: `place_'אילת'`, lonlat: [34.9515, 29.5577] },
-  { name: `place_'טבריה'`, lonlat: [35.5312, 32.794] },
-  { name: `place_'צפת'`, lonlat: [35.496, 32.9646] },
-  { name: `place_'עפולה'`, lonlat: [35.289, 32.607] },
-  { name: `place_'קריית גת'`, lonlat: [34.764, 31.61] },
-  { name: `place_'דימונה'`, lonlat: [35.033, 31.069] },
-  { name: `place_'ערד'`, lonlat: [35.215, 31.259] },
-  { name: `place_'ירוחם'`, lonlat: [34.923, 30.987] },
-  { name: `place_'מצפה רמון'`, lonlat: [34.801, 30.609] },
-  { name: `place_'קריית שמונה'`, lonlat: [35.57, 33.207] },
-  { name: `place_'נהריה'`, lonlat: [35.098, 33.006] },
-  { name: `place_'כרמיאל'`, lonlat: [35.304, 32.918] },
-  { name: `place_'שדרות'`, lonlat: [34.595, 31.525] },
-  { name: `place_'שפרעם'`, lonlat: [35.169, 32.805] },
-  { name: `place_'רמאללה'`, lonlat: [35.206, 31.903] },
-  { name: `place_'בית לחם'`, lonlat: [35.202, 31.706] },
-  { name: `place_'חברון'`, lonlat: [35.099, 31.532] },
-  { name: `place_'יריחו'`, lonlat: [35.444, 31.866] },
-  { name: `place_'שכם'`, lonlat: [35.261, 32.221] },
-  { name: `place_'עזה'`, lonlat: [34.4668, 31.5017] },
-  { name: `place_'ג'נין'`, lonlat: [35.296, 32.461] },
-  { name: `place_'טולכרם'`, lonlat: [35.012, 32.31] },
-  { name: `place_'קלקיליה'`, lonlat: [34.97, 32.19] },
+const PLACES: { name: string; en: string; lonlat: [number, number] }[] = [
+  { name: `place_'ירושלים'`, en: 'Jerusalem', lonlat: [35.2137, 31.7683] },
+  { name: `place_'תל אביב -יפו'`, en: 'Tel Aviv', lonlat: [34.7818, 32.0853] },
+  { name: `place_'חיפה'`, en: 'Haifa', lonlat: [34.9896, 32.794] },
+  { name: `place_'באר שבע'`, en: 'Beer Sheva', lonlat: [34.7913, 31.2518] },
+  { name: `place_'ראשון לציון'`, en: 'Rishon LeZion', lonlat: [34.7925, 31.973] },
+  { name: `place_'פתח תקווה'`, en: 'Petah Tikva', lonlat: [34.8878, 32.084] },
+  { name: `place_'אשדוד'`, en: 'Ashdod', lonlat: [34.6405, 31.8014] },
+  { name: `place_'נתניה'`, en: 'Netanya', lonlat: [34.8532, 32.3215] },
+  { name: `place_'בני ברק'`, en: 'Bnei Brak', lonlat: [34.8338, 32.0807] },
+  { name: `place_'חולון'`, en: 'Holon', lonlat: [34.771, 32.011] },
+  { name: `place_'רמת גן'`, en: 'Ramat Gan', lonlat: [34.8146, 32.0684] },
+  { name: `place_'אשקלון'`, en: 'Ashkelon', lonlat: [34.5715, 31.6688] },
+  { name: `place_'רחובות'`, en: 'Rehovot', lonlat: [34.8113, 31.8928] },
+  { name: `place_'בת ים'`, en: 'Bat Yam', lonlat: [34.7501, 32.017] },
+  { name: `place_'בית שמש'`, en: 'Beit Shemesh', lonlat: [34.988, 31.745] },
+  { name: `place_'כפר סבא'`, en: 'Kfar Saba', lonlat: [34.907, 32.175] },
+  { name: `place_'הרצליה'`, en: 'Herzliya', lonlat: [34.8434, 32.1663] },
+  { name: `place_'חדרה'`, en: 'Hadera', lonlat: [34.9198, 32.434] },
+  { name: `place_'מודיעין-מכבים-רעות'`, en: 'Modiin', lonlat: [35.013, 31.897] },
+  { name: `place_'נצרת'`, en: 'Nazareth', lonlat: [35.3033, 32.7021] },
+  { name: `place_'עכו'`, en: 'Acre', lonlat: [35.0728, 32.9281] },
+  { name: `place_'רמלה'`, en: 'Ramla', lonlat: [34.8713, 31.9288] },
+  { name: `place_'לוד'`, en: 'Lod', lonlat: [34.8951, 31.9514] },
+  { name: `place_'רהט'`, en: 'Rahat', lonlat: [34.7556, 31.3925] },
+  { name: `place_'אילת'`, en: 'Eilat', lonlat: [34.9515, 29.5577] },
+  { name: `place_'טבריה'`, en: 'Tiberias', lonlat: [35.5312, 32.794] },
+  { name: `place_'צפת'`, en: 'Safed', lonlat: [35.496, 32.9646] },
+  { name: `place_'עפולה'`, en: 'Afula', lonlat: [35.289, 32.607] },
+  { name: `place_'קריית גת'`, en: 'Kiryat Gat', lonlat: [34.764, 31.61] },
+  { name: `place_'דימונה'`, en: 'Dimona', lonlat: [35.033, 31.069] },
+  { name: `place_'ערד'`, en: 'Arad', lonlat: [35.215, 31.259] },
+  { name: `place_'ירוחם'`, en: 'Yeruham', lonlat: [34.923, 30.987] },
+  { name: `place_'מצפה רמון'`, en: 'Mitzpe Ramon', lonlat: [34.801, 30.609] },
+  { name: `place_'קריית שמונה'`, en: 'Kiryat Shmona', lonlat: [35.57, 33.207] },
+  { name: `place_'נהריה'`, en: 'Nahariya', lonlat: [35.098, 33.006] },
+  { name: `place_'כרמיאל'`, en: 'Karmiel', lonlat: [35.304, 32.918] },
+  { name: `place_'שדרות'`, en: 'Sderot', lonlat: [34.595, 31.525] },
+  { name: `place_'שפרעם'`, en: "Shefa-'Amr", lonlat: [35.169, 32.805] },
+  { name: `place_'רמאללה'`, en: 'Ramallah', lonlat: [35.206, 31.903] },
+  { name: `place_'בית לחם'`, en: 'Bethlehem', lonlat: [35.202, 31.706] },
+  { name: `place_'חברון'`, en: 'Hebron', lonlat: [35.099, 31.532] },
+  { name: `place_'יריחו'`, en: 'Jericho', lonlat: [35.444, 31.866] },
+  { name: `place_'שכם'`, en: 'Nablus', lonlat: [35.261, 32.221] },
+
+  { name: `place_"ג'נין"`, en: 'Jenin', lonlat: [35.296, 32.461] },
+  { name: `place_'טולכרם'`, en: 'Tulkarm', lonlat: [35.012, 32.31] },
+  { name: `place_'קלקיליה'`, en: 'Qalqilya', lonlat: [34.97, 32.19] },
 ]
 type Row = { name: string; leader: string | null; leaderShare: number | null; turnout: number }
 
@@ -102,29 +104,44 @@ export function MapView({
   const box = useRef<HTMLDivElement>(null)
   // Set once the style has loaded and every source and layer is added, so the effects below are ordered after it
   const [map, setMap] = useState<maplibregl.Map | null>(null)
-  const { geo, rows } = useMemo(() => {
+  const { geo, rows, gone, land } = useMemo(() => {
     const geo = toWgs84(topo)
     const rows = new Map<number, Row>()
+    const gone = new Set<number>()
+    // The strip's own bounding box, short of Egypt and inside the sea: Gaza's towns are all in it
+    const gaza = new Set(
+      geo.features
+        .filter((f) => (f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : []).some((r) => r[0].some(([x, y]) => x > 34.18 && x < 34.6 && y > 31.2 && y < 31.62)))
+        .map((f) => f.properties.SETL_CODE),
+    )
     for (const tw of towns) {
       const v = tw.votes
       if (!v || v.voters <= 0) continue
       const top = topParty(tw)
       rows.set(tw.code, { name: tw.name, leader: top?.party ?? null, leaderShare: top?.share ?? null, turnout: share(v.voters, v.eligible) })
+      // Gaza can't vote here, and its towns' name spots are Gaza's own
+      if (gaza.has(tw.code)) gone.add(tw.code)
     }
-    return { geo, rows }
-  }, [topo, towns])
+
+    return { geo, rows, gone, land: country ? mainland(geo, country) : null }
+  }, [topo, towns, country])
+  const names = useMemo(() => new Map(towns.map((tw) => [tw.code, { he: tw.name, en: tw.nameEn }])), [towns])
   // A town's name in the page's language, its English one where Kaplan has a name for its code;
   // the Hebrew one otherwise, as Kaplan's own map does for the few it has no English for
-  const nameOf = useCallback((code: number, he: string) => (lang === 'en' ? (towns.find((t) => t.code === code)?.nameEn ?? he) : he), [lang, towns])
-  // A place's own name where the town has one, as Kaplan shows Yafo as Tel Aviv, else the town's
+  const nameOf = useCallback((code: number, he: string) => (lang === 'en' ? (names.get(code)?.en ?? he) : he), [lang, names])
+  // The town's name, or the larger place's where the town is one of its neighbourhoods
   const labelOf = useCallback((code: number) => {
     const he = rows.get(code)?.name
     if (!he) return null
-    return PLACES.some((p) => p.name === `place_'${he}'`) ? nameOf(code, he) : he
-  }, [rows, nameOf, lang])
+    const n = lang === 'en' ? names.get(code) : undefined
+    const own = n?.en ? PLACES.find((p) => p.en === n.en) : PLACES.find((p) => p.name === `place_'${he}'`)
+    return own?.name.startsWith('place_') ? (lang === 'en' ? own.en : he) : (n?.en ?? he)
+  }, [rows, names, lang])
 
   useEffect(() => {
     if (!box.current) return
+    // The country's map that the tiles show: there are no tiles to show it without one
+    if (!country || !land) return
     const m = new maplibregl.Map({
       container: box.current,
       style: {
@@ -156,22 +173,15 @@ export function MapView({
     const onScheme = () => dark?.()
     // Fires as the map is constructed for the empty inline style, so it cannot be missed here
     m.once('style.load', () => {
-      // OSM's tiles carry every country's name; only our land may keep them, so a negative copy of the country
-      // is painted over the tiles everywhere but here
-      const flip = (g: Geometry): Geometry =>
-        'coordinates' in g ? ({ ...g, coordinates: (function walk(c: unknown): unknown {
-          if (!Array.isArray(c)) return c
-          return typeof c[0] === 'number' ? [-(c[0] as number), c[1]] : c.map(walk)
-        })(g.coordinates) } as Geometry) : g
-      const negated = country && { ...country, features: country.features.map((f) => ({ ...f, geometry: flip(f.geometry) })) }
-      m.addSource('land', { type: 'geojson', data: country ?? { type: 'FeatureCollection', features: [] } })
-      m.addSource('mask', { type: 'geojson', data: negated ?? { type: 'FeatureCollection', features: [] } })
+      m.addSource('land', { type: 'geojson', data: land })
       m.addSource('tiles', { type: 'raster', tiles: [TILES], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' })
-      // Bottom up: the tiles, the plain country over the rest of them, our washed land, the outline
+      // Bottom up: the tiles, our washed land, the outline. Outside is the plate under the faded tiles
       m.addLayer({ id: 'basemap', type: 'raster', source: 'tiles', paint: { 'raster-saturation': -1, 'raster-opacity': 0.85, 'raster-brightness-max': 0.6 } })
-      m.addLayer({ id: 'paper', type: 'fill', source: 'mask', paint: { 'fill-color': '#f2f2f0', 'fill-opacity': 1 } })
-      m.addLayer({ id: 'mine', type: 'fill', source: 'land', paint: { 'fill-color': '#f2f2f0', 'fill-opacity': 0.6 } })
-      m.addLayer({ id: 'outline', type: 'line', source: 'mask', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
+      // A wide line on the land's own edges fills the land and stops at its holes: the sea stays the sea
+      m.addLayer({ id: 'mine', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#f2f2f0', 'line-opacity': 0.6, 'line-width': 20 } })
+      m.addLayer({ id: 'outline', type: 'line', source: 'land', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#6b7280', 'line-width': 1.5 } })
+      // The West Bank's outer border, drawn clear of the land's own faint edge
+      m.addLayer({ id: 'edge', type: 'line', source: 'land', filter: ['==', ['get', 'westBank'], true], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#3f3f46', 'line-width': 2 } })
       // The camera first goes on the whole country while the page is still narrow; settled here, where the frame is its final size
       const bounds = m.getMaxBounds()
       if (bounds && !bounds.contains(m.getCenter())) m.fitBounds(bounds, { animate: false })
@@ -179,13 +189,13 @@ export function MapView({
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         // Our land at a wash, so OSM's coast and country show through; dark sinks it toward the ground
-        m.setPaintProperty('mine', 'fill-color', dark ? '#141416' : '#f2f2f0')
-        m.setPaintProperty('mine', 'fill-opacity', dark ? 0.85 : 0.6)
+        m.setPaintProperty('mine', 'line-color', dark ? '#141416' : '#f2f2f0')
+        m.setPaintProperty('mine', 'line-opacity', dark ? 0.85 : 0.6)
         m.setPaintProperty('plate', 'background-color', dark ? '#141416' : '#f2f2f0')
         m.setPaintProperty('basemap', 'raster-opacity', 0.85)
         m.setPaintProperty('basemap', 'raster-brightness-max', dark ? 0.25 : 0.6)
-        m.setPaintProperty('paper', 'fill-color', dark ? '#141416' : '#f2f2f0')
         m.setPaintProperty('outline', 'line-color', dark ? '#8a8a93' : '#6b7280')
+        m.setPaintProperty('edge', 'line-color', dark ? '#c8c8d0' : '#3f3f46')
         // Town borders, Kaplan's scheme: a 1px grey line over the fill. Dark flips it, since #d3d3d3
         // vanishes on dark fills and would only trace the grey towns
         // Guarded like the names below: bg() runs from style.load, before these layers are added
@@ -211,21 +221,22 @@ export function MapView({
       watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
       // Pan limit from the country, padded far enough out that maxBounds never forces a zoom back in
       const b = new maplibregl.LngLatBounds([NATIONAL.lng, NATIONAL.lat], [NATIONAL.lng, NATIONAL.lat])
-      for (const f of country?.features ?? []) if (f.geometry) b.extend(f.geometry as never)
+      for (const f of country.features) if (f.geometry) b.extend(f.geometry as never)
       m.setMaxBounds([
         [b.getWest() - 8, b.getSouth() - 8],
         [b.getEast() + 8, b.getNorth() + 8],
       ])
       // The towns source starts empty; the effects below set its data once React has handed over `map`
       // Town id = SETL_CODE, which is how the hover feature-state finds its feature
-      m.addSource('towns', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })
-      m.addLayer({ id: 'towns', type: 'fill', source: 'towns', paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
-      m.addLayer({ id: 'towns-line', type: 'line', source: 'towns', paint: { 'line-color': '#d3d3d3', 'line-width': 1 } })
+            m.addSource('towns', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, promoteId: 'SETL_CODE' })
+      m.addLayer({ id: 'towns', type: 'fill', source: 'towns', filter: KEEP, paint: { 'fill-color': ['get', 'fill'], 'fill-opacity': 0.82 } })
+      m.addLayer({ id: 'towns-line', type: 'line', source: 'towns', filter: KEEP, paint: { 'line-color': '#d3d3d3', 'line-width': 1 } })
       // Hover emphasis, as on Kaplan: a thicker white line on top of the border
       m.addLayer({
         id: 'towns-hover',
         type: 'line',
         source: 'towns',
+        filter: KEEP,
         // feature-state belongs in paint or layout only: `filter` rejects it
         paint: { 'line-color': '#fff', 'line-width': 3, 'line-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 1, 0] },
       })
@@ -236,6 +247,7 @@ export function MapView({
         id: 'labels',
         type: 'symbol',
         source: 'labels',
+        filter: KEEP,
         minzoom: LABEL_FROM,
         layout: {
           'text-font': ['Noto Sans Regular'],
@@ -263,7 +275,7 @@ export function MapView({
       live = null
       m.remove()
     }
-  }, [geo, country])
+  }, [geo, land])
 
   // The fill colour is a feature property, so a mode change only re-sends the data
   useEffect(() => {
@@ -275,9 +287,9 @@ export function MapView({
       if (mode === 'turnout') return scaleColor(r.turnout, 0, 100)
       return r.leaderShare === null ? NO_DATA : scaleColor(r.leaderShare, 0, 100)
     }
-    const data = { ...geo, features: geo.features.map((f) => ({ ...f, properties: { ...f.properties, fill: color(f.properties.SETL_CODE) } })) }
+    const data = { ...geo, features: geo.features.map((f) => ({ ...f, properties: { ...f.properties, fill: color(f.properties.SETL_CODE), keep: !gone.has(f.properties.SETL_CODE) } })) }
     ;(map.getSource('towns') as maplibregl.GeoJSONSource).setData(data)
-  }, [map, geo, mode, rows, party])
+  }, [map, geo, mode, rows, party, gone])
   // The whole thing in the console, to copy back out
   useEffect(() => {
     map?.on('render', () => (window as unknown as { __m: unknown }).__m = map)
@@ -287,11 +299,12 @@ export function MapView({
   useEffect(() => {
     if (!map) return
     const features = labels.features.flatMap((f) => {
-      const name = labelOf(f.properties.SETL_CODE)
-      return name ? [{ ...f, properties: { ...f.properties, name } }] : []
+      const code = f.properties.SETL_CODE
+      const name = labelOf(code)
+      return name ? [{ ...f, properties: { ...f.properties, name, keep: !gone.has(code) } }] : []
     })
     ;(map.getSource('labels') as maplibregl.GeoJSONSource).setData({ ...labels, features })
-  }, [map, labels, labelOf])
+  }, [map, labels, labelOf, gone])
   // The town under the cursor says whose name it is, its own or the place's
   useEffect(() => {
     for (const f of labels.features) if (labelOf(f.properties.SETL_CODE)) map?.setFeatureState({ source: 'labels', id: f.properties.SETL_CODE }, { on: tip?.code === f.properties.SETL_CODE })
