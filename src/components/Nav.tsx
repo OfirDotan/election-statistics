@@ -16,7 +16,7 @@ export function Nav() {
     <header className="masthead">
       <div className="masthead-inner">
         <NavLink to="/" className="brand" end title={t('home')}>
-          <img className="brand-mark" src={`${import.meta.env.BASE_URL}favicon-dark.svg`} alt="" width={26} height={26} />
+          <img className="brand-mark" src={`${import.meta.env.BASE_URL}favicon-light.svg`} alt="" width={26} height={26} />
         </NavLink>
         <nav className="segmented" aria-label={t('app')}>
           {routes.map((r) => (
