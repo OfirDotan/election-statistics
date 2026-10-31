@@ -197,6 +197,24 @@ a:hover {
 }
 .brand-mark {
   display: block;
+  /* Empty: the mark comes from the theme, so it flips with a picked theme too: pale on dark, dark on light */
+  content: url('/favicon-light.svg');
+}
+:root[data-theme='dark'] .brand-mark {
+  content: url('/favicon-dark.svg');
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .brand-mark {
+    content: url('/favicon-dark.svg');
+  }
+}
+/* Empty, then drawn from the theme, so the mark flips with a picked theme too: pale on dark, dark on light */
+.brand-mark {
+  content: url('/favicon-light.svg');
+}
+:root[data-theme='dark'] .brand-mark,
+:root:not([data-theme='light']) .brand-mark {
+  content: url('/favicon-dark.svg');
 }
 
 .segmented {
