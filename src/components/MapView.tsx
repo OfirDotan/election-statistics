@@ -1,4 +1,4 @@
-import type { FeatureCollection, Geometry, Point } from 'geojson'
+import type { FeatureCollection, Point } from 'geojson'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -22,6 +22,8 @@ export type MapMode = 'leader' | 'turnout' | 'share'
 
 // OSM's own link to the country, and the plain OSM tiles under the towns
 const NATIONAL = { lng: 35.074, lat: 31.438, zoom: 8 }
+// The country's corners, west, south, east, north, for the pan limit
+const COUNTRY = [34.27, 29.49, 35.9, 33.34]
 // OSM's own tiles, with their names only inside the country
 const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 const NO_DATA = '#d4d4d9'
@@ -86,14 +88,12 @@ type Row = { name: string; leader: string | null; leaderShare: number | null; tu
 export function MapView({
   topo,
   labels,
-  country,
   towns,
   party,
   onSelectTown,
 }: {
   topo: MunicipalTopology
   labels: FeatureCollection<Point, { SETL_CODE: number }>
-  country: FeatureCollection<Geometry> | undefined
   towns: Town[]
   party: (key: string) => { key: string; name: string; color: string | undefined; slug?: string }
   onSelectTown: (code: number) => void
@@ -124,7 +124,7 @@ export function MapView({
     }
 
     return { geo, rows, gone }
-  }, [topo, towns, country])
+  }, [topo, towns])
   const names = useMemo(() => new Map(towns.map((tw) => [tw.code, { he: tw.name, en: tw.nameEn }])), [towns])
   // A town's name in the page's language, its English one where Kaplan has a name for its code;
   // the Hebrew one otherwise, as Kaplan's own map does for the few it has no English for
@@ -140,13 +140,12 @@ export function MapView({
 
   useEffect(() => {
     if (!box.current) return
-    if (!country) return
     const m = new maplibregl.Map({
       container: box.current,
       style: {
         version: 8,
         sources: {},
-        // The first style layer is always drawn: this plate is the country's own colour, under everything
+        // The first style layer is always drawn: this plate is the page's colour, under everything
         layers: [{ id: 'plate', type: 'background', paint: { 'background-color': '#f2f2f0' } }],
       },
       center: { lng: NATIONAL.lng, lat: NATIONAL.lat },
@@ -175,9 +174,6 @@ export function MapView({
       m.addSource('tiles', { type: 'raster', tiles: [TILES], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' })
       // The tiles under everything, the towns over them
       m.addLayer({ id: 'basemap', type: 'raster', source: 'tiles' })
-      // The camera first goes on the whole country while the page is still narrow; settled here, where the frame is its final size
-      const bounds = m.getMaxBounds()
-      if (bounds && !bounds.contains(m.getCenter())) m.fitBounds(bounds, { animate: false })
       const bg = () => {
         // Same media query the theme uses (settings: light/dark/system)
         const dark = document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
@@ -207,12 +203,10 @@ export function MapView({
       scheme.addEventListener('change', onScheme)
       watch = new MutationObserver(bg)
       watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-      // Pan limit from the country, padded far enough out that maxBounds never forces a zoom back in
-      const b = new maplibregl.LngLatBounds([NATIONAL.lng, NATIONAL.lat], [NATIONAL.lng, NATIONAL.lat])
-      for (const f of country.features) if (f.geometry) b.extend(f.geometry as never)
+      // Pan limit: the country's corners, padded far enough out that maxBounds never forces a zoom back in
       m.setMaxBounds([
-        [b.getWest() - 8, b.getSouth() - 8],
-        [b.getEast() + 8, b.getNorth() + 8],
+        [COUNTRY[0] - 8, COUNTRY[1] - 8],
+        [COUNTRY[2] + 8, COUNTRY[3] + 8],
       ])
       // The towns source starts empty; the effects below set its data once React has handed over `map`
       // Town id = SETL_CODE, which is how the hover feature-state finds its feature

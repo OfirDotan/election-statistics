@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { MapView } from '../components/MapView.tsx'
 import { Loading, LoadError } from '../components/ui.tsx'
 import { useI18n } from '../i18n/useI18n.ts'
-import { loadCountry, loadGeo, loadLabels } from '../lib/mapData.ts'
+import { loadGeo, loadLabels } from '../lib/mapData.ts'
 import { useDataset, useLoad } from '../lib/useData.ts'
 import { useTitle } from '../lib/useTitle.ts'
 
@@ -11,8 +11,6 @@ export function MapPage() {
   const { t } = useI18n()
   const { towns, party, error } = useDataset()
   const geo = useLoad('geo', loadGeo)
-  // A missing outline must not hide the town map, so only the other loads gate it
-  const country = useLoad('country', loadCountry)
   const labels = useLoad('labels', loadLabels)
   const navigate = useNavigate()
   useTitle(t('mapTitle'))
@@ -25,7 +23,7 @@ export function MapPage() {
       {error && <LoadError />}
       {geo.error && <LoadError />}
       {(!towns || !geo.data) && !error && !geo.error && <Loading />}
-      {towns && geo.data && labels.data && <MapView topo={geo.data} labels={labels.data} country={country.data} towns={towns} party={party} onSelectTown={(code) => navigate(`/town/${code}`)} />}
+      {towns && geo.data && labels.data && <MapView topo={geo.data} labels={labels.data} towns={towns} party={party} onSelectTown={(code) => navigate(`/town/${code}`)} />}
     </section>
   )
 }

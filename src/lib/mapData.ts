@@ -43,11 +43,6 @@ const get = async <T>(path: string): Promise<T> => {
 export const loadTowns = () => get<Town[]>('data/towns.json')
 export const loadParties = () => get<Party[]>('data/parties.json')
 export const loadGeo = () => get<MunicipalTopology>('data/geo.topo.json')
-// Country outline: the municipal shapes only touch at corners, so their union has no edge to stroke
-export const loadCountry = async (): Promise<FeatureCollection<Geometry>> => {
-  const [country, topo] = await Promise.all([get<FeatureCollection<Geometry>>('geo/israel.geojson'), loadGeo()])
-  return shoreline(country, toWgs84(topo))
-}
 export const loadLabels = () => loadGeo().then(labelPoints)
 // GovMap's TopoJSON holds a GeometryCollection, which topojson-specification can type, but its
 // properties shape is specific to this file, so the object is described locally.
@@ -164,69 +159,4 @@ export function labelPoints(topo: MunicipalTopology): FeatureCollection<Point, M
       return { type: 'Feature', properties: g.properties, geometry: { type: 'Point', coordinates: [lon(best[2], best[1]), lat(best[2], best[1])] } }
     }),
   }
-}
-
-/**
- * The country outline with its coast redrawn from the towns' own shapes. The outline's coast is too
- * coarse for the towns drawn on it (Eilat's tip misses by ~0.5 km), so every outline vertex on the
- * Mediterranean and the Gulf of Aqaba takes the nearest town edge; the land borders to Egypt, Jordan
- * and the West Bank stay as the outline has them.
- *
- * The towns' coastline is the truth here (the sea ends where they do), but 1-3 km away from it the
- * outline only bounds a pan and nothing is drawn there, so a moved vertex may stray that far.
- */
-export function shoreline(country: FeatureCollection<Geometry>, geo: MunicipalCollection): FeatureCollection<Geometry> {
-  // Every town's coastline: its vertices, and its edges, each from a vertex of its own
-  const pts: number[][] = []
-  const segs: [number[], number[]][] = []
-  for (const f of geo.features) {
-    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.type === 'MultiPolygon' ? f.geometry.coordinates : []
-    // Polygon: one ring list; MultiPolygon: a list of them
-    for (const rings of polys as unknown as number[][][][]) {
-      for (const ring of rings) {
-        pts.push(...ring)
-        for (let i = 1; i < ring.length; i++) segs.push([ring[i - 1], ring[i]])
-      }
-    }
-  }
-  const km = (p: number[], q: number[]) => Math.hypot((p[0] - q[0]) * 89, (p[1] - q[1]) * 111)
-  // 5 km only: a coast vertex further than that from the nearest town is not on that town's coast
-  const x = (lon: number) => Math.floor(lon * 89)
-  const y = (lat: number) => Math.floor(lat * 111)
-  const put = <T>(m: Map<number, T[]>, k: number, t: T) => m.set(k, [...(m.get(k) ?? []), t])
-  const near = new Map<number, number[][]>()
-  // An edge is filed under the cell of its start, and only looked for from within 5 km of that start:
-  // the part of it nearest a point there is then within 5 km of the start too
-  const from = new Map<number, [number[], number[]][]>()
-  for (const p of pts) put(near, x(p[0]) * 1000 + y(p[1]), p)
-  for (const [a, b] of segs) put(from, x(a[0]) * 1000 + y(a[1]), [a, b])
-  const nearest = (p: number[]) => {
-    let best = p
-    let at = Infinity
-    const found: [number[], number[]][] = []
-    for (let i = x(p[0]) - 5; i <= x(p[0]) + 5; i++) {
-      for (let j = y(p[1]) - 5; j <= y(p[1]) + 5; j++) {
-        for (const q of near.get(i * 1000 + j) ?? []) {
-          const d = km(p, q)
-          if (d < at) [best, at] = [q, d]
-        }
-        found.push(...(from.get(i * 1000 + j) ?? []))
-      }
-    }
-    for (const [a, b] of found) {
-      const dx = b[0] - a[0]
-      const dy = b[1] - a[1]
-      const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1)))
-      const d = km(p, [a[0] + t * dx, a[1] + t * dy])
-      if (d < at) [best, at] = [[a[0] + t * dx, a[1] + t * dy], d]
-    }
-    return best
-  }
-  // South of Netanya is Mediterranean coast and the Gulf; up to Rosh Hanikra the coast runs west of 35.08
-  const sea = (p: number[]) => (p[1] < 32.33 && p[0] < 35.0) || (p[1] < 33.1 && p[0] < 35.08)
-  const ring = country.features[0]?.geometry
-  if (ring?.type !== 'Polygon') return country
-  // New points, never the caller's own: so the outline as loaded stays as it was
-  const coordinates = ring.coordinates.map((r: number[][]) => r.map((p) => (sea(p) ? nearest(p) : p))) as unknown as typeof ring.coordinates
-  return { ...country, features: [{ ...country.features[0], geometry: { type: 'Polygon', coordinates } }] }
 }

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { labelPoints, shoreline, toWgs84, type MunicipalTopology } from '../../src/lib/mapData.ts'
-import type { FeatureCollection, Geometry, Polygon } from 'geojson'
+import { labelPoints, toWgs84, type MunicipalTopology } from '../../src/lib/mapData.ts'
+import type { Polygon } from 'geojson'
 
 const topo: MunicipalTopology = JSON.parse(readFileSync(new URL('../../public/data/geo.topo.json', import.meta.url), 'utf8'))
 
@@ -30,18 +30,5 @@ describe('labelPoints', () => {
       return !polys.some((poly) => inside(x, y, poly as number[][][]))
     })
     expect(out.map((f) => f.properties.SETL_CODE)).toEqual([])
-  })
-})
-
-describe('shoreline', () => {
-  it('puts the coast on the towns and leaves the land borders alone', () => {
-    const country: FeatureCollection<Geometry> = JSON.parse(readFileSync(new URL('../../public/geo/israel.geojson', import.meta.url), 'utf8'))
-    const before = (country.features[0].geometry as Polygon).coordinates[0] as number[][]
-    const after = (shoreline(country, toWgs84(topo)).features[0].geometry as Polygon).coordinates[0] as number[][]
-    const km = (p: number[], q: number[]) => Math.hypot((p[0] - q[0]) * 89, (p[1] - q[1]) * 111)
-    const moved = before.map((p, i) => [p, after[i], km(p, after[i])] as const).filter((x) => x[2] > 1e-9)
-    for (const [p] of moved) expect((p[1] < 32.33 && p[0] < 35.0) || (p[1] < 33.1 && p[0] < 35.08)).toBe(true)
-    // Eilat's tip, the towns and the Gulf its shapes leave out
-    expect(moved.filter((x) => x[0][1] < 29.6).length).toBeGreaterThan(5)
   })
 })
