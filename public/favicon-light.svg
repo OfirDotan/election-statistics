@@ -1,14 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <!-- Knesset dome over the chamber's floor: the site's own mark, no party colours.
-       The tile flips against the tab strip: pale on the dark one, dark on the light one -->
+  <!-- Knesset dome over the chamber's floor: the site's own mark, no party colours -->
   <style>
-    .bg { fill: #1c1c1e }
-    .ink { fill: #6c9bf0 }
-    .cut { fill: #6c9bf0 }
+    .bg { fill: #f5f5f7 }
+    .ink { fill: #1c5bad }
+    .cut { fill: #f5f5f7 }
     @media (prefers-color-scheme: dark) {
-      .bg { fill: #f5f5f7 }
-      .ink { fill: #1c5bad }
-      .cut { fill: #f5f5f7 }
+      .bg { fill: #1c1c1e }
+      .ink { fill: #6c9bf0 }
+      .cut { fill: #6c9bf0 }
     }
   </style>
   <rect class="bg" width="48" height="48" rx="11"/>
