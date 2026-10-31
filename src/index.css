@@ -197,15 +197,15 @@ a:hover {
 }
 .brand-mark {
   display: block;
-  /* Empty: the mark comes from the theme, so it flips with a picked theme too: pale on dark, dark on light */
-  content: url('/favicon-light.svg');
+  /* Empty: the mark comes from the theme, across from it: dark on light, pale on dark */
+  content: url('/favicon-dark.svg');
 }
 :root[data-theme='dark'] .brand-mark {
-  content: url('/favicon-dark.svg');
+  content: url('/favicon-light.svg');
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .brand-mark {
-    content: url('/favicon-dark.svg');
+    content: url('/favicon-light.svg');
   }
 }
 /* Empty, then drawn from the theme, so the mark flips with a picked theme too: pale on dark, dark on light */
